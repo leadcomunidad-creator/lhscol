@@ -618,7 +618,7 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
         <div class="section-label">Temporada 2026</div>
         <h2 class="section-title">Mayor que mi realidad<br>es <em>Su Verdad</em></h2>
       </div>
-      <a href="https://www.youtube.com/@lhscol" target="_blank" class="btn-outline-gold">Ver canal completo</a>
+      <a href="https://mayorquemirealidad.netlify.app/" target="_blank" class="btn-outline-gold">Ver Temporada</a>
     </div>
     <div class="yt-grid" id="ytGrid">
       <div class="yt-status">Cargando mensajes…</div>
@@ -734,7 +734,7 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
       <div class="cinfo-list reveal">
         <div class="cinfo-item">
           <div class="cinfo-icon">+</div>
-          <div><h4>Ubicación</h4><p>Fundación Batuta<br>Manizales, Caldas, Colombia</p></div>
+          <div><h4>Ubicación</h4><p><a href="https://maps.app.goo.gl/F54ZYgoF2qVF4XJS8" target="_blank" style="color:var(--gris5);text-decoration:none;transition:color .2s" onmouseover="this.style.color='var(--dorado-soft)'" onmouseout="this.style.color='var(--gris5)'">Fundación Batuta<br>Manizales, Caldas, Colombia</a></p></div>
         </div>
         <div class="cinfo-item">
           <div class="cinfo-icon">◷</div>
@@ -877,32 +877,24 @@ initReveal();
 
 // ── YOUTUBE
 async function loadYoutube() {
+  const API_KEY = 'AIzaSyC5bj_4n7YMkzzOm1ELQx-eA2ovhfWRMFU';
+  const PLAYLIST_ID = 'PLhpjqyFgOGlGHnreNewKd4wjq6vdGiNM9';
   const grid = document.getElementById('ytGrid');
-  const proxy = 'https://api.allorigins.win/get?url=';
-  const handle = '@lhscol';
-  const channelPage = 'https://www.youtube.com/' + handle;
 
   try {
-    const r1 = await fetch(proxy + encodeURIComponent(channelPage));
-    const d1 = await r1.json();
-    const match = d1.contents.match(/"channelId":"(UC[^"]+)"/);
-    if (!match) throw new Error('no channel id');
-    const channelId = match[1];
+    const res = await fetch(
+      'https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=' +
+      PLAYLIST_ID + '&maxResults=6&key=' + API_KEY
+    );
+    const data = await res.json();
 
-    const feedUrl = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + channelId;
-    const r2 = await fetch(proxy + encodeURIComponent(feedUrl));
-    const d2 = await r2.json();
-    const xml = new DOMParser().parseFromString(d2.contents, 'text/xml');
-    const entries = Array.from(xml.querySelectorAll('entry')).slice(0, 6);
+    if (!data.items || !data.items.length) throw new Error('no videos');
 
-    if (!entries.length) throw new Error('no videos');
-
-    grid.innerHTML = entries.map(entry => {
-      const videoId = entry.querySelector('videoId')?.textContent || '';
-      const title   = entry.querySelector('title')?.textContent || '';
-      const pub     = entry.querySelector('published')?.textContent || '';
-      const date    = pub ? new Date(pub).toLocaleDateString('es-CO', {year:'numeric',month:'long',day:'numeric'}) : '';
-      const thumb   = 'https://i.ytimg.com/vi/' + videoId + '/mqdefault.jpg';
+    grid.innerHTML = data.items.map(item => {
+      const videoId = item.snippet.resourceId.videoId;
+      const title   = item.snippet.title;
+      const date    = new Date(item.snippet.publishedAt).toLocaleDateString('es-CO', {year:'numeric', month:'long', day:'numeric'});
+      const thumb   = (item.snippet.thumbnails.medium || item.snippet.thumbnails.default).url;
       return '<div class="yt-card reveal" data-vid="' + videoId + '" data-title="' + title.replace(/"/g,'&quot;') + '">'
         + '<div class="yt-thumb"><img src="' + thumb + '" alt="' + title.replace(/"/g,'') + '" loading="lazy">'
         + '<div class="yt-play-wrap"><div class="yt-play-btn">&#9654;</div></div></div>'
@@ -916,8 +908,9 @@ async function loadYoutube() {
     initReveal();
 
   } catch(err) {
+    console.error('YouTube error:', err);
     grid.innerHTML = '<div class="yt-status">No se pudieron cargar los videos. '
-      + '<a href="https://youtube.com/@lhscol" target="_blank" style="color:var(--dorado)">Ver en YouTube →</a></div>';
+      + '<a href="https://youtube.com/playlist?list=PLhpjqyFgOGlGHnreNewKd4wjq6vdGiNM9" target="_blank" style="color:var(--dorado)">Ver playlist →</a></div>';
   }
 }
 loadYoutube();
