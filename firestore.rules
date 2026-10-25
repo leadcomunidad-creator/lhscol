@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function role() { return signedIn() ? request.auth.token.role : null; }
+    function admin() { return role() in ['owner', 'reviewer', 'viewer']; }
+
+    match /admins/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || role() == 'owner');
+      allow write: if false;
+    }
+    match /events/{eventId} {
+      // The public app only uses Cloud Functions. Direct access stays closed.
+      allow read: if admin();
+      // Las mutaciones administrativas ocurren únicamente mediante Cloud Functions.
+      allow write: if false;
+      match /{document=**} {
+        allow read: if admin();
+        allow write: if false;
+      }
+    }
+  }
+}

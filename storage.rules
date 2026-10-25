@@ -1,0 +1,13 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /public/{eventId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Proofs are written through a short-lived signed URL and never read directly.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

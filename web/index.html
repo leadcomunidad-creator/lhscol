@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Visión 2027 | LHSCOL</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Jost:wght@400;500&family=Playfair+Display:ital,wght@0,400;1,400;1,900&display=swap" rel="stylesheet">
+<style>
+:root{--negro:#0A0A0A;--g1:#1a1a1a;--g2:#2d2d2d;--g3:#6B6B68;--dorado:#C8B273;--soft:#E0D3A9;--crema:#EDE9DE;--blanco:#fff;--err:#f0a99b;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--negro);color:var(--crema);font:400 16px/1.55 'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem}
+header img{width:44px;height:44px}
+.prog{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.prog i{height:3px;border-radius:2px;background:var(--g2);transition:background .4s}
+.prog i.on{background:var(--dorado)}
+main{flex:1;padding:0 1.25rem 1.5rem}
+.step{display:none}
+.step.on{display:block;animation:in .45s ease}
+@keyframes in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+h1{font:italic 900 clamp(4.2rem,24vw,7rem)/.88 'Playfair Display',serif;color:var(--dorado);letter-spacing:-.02em;margin:1.2rem 0 1.6rem}
+h2{font:italic 400 2.1rem/1.1 'Playfair Display',serif;color:var(--blanco);margin:.4rem 0 .5rem}
+p.lead{color:var(--soft);margin-bottom:1.4rem;max-width:34ch}
+dl.facts{display:grid;gap:1rem;margin-bottom:1.8rem}
+dt{font-size:13px;font-weight:600;color:var(--dorado);letter-spacing:.04em}
+dd{font-size:1.05rem;color:var(--blanco)}
+.prices{border-top:1px solid var(--g2);margin-bottom:1.2rem}
+.price{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--g2)}
+.price b{font:italic 400 2rem/1 'Playfair Display',serif;color:var(--blanco);white-space:nowrap}
+.price small,.hint,.note{display:block;font-size:13.5px;color:var(--g3);color:#9a9890}
+.note{margin:.4rem 0 1.4rem;line-height:1.5}
+.btn{display:block;width:100%;text-align:center;text-decoration:none;font:600 1rem 'DM Sans',sans-serif;background:var(--dorado);color:var(--negro);border:0;border-radius:4px;padding:1rem;cursor:pointer;transition:background .2s,transform .15s}
+.btn:hover{background:var(--soft)}
+.btn:active{transform:scale(.985)}
+.btn:disabled{background:var(--g2);color:var(--g3);cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--crema);border:1px solid rgba(237,233,222,.3)}
+:focus-visible{outline:2px solid var(--soft);outline-offset:3px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.1rem 0;border-bottom:1px solid var(--g2)}
+.row strong{display:block;color:var(--blanco);font-weight:500}
+.ctr{display:flex;align-items:center;gap:.9rem}
+.ctr button{width:44px;height:44px;border-radius:50%;border:1px solid var(--dorado);background:none;color:var(--dorado);font-size:1.4rem;cursor:pointer;transition:background .2s}
+.ctr button:hover{background:rgba(200,178,115,.14)}
+.ctr output{min-width:1.6ch;text-align:center;font:italic 400 1.9rem 'Playfair Display',serif;color:var(--blanco)}
+.bar{position:sticky;bottom:0;background:linear-gradient(transparent,var(--negro) 28%);padding:1.4rem 0 calc(.5rem + env(safe-area-inset-bottom,0px));margin-top:1.4rem}
+.sum{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.8rem}
+.sum b{font:italic 400 1.9rem 'Playfair Display',serif;color:var(--dorado)}
+fieldset{border:0;border-left:2px solid var(--dorado);padding:.2rem 0 .4rem 1rem;margin:0 0 1.6rem;display:grid;gap:.9rem}
+legend{float:left;width:100%;font:italic 400 1.35rem 'Playfair Display',serif;color:var(--blanco);margin-bottom:.9rem}
+legend+*{clear:both}
+label{display:grid;gap:.35rem;font-size:14px;color:var(--soft)}
+input:not([type=checkbox]):not([type=file]),select{width:100%;font:400 1rem 'DM Sans',sans-serif;background:var(--g1);color:var(--blanco);border:1px solid var(--g2);border-radius:4px;padding:.85rem .9rem;transition:border-color .2s}
+input:focus,select:focus{border-color:var(--dorado);outline:none}
+[aria-invalid=true]{border-color:var(--err)!important}
+.chk{display:flex;gap:.7rem;align-items:flex-start;font-size:14px;color:var(--crema);margin:.9rem 0}
+.chk input{width:22px;height:22px;flex:none;accent-color:var(--dorado);margin-top:2px}
+.chk a{color:var(--soft)}
+.msg{color:var(--err);font-size:14px;min-height:1.3em;margin-top:.5rem}
+.qr{background:#fff;border-radius:10px;padding:10px;margin:1rem 0 1.4rem}
+.qr img{display:block;width:100%;height:auto}
+.drop{display:block;border:1px dashed var(--dorado);border-radius:6px;padding:1.4rem 1rem;text-align:center;color:var(--soft);cursor:pointer;transition:background .2s}
+.drop:hover{background:rgba(200,178,115,.08)}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.drop:focus-within{outline:2px solid var(--soft);outline-offset:3px}
+.big{font:italic 400 2.6rem/1 'Playfair Display',serif;color:var(--dorado);margin:.2rem 0 1.2rem}
+ul.ppl{list-style:none;padding:0;margin:1.2rem 0 1.6rem}
+ul.ppl li{padding:.6rem 0;border-bottom:1px solid var(--g2);color:var(--blanco)}
+ul.ppl li span{color:#9a9890;font-size:14px;margin-left:.5rem}
+.ok{width:76px;height:76px;margin:1.4rem 0 .6rem}
+.ok circle{fill:none;stroke:var(--g2);stroke-width:3}
+.ok path{fill:none;stroke:var(--dorado);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:50;stroke-dashoffset:50;animation:draw .7s .25s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+footer{padding:1.2rem 1.25rem calc(1.4rem + env(safe-area-inset-bottom,0px));font-size:13px;color:#9a9890;border-top:1px solid var(--g2);text-align:center}
+footer a{color:var(--soft)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.ok path{stroke-dashoffset:0}}
+
+body{background:radial-gradient(120% 55% at 88% 0,rgba(200,178,115,.11),transparent 60%),var(--negro);background-attachment:fixed}
+.prog i{position:relative;overflow:hidden}.prog i.on{background:var(--g2)}
+.prog i::after{content:'';position:absolute;inset:0;background:var(--dorado);transform:scaleX(0);transform-origin:left;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.prog i.on::after{transform:scaleX(1)}
+.stp{font-size:13.5px;font-weight:600;color:var(--dorado);margin-top:.4rem}
+h2{font-size:2.5rem;letter-spacing:-.01em;line-height:1.05}
+.step.hero.on{display:flex;flex-direction:column;position:relative;padding:1.8rem 1.2rem 1.2rem;min-height:calc(100svh - 84px)}
+.frame i{position:absolute;width:20px;height:20px;border:1px solid var(--dorado);opacity:.75}
+.frame i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0}.frame i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0}
+.frame i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0}.frame i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0}
+.hero h1{font-size:clamp(4.4rem,25vw,7.2rem);line-height:.86;margin:.6rem 0 0}
+.hero h1 .w{display:block;overflow:hidden;padding:0 .1em .1em 0}
+.hero h1 .w>span{display:block;transform:translateY(105%);animation:up 1.1s .15s cubic-bezier(.2,.8,.2,1) forwards}
+.hero .y{display:block;font:italic 900 clamp(4.4rem,25vw,7.2rem)/.86 'Playfair Display',serif;color:transparent;-webkit-text-stroke:1.3px var(--dorado);padding-left:.3em;letter-spacing:.03em;opacity:0;animation:fade 1.2s .8s ease forwards}
+.hz{display:block;height:1px;background:var(--dorado);margin:1.5rem 0;transform:scaleX(0);transform-origin:left;animation:line 1.2s .5s ease forwards}
+.date{display:flex;align-items:center;gap:1.1rem}
+.date b{font:italic 400 clamp(4.6rem,24vw,6.2rem)/.8 'Playfair Display',serif;color:var(--blanco)}
+.date div{border-left:1px solid var(--dorado);padding-left:1.1rem;display:grid;gap:.15rem}
+.date div span:first-child{color:var(--dorado);font-weight:600}
+.venue{margin-top:1.1rem;color:var(--blanco);font-size:1.05rem}
+.hero .lead{max-width:36ch;margin:1rem 0 0}
+.seal{display:flex;align-items:center;gap:.9rem;border:1px solid rgba(200,178,115,.3);border-radius:4px;padding:.9rem 1rem;margin:1.3rem 0 0;font-size:14.5px;color:var(--soft)}
+.seal .bar{flex:none;width:44px;height:8px;border-radius:2px;background:linear-gradient(90deg,#6f6238,var(--dorado),#6f6238)}
+.seal p{margin:0}
+.tix{display:grid;grid-template-columns:1fr 1fr;border:1px solid rgba(200,178,115,.3);border-radius:6px;background:linear-gradient(160deg,#151515,#0d0d0d);margin-top:1.2rem}
+.tk{padding:1rem 1rem 1.1rem}.tk+.tk{border-left:1px dashed rgba(200,178,115,.4)}
+.tk span{display:block;font:italic 400 1.3rem 'Playfair Display',serif;color:var(--blanco)}
+.tk small{display:block;font-size:13px;color:#9a9890;margin-bottom:.9rem}
+.tk b{font:italic 400 1.9rem/1 'Playfair Display',serif;color:var(--dorado)}
+.hero .note{margin:1rem 0 1.4rem}.hero .btn{margin-top:auto}
+.hero>.date,.hero>.venue,.hero>.lead,.hero>.seal,.hero>.tix,.hero>.note,.hero>.btn{opacity:0;animation:fade .9s ease forwards}
+.hero>.date{animation-delay:1.1s}.hero>.venue{animation-delay:1.25s}.hero>.lead{animation-delay:1.4s}.hero>.seal{animation-delay:1.6s}.hero>.tix{animation-delay:1.75s}.hero>.note{animation-delay:1.85s}.hero>.btn{animation-delay:1.95s}
+@keyframes up{to{transform:none}}@keyframes fade{to{opacity:1}}@keyframes line{to{transform:scaleX(1)}}
+@keyframes bump{40%{transform:scale(1.18)}}
+.bump{display:inline-block;animation:bump .3s ease}
+.btn{position:relative;overflow:hidden;letter-spacing:.02em}
+.btn::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.5) 50%,transparent 60%);transform:translateX(-120%);transition:transform .7s}
+.btn:not(:disabled):hover::after{transform:translateX(120%)}.btn.ghost::after{display:none}
+.btn:not(:disabled):hover{box-shadow:0 0 0 4px rgba(200,178,115,.16)}
+input:focus,select:focus{box-shadow:0 0 0 3px rgba(200,178,115,.18)}
+.chk input{appearance:none;-webkit-appearance:none;border:1px solid var(--dorado);border-radius:3px;background:transparent;display:grid;place-content:center;transition:background .2s}
+.chk input::after{content:'';width:10px;height:6px;border:solid var(--negro);border-width:0 0 2px 2px;transform:rotate(-45deg) scale(0);transition:transform .15s;margin-top:-2px}
+.chk input:checked{background:var(--dorado)}.chk input:checked::after{transform:rotate(-45deg) scale(1)}
+.drop.has{border-style:solid;background:rgba(200,178,115,.1);color:var(--dorado)}
+.qr{box-shadow:0 0 0 1px rgba(200,178,115,.5),0 18px 40px rgba(0,0,0,.5)}
+.ok{width:96px;height:96px;filter:drop-shadow(0 0 14px rgba(200,178,115,.35))}.ok circle{stroke:var(--dorado);stroke-opacity:.4}
+@media(prefers-reduced-motion:reduce){.hero>*,.hero .y{opacity:1!important}.hero h1 .w>span,.hz{transform:none!important}}
+
+.step.hero.on{display:block;min-height:0}
+.plaque{position:relative;display:flex;justify-content:center;align-items:baseline;gap:.5rem;background:var(--crema);padding:1.3rem .8rem 1rem;white-space:nowrap;clip-path:inset(0 100% 0 0);animation:wipe 1s .1s cubic-bezier(.7,0,.2,1) forwards}
+.plaque::before{content:'';position:absolute;inset:6px;border:1px solid rgba(10,10,10,.28);pointer-events:none}
+.pv,.py{font-family:'Anton','Oswald',Impact,sans-serif;text-transform:uppercase;font-size:clamp(3.2rem,16.5vw,5rem);line-height:1;letter-spacing:.01em}
+.pv{color:var(--negro)}.py{color:#8a7838}
+@keyframes wipe{to{clip-path:inset(0)}}
+.lema{font:italic 400 clamp(1.45rem,6.4vw,1.8rem)/1.2 'Playfair Display',serif;color:var(--blanco);margin:1.3rem 0 1.5rem}
+.hero>.lema,.hero>.cta{opacity:0;animation:fade .9s ease forwards}
+.hero>.lema{animation-delay:.9s}.hero>.date{animation-delay:1.05s}.hero>.venue{animation-delay:1.15s}.hero>.lead{animation-delay:1.25s}.hero>.seal{animation-delay:1.4s}.hero>.tix{animation-delay:1.5s}.hero>.note{animation-delay:1.6s}.hero>.cta{animation-delay:1.7s}
+.cta{position:sticky;bottom:0;padding:1.2rem 0 calc(.6rem + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--negro) 30%)}
+.hint,.price small,.tk small,.note,footer,ul.ppl li span{color:#bdbab0}
+.hint,.note,.tk small,label,.msg,.stp,ul.ppl li span{font-size:15px}
+.lead{font-size:17px;color:var(--crema)}.seal{font-size:15.5px;color:var(--crema)}footer{font-size:14.5px}
+::placeholder{color:#8f8d85}
+@media(prefers-reduced-motion:reduce){.plaque{clip-path:none!important}}
+
+.wm{display:block;width:100%;height:auto;margin:.2rem 0 0;clip-path:inset(100% 0 0 0);animation:rise 1.1s .1s cubic-bezier(.7,0,.2,1) forwards}
+@keyframes rise{to{clip-path:inset(0)}}
+.lema{font:500 clamp(.78rem,3.5vw,.92rem)/1.7 'Jost','DM Sans',sans-serif;letter-spacing:.17em;text-transform:uppercase;text-align:center;color:var(--crema);margin:1.1rem 0 1.6rem}
+.lema span{display:block;white-space:nowrap}
+@media(prefers-reduced-motion:reduce){.wm{clip-path:none!important}}
+
+:root{--negro:#fff;--g1:#F3F4F9;--g2:#D9DCEB;--g3:#6a7096;--dorado:#0e1958;--soft:#3a4170;--crema:#0e1958;--blanco:#0e1958;--err:#b3261e;color-scheme:light}
+body{background:#fff}
+.hint,.price small,.tk small,.note,footer,ul.ppl li span{color:#4b5278}
+::placeholder{color:#8a8fae}
+.btn.ghost{border-color:rgba(14,25,88,.35)}
+.btn:not(:disabled):hover{box-shadow:0 0 0 4px rgba(14,25,88,.14)}
+.ctr button:hover{background:rgba(14,25,88,.08)}
+.drop:hover{background:rgba(14,25,88,.05)}.drop.has{background:rgba(14,25,88,.07);color:var(--dorado)}
+input:focus,select:focus{box-shadow:0 0 0 3px rgba(14,25,88,.14)}
+.seal,.tix{border-color:rgba(14,25,88,.28)}.tk+.tk{border-left-color:rgba(14,25,88,.35)}
+.tix{background:#F6F7FB}.seal .bar{background:var(--dorado)}
+.qr{background:#fff;box-shadow:0 0 0 1px rgba(14,25,88,.45),0 14px 30px rgba(14,25,88,.12)}
+.ok{filter:none}.ok circle{stroke-opacity:.25}
+.frame i{opacity:.55}
+</style>
+</head>
+<body>
+<div class="app">
+<header><img src="/logo-lhscol-azul.png" alt="LHSCOL Comunidad"><div class="prog" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></div></header>
+<main>
+
+<section class="step on hero" data-s="1">
+  <div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <img class="wm" src="/wordmark.png" alt="Visión 2027" width="1000" height="232">
+  <p class="lema"><span>Celebramos lo vivido.</span><span>Descubrimos lo que viene.</span></p>
+  <div class="date"><b data-b="day">19</b><div><span data-b="wd">Sábado</span><span data-b="mo">diciembre de 2026</span><span data-b="time">6:00 a 9:00 p. m.</span></div></div>
+  <p class="venue" data-b="venue">Auditorio Fundación Batuta, Manizales, Caldas</p>
+  <p class="lead">Estás invitado a una noche para vivir juntos el cierre de la temporada. Incluye alimentación y un concierto de nuestro grupo musical.</p>
+  <div class="seal"><span class="bar" aria-hidden="true"></span><p>El nombre de la nueva temporada se revela esa noche.</p></div>
+  <div class="tix"><div class="tk"><span>Adulto</span><small>12 años en adelante</small><b data-p="adult">$70.000</b></div><div class="tk"><span>Niño</span><small>De 2 a 11 años</small><b data-p="child">$35.000</b></div></div>
+  <p class="note">Los menores de 2 años no pagan, pero no se registran ni incluyen alimentación. Cada persona tiene su propia boleta. Inscripciones abiertas hasta el 5 de diciembre.</p>
+  <div class="cta"><button class="btn" data-go="2">Inscribirme</button></div>
+</section>
+
+<section class="step" data-s="2">
+  <h2>¿Quiénes asisten?</h2>
+  <p class="lead">Inscribe a toda tu familia en un solo pago. Cada persona recibe su boleta.</p>
+  <div class="row"><div><strong>Adultos</strong><small class="hint">12 años en adelante, $70.000 c/u</small></div><div class="ctr"><button data-k="a" data-d="-1" aria-label="Quitar un adulto">−</button><output id="na">1</output><button data-k="a" data-d="1" aria-label="Agregar un adulto">+</button></div></div>
+  <div class="row"><div><strong>Niños</strong><small class="hint">De 2 a 11 años, $35.000 c/u</small></div><div class="ctr"><button data-k="n" data-d="-1" aria-label="Quitar un niño">−</button><output id="nn">0</output><button data-k="n" data-d="1" aria-label="Agregar un niño">+</button></div></div>
+  <p class="note">Los bebés menores de 2 años no se registran. Máximo 10 personas por inscripción.</p>
+  <div class="bar"><div class="sum"><span id="det">1 adulto</span><b id="t2">$70.000 COP</b></div><button class="btn" data-go="3">Continuar</button><button class="btn ghost" style="margin-top:.6rem" data-go="1">Volver</button></div>
+</section>
+
+<section class="step" data-s="3">
+  <h2>Datos de los asistentes</h2>
+  <p class="lead">Solo pedimos lo necesario. Los niños no necesitan WhatsApp propio.</p>
+  <form id="frm" novalidate>
+    <div id="people"></div>
+    <label class="chk"><input type="checkbox" id="c1"><span>Autorizo a LHSCOL a usar mis datos y los de las personas que inscribo solo para gestionar su asistencia a Visión 2027. Conozco la <a href="#" onclick="return false">política de tratamiento de datos</a>.</span></label>
+    <label class="chk" id="kidsConsent" hidden><input type="checkbox" id="c2"><span>Soy padre, madre o acudiente de los niños inscritos y autorizo el uso de sus datos para este fin.</span></label>
+    <p class="msg" id="m3" role="alert"></p>
+    <div class="bar"><div class="sum"><span>Total</span><b id="t3"></b></div><button class="btn" type="submit">Ir al pago</button><button class="btn ghost" type="button" style="margin-top:.6rem" data-go="2">Volver</button></div>
+  </form>
+</section>
+
+<section class="step" data-s="4">
+  <h2>Pago</h2>
+  <p>Total a pagar</p>
+  <div class="big" id="t4"></div>
+  <a class="btn" id="paymentLink" href="#" target="_blank" rel="noopener">Pagar con enlace de pago</a>
+  <p class="note" style="margin-top:1.4rem">O escanea este código QR desde tu app bancaria:</p>
+  <div class="qr" id="paymentQrContainer" hidden><img alt="Código QR de pago de LHSCOL"></div>
+  <h2 style="font-size:1.5rem">Adjunta tu comprobante</h2>
+  <p class="hint" style="margin-bottom:.8rem">Una captura o foto del pago, en JPG, PNG o PDF de hasta 5 MB.</p>
+  <label class="drop"><input type="file" id="file" accept="image/jpeg,image/png,application/pdf"><span id="fname">Toca para elegir una foto o un PDF</span></label>
+  <p class="msg" id="fmsg" role="alert"></p>
+  <div class="bar"><button class="btn" id="send" disabled data-go="5">Enviar inscripción</button><button class="btn ghost" style="margin-top:.6rem" data-go="3">Volver</button></div>
+</section>
+
+<section class="step" data-s="5">
+  <svg class="ok" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="35"/><path d="M24 39l10 10 19-21"/></svg>
+  <h2>Solicitud recibida</h2>
+  <p class="lead">Tu cupo queda pendiente hasta que validemos el pago. Cuando lo aprobemos, te enviaremos las boletas por WhatsApp<span id="wa"></span>.</p>
+  <ul class="ppl" id="list"></ul>
+  <button class="btn ghost" data-go="1">Volver al inicio</button>
+</section>
+
+</main>
+<footer>¿Dudas? <a href="https://wa.me/573043229348" target="_blank" rel="noopener">Escríbenos por WhatsApp</a><br>Prototipo visual: todavía no se guarda ningún dato.</footer>
+</div>
+<script>
+var CFG={name:'Visión',year:'2027',wd:'Sábado',day:'19',mo:'diciembre de 2026',time:'6:00 a 9:00 p. m.',venue:'Auditorio Fundación Batuta, Manizales, Caldas',adult:70000,child:35000},P={a:CFG.adult,n:CFG.child},$=function(s){return document.querySelector(s)},$$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
+var cop=function(n){return '$'+n.toLocaleString('es-CO')+' COP'};
+var st={a:1,n:0,file:null},built='';
+function total(){return st.a*P.a+st.n*P.n}
+function go(n){
+  $$('.step').forEach(function(e){e.classList.toggle('on',+e.dataset.s===n)});
+  $$('.prog i').forEach(function(e,i){e.classList.toggle('on',i<n)});
+  if(n===3)buildForm();
+  if(n===4)$('#t4').textContent=cop(total());
+  if(n===5)done();
+  if(n===1){st.file=null;$('#file').value='';$('#fname').textContent='Toca para elegir una foto o un PDF';$('#send').disabled=true;}
+  window.scrollTo({top:0});
+}
+$$('[data-go]').forEach(function(b){b.addEventListener('click',function(){go(+b.dataset.go)})});
+function render2(){
+  $('#na').textContent=st.a;$('#nn').textContent=st.n;
+  $('#det').textContent=st.a+(st.a===1?' adulto':' adultos')+(st.n?' y '+st.n+(st.n===1?' niño':' niños'):'');
+  $('#t2').textContent=cop(total());
+}
+$$('[data-k]').forEach(function(b){b.addEventListener('click',function(){
+  var k=b.dataset.k,d=+b.dataset.d,v=st[k]+d;
+  if(v<(k==='a'?1:0)||(d>0&&st.a+st.n>=10))return;
+  st[k]=v;render2();
+})});
+function card(t,id,type){
+  var h='<fieldset><legend>'+t+'</legend><label>Nombre<input name="'+id+'n" autocomplete="given-name" required></label><label>Apellido<input name="'+id+'l" autocomplete="family-name" required></label>';
+  if(type==='resp')h+='<label>WhatsApp<input name="wa" type="tel" inputmode="tel" placeholder="300 000 0000" autocomplete="tel" required></label><span class="hint">Aquí enviaremos las boletas de todo tu grupo.</span>';
+  if(type==='kid')h+='<label>Edad<select name="'+id+'e" required><option value="">Elige la edad</option>'+[2,3,4,5,6,7,8,9,10,11].map(function(x){return '<option>'+x+' años</option>'}).join('')+'</select></label>';
+  return h+'</fieldset>';
+}
+function buildForm(){
+  $('#t3').textContent=cop(total());
+  var key=st.a+'-'+st.n;if(key===built)return;built=key;
+  var h='',i;
+  for(i=1;i<=st.a;i++)h+=card('Adulto '+i+(i===1?' (responsable)':''),'a'+i,i===1?'resp':'ad');
+  for(i=1;i<=st.n;i++)h+=card('Niño '+i,'n'+i,'kid');
+  $('#people').innerHTML=h;$('#kidsConsent').hidden=!st.n;
+}
+$('#frm').addEventListener('submit',function(e){
+  e.preventDefault();var bad=0;
+  $$('#frm input[required],#frm select[required]').forEach(function(f){
+    var v=f.value.trim(),ok=!!v;
+    if(ok&&f.name==='wa')ok=/^(57)?3\d{9}$/.test(v.replace(/\D/g,''));
+    f.setAttribute('aria-invalid',ok?'false':'true');if(!ok)bad++;
+  });
+  var c1=$('#c1').checked,c2=!st.n||$('#c2').checked;
+  $('#m3').textContent=bad?'Revisa los campos marcados. El WhatsApp debe ser un celular colombiano de 10 dígitos.':(!c1||!c2)?'Marca las autorizaciones para continuar.':'';
+  if(!bad&&c1&&c2)go(4);
+});
+$('#file').addEventListener('change',function(e){
+  var f=e.target.files[0],m=$('#fmsg');st.file=null;m.textContent='';
+  if(f){
+    if(['image/jpeg','image/png','application/pdf'].indexOf(f.type)<0)m.textContent='Solo se aceptan archivos JPG, PNG o PDF.';
+    else if(f.size>5*1024*1024)m.textContent='El archivo supera los 5 MB. Prueba con una captura más liviana.';
+    else st.file=f;
+  }
+  $('#fname').textContent=st.file?st.file.name:'Toca para elegir una foto o un PDF';
+  $('#send').disabled=!st.file;$('.drop').classList.toggle('has',!!st.file);
+});
+function done(){
+  var v=function(n){var el=document.querySelector('[name="'+n+'"]');return el?el.value.trim():''};
+  var w=v('wa').replace(/\D/g,'').replace(/^57/,'');
+  $('#wa').textContent=w?' al '+w.replace(/(\d{3})(\d{3})(\d{4})/,'$1 $2 $3'):'';
+  var h='',i;
+  for(i=1;i<=st.a;i++)h+='<li>'+v('a'+i+'n')+' '+v('a'+i+'l')+'<span>Adulto</span></li>';
+  for(i=1;i<=st.n;i++)h+='<li>'+v('n'+i+'n')+' '+v('n'+i+'l')+'<span>Niño, '+v('n'+i+'e')+'</span></li>';
+  $('#list').innerHTML=h;
+}
+var _r=render2;render2=function(){var ids=['#na','#nn','#t2'],b=ids.map(function(i){return $(i).textContent});_r();ids.forEach(function(i,k){var e=$(i);if(e.textContent!==b[k]){e.classList.remove('bump');void e.offsetWidth;e.classList.add('bump')}})};
+$$('[data-b]').forEach(function(e){e.textContent=CFG[e.dataset.b]});
+$$('[data-p]').forEach(function(e){e.textContent='$'+CFG[e.dataset.p].toLocaleString('es-CO')});
+$$('.step').forEach(function(e){var n=+e.dataset.s;if(n>1&&n<5){var p=document.createElement('p');p.className='stp';p.textContent='Paso '+n+' de 5';e.insertBefore(p,e.firstChild)}});
+render2();
+</script>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+node_modules/
+.tools/
+dist/
+.firebase/
+firebase-debug.log
+firestore-debug.log
+storage-debug.log
+*.local
+.env
+.env.*
+!.env.example
+
+# Archivos entregados como referencia o datos locales de emuladores: nunca publicar ni versionar.
+assets/
+prototipo/
+SPEC.md
+LEEME.md
+test-data/*.local.*
+!test-data/payment.local.example.json
