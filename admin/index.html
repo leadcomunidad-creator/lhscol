@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Administración · Visión</title>
+  <style>
+    :root{font-family:system-ui,sans-serif;color:#0e1958;background:#f6f7fb}body{margin:0}.wrap{max-width:1000px;margin:auto;padding:2rem}header{display:flex;justify-content:space-between;gap:1rem;align-items:center}button,input{font:inherit;padding:.7rem;border:1px solid #bac2dc;border-radius:.4rem}button{background:#0e1958;color:#fff;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin:1.5rem 0}.card,li{background:#fff;border-radius:.6rem;padding:1rem;box-shadow:0 1px 3px #0e19581a}.number{font-size:1.5rem;font-weight:700}ul{padding:0;list-style:none}.payment{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.8rem 0}.muted{color:#56607b}#message{min-height:1.4em}
+  </style>
+  <script type="module" crossorigin src="/assets/admin-DMYzW54Z.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/app-check-Bah77FWG.js">
+</head>
+<body>
+  <main class="wrap">
+    <header><div><h1>Panel de Visión</h1><p class="muted">Administración de pagos y boletas</p></div><button id="signIn">Ingresar con Google</button></header>
+    <p id="message" role="status">Inicia sesión con una cuenta administradora.</p>
+    <label>Identificador de edición <input id="eventId" autocomplete="off"></label>
+    <button id="refresh">Actualizar resumen</button>
+    <section class="grid" aria-label="Resumen">
+      <article class="card"><span>En reserva</span><div class="number" id="held">—</div></article>
+      <article class="card"><span>Por revisar</span><div class="number" id="pending">—</div></article>
+      <article class="card"><span>Confirmados</span><div class="number" id="confirmed">—</div></article>
+      <article class="card"><span>Ingresos verificados</span><div class="number" id="income">—</div></article>
+    </section>
+    <section><h2>Pagos pendientes</h2><ul id="payments"><li class="muted">Sin datos todavía.</li></ul></section>
+    <section><h2>Envíos de WhatsApp</h2><ul id="communications"><li class="muted">Sin datos todavía.</li></ul></section>
+    <section><h2>Exportaciones</h2><button id="exportAttendees">CSV asistentes</button><button id="exportPayments">CSV pagos</button><button id="reviewAlerts">Preparar alertas de revisión</button></section>
+  </main>
+</body>
+</html>
