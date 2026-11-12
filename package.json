@@ -1,0 +1,9 @@
+{
+  "name": "lhscol-web",
+  "private": true,
+  "type": "module",
+  "description": "Sitio institucional LHSCOL. La web es estática; las funciones de Netlify atienden las inscripciones de Todos a la Mesa.",
+  "dependencies": {
+    "@netlify/blobs": "^10.0.0"
+  }
+}
