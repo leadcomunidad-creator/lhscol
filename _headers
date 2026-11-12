@@ -8,3 +8,13 @@
 
 /assets/pwa/*
   Cache-Control: public, max-age=31536000, immutable
+
+/mesa/admin/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache
+
+/mesa/*
+  Cache-Control: no-cache
+
+/assets/mesa/*
+  Cache-Control: public, max-age=86400

@@ -788,7 +788,25 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
           <span class="evento-meta">Un respirar de Su Presencia</span>
         </div>
       </div>
-<!--MESA_CARD-->
+      <div class="evento-card reveal d1" id="mesaCard">
+        <div class="evento-icon-wrap">◎</div>
+        <h3>Todos a la Mesa — Encuentro mensual</h3>
+        <div>
+          <span class="evento-meta" id="mesaCardDate">Una vez al mes · 7:00 PM</span>
+          <span class="evento-meta">Pasión del Cielo · Edificio Capitalia, piso 12</span>
+          <span class="evento-meta">Cupos limitados · Inscripción previa</span>
+        </div>
+        <a href="/mesa/" class="btn-outline-gold" style="align-self:flex-start">Aparta tu cupo</a>
+      </div>
+      <script>
+      fetch('/api/mesa/session').then(function(r){ return r.json(); }).then(function(r){
+        if (!r.ok || !r.session) return;
+        var d = new Date(r.session.startsAt), o = {timeZone:'America/Bogota'};
+        var f = d.toLocaleDateString('es-CO', Object.assign({weekday:'long', day:'numeric', month:'long', year:'numeric'}, o));
+        var h = d.toLocaleTimeString('en-US', Object.assign({hour:'numeric', minute:'2-digit'}, o));
+        document.getElementById('mesaCardDate').textContent = f.charAt(0).toUpperCase() + f.slice(1) + ' · ' + h;
+      }).catch(function(){});
+      </script>
     </div>
   </div>
 </section>

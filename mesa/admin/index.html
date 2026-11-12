@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel · Todos a la Mesa</title>
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" type="image/png" href="/assets/favicon-lhscol.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--negro:#0A0A0A;--g1:#141414;--g2:#1e1e1e;--g3:#2e2e2e;--g4:#6B6B68;--g5:#A3A3A3;--crema:#F3EEE2;--blanco:#fff;--dorado:#C8B273;--rojo:#F0254F;--ok:#6FCF97;--wa:#1DA851}
+body{background:var(--negro);color:var(--crema);font-family:'DM Sans',system-ui,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:5;background:rgba(10,10,10,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--g2)}
+.hbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0}
+.hbar h1{font-family:'Playfair Display',serif;font-size:19px;font-weight:600;color:var(--blanco)}
+.hbar h1 em{font-style:italic;font-weight:400;color:var(--rojo)}
+.hbar small{display:block;font-size:12.5px;color:var(--g5)}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:10px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;background:var(--g1);border:1px solid var(--g3);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;color:var(--g5)}
+.tab[aria-selected=true]{background:var(--crema);color:var(--negro);border-color:var(--crema)}
+.panel{padding:16px 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:14px}
+.stat{background:var(--g1);border:1px solid var(--g2);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-size:24px;font-weight:700;color:var(--blanco);font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--g5)}
+.stat.hl b{color:var(--rojo)}
+.bar{height:6px;background:var(--g2);border-radius:99px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--rojo)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.search{flex:1 1 220px;background:var(--g1);border:1px solid var(--g3);border-radius:10px;padding:11px 12px;font-size:16px;outline:none}
+.search:focus{border-color:var(--rojo)}
+.chip{background:transparent;border:1px solid var(--g3);border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;color:var(--g5)}
+.chip[aria-pressed=true]{border-color:var(--rojo);color:var(--blanco);background:rgba(240,37,79,.12)}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{background:var(--g1);border:1px solid var(--g2);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center}
+.item .who{flex:1;min-width:0}
+.item .who b{color:var(--blanco);font-weight:600}
+.item .who .meta{font-size:13px;color:var(--g5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tags{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:6px;vertical-align:middle}
+.tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--g2);color:var(--g5);white-space:nowrap}
+.tag.ok{background:rgba(111,207,151,.14);color:var(--ok)}
+.tag.wait{background:rgba(200,178,115,.15);color:var(--dorado)}
+.tag.red{background:rgba(240,37,79,.15);color:#ff8fa6}
+.tag.off{text-decoration:line-through}
+.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.b{color:var(--crema);border:1px solid var(--g3);background:var(--g2);border-radius:9px;padding:8px 11px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.b:hover{border-color:var(--g4)}
+.b.wa{background:var(--wa);border-color:var(--wa);color:#fff}
+.b.wa.done{background:transparent;color:var(--ok);border-color:rgba(111,207,151,.4)}
+.b.red{color:#ff8fa6}
+.b.pri{background:var(--rojo);border-color:var(--rojo);color:#fff}
+.toggle{min-width:84px;justify-content:center;padding:12px 12px;font-size:14px}
+.toggle[aria-pressed=true]{background:var(--ok);border-color:var(--ok);color:#06210f}
+.toggle.pay[aria-pressed=true]{background:var(--dorado);border-color:var(--dorado);color:#201a06}
+.card{background:var(--g1);border:1px solid var(--g2);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{font-family:'Playfair Display',serif;font-size:20px;color:var(--blanco);margin-bottom:4px}
+.card p.note{font-size:13.5px;color:var(--g5);margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--g5)}
+label.f input,label.f select,label.f textarea{background:var(--negro);border:1px solid var(--g3);border-radius:9px;padding:11px;font-size:16px;color:var(--blanco);outline:none;color-scheme:dark}
+label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.empty{color:var(--g4);text-align:center;padding:30px 0}
+.login{max-width:380px;margin:12vh auto 0;padding:0 16px}
+.login h1{font-family:'Playfair Display',serif;font-size:30px;color:var(--blanco);margin-bottom:6px}
+.login h1 em{color:var(--rojo)}
+.login p{color:var(--g5);margin-bottom:20px}
+.login input{width:100%;background:var(--g1);border:1px solid var(--g3);border-radius:10px;padding:14px;font-size:17px;margin-bottom:10px;outline:none}
+.login button{width:100%;background:var(--rojo);color:#fff;border:0;border-radius:10px;padding:15px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.msg{display:none;margin-top:10px;padding:10px 12px;border-radius:9px;font-size:14px}
+.msg.show{display:block}
+.msg.bad{background:rgba(240,37,79,.12);color:#ffb3c3}
+.msg.good{background:rgba(111,207,151,.12);color:var(--ok)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--crema);color:var(--negro);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:20;opacity:0;transition:opacity .25s;pointer-events:none;max-width:92vw;text-align:center}
+.toast.show{opacity:1}
+.hidden{display:none !important}
+.sesrow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--g2);font-size:14px}
+.sesrow:last-child{border-bottom:0}
+.muted{color:var(--g5);font-size:13px}
+@media(max-width:640px){
+  .item{flex-direction:column;align-items:stretch}
+  .acts{justify-content:flex-start}
+  .door .item{flex-direction:row;align-items:center}
+  .door .acts{flex-wrap:nowrap}
+  .toggle{min-width:70px;padding:12px 8px}
+}
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+  <h1>Todos a la <em>Mesa</em></h1>
+  <p>Panel del equipo. Escribe la contraseña del panel.</p>
+  <form id="loginForm">
+    <input type="password" id="pw" autocomplete="current-password" placeholder="Contraseña" required>
+    <button type="submit">Entrar</button>
+  </form>
+  <div class="msg bad" id="loginMsg"></div>
+</div>
+
+<div id="appRoot" class="hidden">
+<header>
+  <div class="wrap">
+    <div class="hbar">
+      <div><h1>Todos a la <em>Mesa</em></h1><small id="hSession">—</small></div>
+      <div style="display:flex;gap:6px">
+        <a class="b" href="/mesa/" target="_blank" rel="noopener">Ver formulario</a>
+        <button class="b" id="logout" type="button">Salir</button>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="ins" aria-selected="true">Inscritos</button>
+      <button class="tab" role="tab" data-tab="door" aria-selected="false">Puerta</button>
+      <button class="tab" role="tab" data-tab="people" aria-selected="false">Comunidad</button>
+      <button class="tab" role="tab" data-tab="ses" aria-selected="false">Sesiones</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- INSCRITOS -->
+  <section class="panel" id="t-ins">
+    <div class="stats" id="stats"></div>
+    <div class="toolbar">
+      <input class="search" id="q" type="search" placeholder="Buscar por nombre, Mesa o número">
+    </div>
+    <div class="toolbar" id="filters">
+      <button class="chip" data-f="confirmado" aria-pressed="true">Con cupo</button>
+      <button class="chip" data-f="espera" aria-pressed="false">Lista de espera</button>
+      <button class="chip" data-f="avisar" aria-pressed="false">Por avisar</button>
+      <button class="chip" data-f="sinrecordar" aria-pressed="false">Sin recordatorio</button>
+      <button class="chip" data-f="cancelado" aria-pressed="false">Liberados</button>
+      <button class="chip" data-f="todos" aria-pressed="false">Todos</button>
+      <span style="flex:1"></span>
+      <button class="b" id="csv" type="button">Descargar Excel (CSV)</button>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <!-- PUERTA -->
+  <section class="panel hidden door" id="t-door">
+    <div class="stats" id="doorStats"></div>
+    <div class="toolbar"><input class="search" id="dq" type="search" placeholder="Buscar persona que llega…"></div>
+    <div class="list" id="doorList"></div>
+    <div class="card" style="margin-top:16px">
+      <h2>Llegó alguien sin inscripción</h2>
+      <p class="note">Agrégala aquí para que quede en la lista de asistencia.</p>
+      <form id="addForm" class="grid">
+        <label class="f">Nombre completo<input id="aName" required maxlength="80"></label>
+        <label class="f">WhatsApp<input id="aPhone" type="tel" inputmode="tel" required maxlength="20"></label>
+        <label class="f">Mesa (líder)<input id="aMesa" maxlength="80"></label>
+        <div class="row-btns" style="align-self:end;margin:0"><button class="b pri" type="submit">Agregar · llegó y pagó</button></div>
+      </form>
+      <div class="msg" id="addMsg"></div>
+    </div>
+  </section>
+
+  <!-- COMUNIDAD -->
+  <section class="panel hidden" id="t-people">
+    <div class="card">
+      <h2>Invitar a la sesión actual</h2>
+      <p class="note">Cada persona recibe por WhatsApp un enlace con sus datos ya llenos: aparta su cupo con un toque. Las marcadas con <span class="tag red">no llegó</span> se inscribieron y no asistieron.</p>
+      <div class="toolbar">
+        <input class="search" id="pq" type="search" placeholder="Buscar persona">
+        <button class="chip" id="pNot" aria-pressed="true" type="button">Solo quienes no están inscritos</button>
+      </div>
+      <div class="list" id="peopleList"></div>
+    </div>
+  </section>
+
+  <!-- SESIONES -->
+  <section class="panel hidden" id="t-ses">
+    <div class="card">
+      <h2 id="sesTitle">Sesión actual</h2>
+      <p class="note" id="sesNote">El formulario público siempre muestra la sesión actual. El enlace no cambia nunca: <b>lhscolweb.netlify.app/mesa</b></p>
+      <form id="sesForm">
+        <div class="grid">
+          <label class="f">Fecha<input type="date" id="sDate" required></label>
+          <label class="f">Hora<input type="time" id="sTime" required></label>
+          <label class="f">Duración (minutos)<input type="number" id="sDur" min="30" max="600" step="15"></label>
+          <label class="f">Lugar<input id="sVenue" maxlength="80" required></label>
+          <label class="f" style="grid-column:1/-1">Dirección e indicaciones<input id="sAddr" maxlength="160"></label>
+          <label class="f" style="grid-column:1/-1">Enlace de Google Maps<input id="sMaps" type="url" maxlength="500"></label>
+          <label class="f" style="grid-column:1/-1">Nota para el público (opcional)<input id="sNotes" maxlength="300" placeholder="Ej.: este mes celebramos cumpleaños"></label>
+          <label class="f">Valor por persona (COP)<input type="number" id="sPrice" min="0" step="1000"></label>
+          <label class="f">Cupo (privado)<input type="number" id="sCap" min="1" max="2000"></label>
+          <label class="f">Cierre de inscripciones (opcional)<input type="datetime-local" id="sClose"></label>
+          <label class="f">Estado<select id="sStatus"><option value="open">Abierta</option><option value="closed">Cerrada manualmente</option></select></label>
+        </div>
+        <div class="row-btns">
+          <button class="b pri" type="submit" id="sSave">Guardar cambios</button>
+          <button class="b" type="button" id="sNew">Preparar la sesión del próximo mes</button>
+        </div>
+        <div class="msg" id="sesMsg"></div>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Historial</h2>
+      <div id="sesList"></div>
+    </div>
+  </section>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var API = '/api/mesa', SITE = 'https://lhscolweb.netlify.app';
+  var $ = function(id){ return document.getElementById(id); };
+  var key = null; try { key = sessionStorage.getItem('mesa.admin'); } catch(e){}
+  var data = null, viewing = null, people = null, filter = 'confirmado', newMode = false;
+
+  function api(path, opts){
+    opts = opts || {};
+    return fetch(API + path, {method: opts.method || 'GET', headers: {'content-type':'application/json','x-admin-key': key || ''}, body: opts.body ? JSON.stringify(opts.body) : undefined})
+      .then(function(r){ return r.json().then(function(j){ j.code = r.status; return j; }); })
+      .catch(function(){ return {ok:false, message:'Sin conexión.'}; });
+  }
+  function toast(t){ var el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(function(){ el.classList.remove('show'); }, 2200); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function money(n){ return '$' + Number(n||0).toLocaleString('es-CO'); }
+  function phoneFmt(p){ return p.startsWith('57') && p.length===12 ? p.slice(2,5)+' '+p.slice(5,8)+' '+p.slice(8) : '+'+p; }
+  function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+  function fDate(s){ return cap(new Date(s.startsAt || (s.date+'T'+s.time+':00-05:00')).toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',timeZone:'America/Bogota'})); }
+  function fTime(s){ return new Date(s.startsAt || (s.date+'T'+s.time+':00-05:00')).toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit',timeZone:'America/Bogota'}); }
+  function first(n){ return (n||'').split(' ')[0]; }
+
+  // ── Mensajes de WhatsApp
+  function wa(phone, text){ return 'https://wa.me/' + phone + '?text=' + encodeURIComponent(text); }
+  function msgReminder(s, r){
+    return 'Hola ' + first(r.name) + ' 👋 Te esperamos en *Todos a la Mesa* el ' + fDate(s).toLowerCase() + ' a las ' + fTime(s) + ' en ' + s.venue + ' (' + s.address + ').\n\n' +
+      'Recuerda llevar ' + money(s.price) + ' en efectivo.\n\n' +
+      '¿Nos confirmas tu asistencia? Toca aquí para confirmar o, si no puedes ir, liberar tu cupo para que otra persona lo aproveche:\n' + SITE + '/mesa/?r=' + r.token;
+  }
+  function msgPromoted(s, r){
+    return '¡Hola ' + first(r.name) + '! 🎉 Se liberó un cupo y ya es tuyo: te esperamos en *Todos a la Mesa* el ' + fDate(s).toLowerCase() + ' a las ' + fTime(s) + ' en ' + s.venue + '.\n\n' +
+      'Confírmanos aquí que vas (o libera el cupo si ya no puedes):\n' + SITE + '/mesa/?r=' + r.token;
+  }
+  function msgInvite(s, p){
+    return 'Hola ' + first(p.name) + ' 👋 Ya abrimos inscripciones para *Todos a la Mesa*: ' + fDate(s).toLowerCase() + ', ' + fTime(s) + ' en ' + s.venue + '.\n\n' +
+      'Tus datos ya están guardados; aparta tu cupo con un toque:\n' + SITE + '/mesa/?p=' + p.personToken;
+  }
+
+  // ── Login
+  function enter(){
+    api('/admin/overview').then(function(r){
+      if (!r.ok) {
+        try { sessionStorage.removeItem('mesa.admin'); } catch(e){}
+        $('login').classList.remove('hidden'); $('appRoot').classList.add('hidden');
+        if (key) { $('loginMsg').textContent = r.message || 'No se pudo entrar.'; $('loginMsg').classList.add('show'); }
+        return;
+      }
+      try { sessionStorage.setItem('mesa.admin', key); } catch(e){}
+      $('login').classList.add('hidden'); $('appRoot').classList.remove('hidden');
+      data = r; viewing = r.current; render();
+    });
+  }
+  $('loginForm').addEventListener('submit', function(e){ e.preventDefault(); key = $('pw').value; enter(); });
+  $('logout').addEventListener('click', function(){ try { sessionStorage.removeItem('mesa.admin'); } catch(e){} location.reload(); });
+  if (key) enter();
+
+  function reload(){
+    var id = viewing && viewing.id;
+    return api('/admin/overview').then(function(r){
+      if (!r.ok) return toast(r.message);
+      data = r;
+      if (id && id !== r.currentId) return api('/admin/session/' + id).then(function(x){ viewing = x.session; render(); });
+      viewing = r.current; render();
+    });
+  }
+  setInterval(function(){ if (!document.hidden && data && !$('t-ses').contains(document.activeElement)) reload(); }, 30000);
+
+  // ── Pestañas
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(x){ x.setAttribute('aria-selected', x===t); });
+      ['ins','door','people','ses'].forEach(function(n){ $('t-'+n).classList.toggle('hidden', n !== t.dataset.tab); });
+      if (t.dataset.tab === 'people') loadPeople();
+      if (t.dataset.tab === 'ses') renderSes();
+    });
+  });
+  document.querySelectorAll('#filters .chip').forEach(function(c){
+    c.addEventListener('click', function(){ filter = c.dataset.f; document.querySelectorAll('#filters .chip').forEach(function(x){ x.setAttribute('aria-pressed', x===c); }); renderList(); });
+  });
+  $('q').addEventListener('input', renderList);
+  $('dq').addEventListener('input', renderDoor);
+  $('pq').addEventListener('input', renderPeople);
+  $('pNot').addEventListener('click', function(){ this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') !== 'true'); renderPeople(); });
+
+  function render(){
+    var s = viewing;
+    if (!s) { $('hSession').textContent = 'Sin sesión'; return; }
+    var isCur = s.id === data.currentId;
+    $('hSession').textContent = (isCur ? '' : 'Viendo: ') + fDate(s) + ' · ' + fTime(s) + ' · ' + s.venue + (s.state === 'closed' ? ' · cerrada' : '');
+    renderStats(); renderList(); renderDoor();
+    if (!$('t-ses').classList.contains('hidden')) renderSes();
+  }
+
+  function renderStats(){
+    var s = viewing, c = s.counts, pct = Math.min(100, Math.round(c.confirmado / s.capacity * 100));
+    var avisar = s.regs.filter(function(r){ return r.needsNotice && r.status==='confirmado'; }).length;
+    $('stats').innerHTML =
+      '<div class="stat hl"><b>' + c.confirmado + ' / ' + s.capacity + '</b><span>Con cupo</span><div class="bar"><i style="width:' + pct + '%"></i></div></div>' +
+      '<div class="stat"><b>' + c.espera + '</b><span>En lista de espera</span></div>' +
+      '<div class="stat"><b>' + c.reconfirmados + '</b><span>Confirmaron asistencia</span></div>' +
+      '<div class="stat"><b>' + avisar + '</b><span>Por avisar (entraron de la espera)</span></div>' +
+      '<div class="stat"><b>' + (c.cancelado||0) + '</b><span>Liberaron su cupo</span></div>';
+    $('doorStats').innerHTML =
+      '<div class="stat hl"><b>' + c.llegaron + '</b><span>Llegaron</span></div>' +
+      '<div class="stat"><b>' + c.pagaron + '</b><span>Pagaron · ' + money(c.pagaron * s.price) + '</span></div>' +
+      '<div class="stat"><b>' + c.confirmado + '</b><span>Con cupo</span></div>';
+  }
+
+  function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+  function matches(r, q){
+    q = norm(q).trim(); if (!q) return true;
+    var digits = q.replace(/[\s+()-]/g,'');
+    if (/^\d{3,}$/.test(digits)) return r.phone.indexOf(digits) >= 0;
+    return norm(r.name + ' ' + r.mesa).indexOf(q) >= 0;
+  }
+
+  function tags(r){
+    var t = '';
+    if (r.status === 'confirmado') t += r.reconfirmed ? '<span class="tag ok">Confirmó ✓</span>' : '<span class="tag">Sin confirmar</span>';
+    if (r.status === 'espera') t += '<span class="tag wait">Espera</span>';
+    if (r.status === 'cancelado') t += '<span class="tag off">Liberó</span>';
+    if (r.needsNotice && r.status === 'confirmado') t += '<span class="tag red">Entró de la espera · avisar</span>';
+    if (r.firstTime) t += '<span class="tag wait">1ª vez</span>';
+    if (r.source === 'reinscripcion') t += '<span class="tag">Reinscripción</span>';
+    if (r.source === 'equipo') t += '<span class="tag">Agregado por el equipo</span>';
+    return '<span class="tags">' + t + '</span>';
+  }
+
+  function renderList(){
+    var s = viewing; if (!s) return;
+    var q = $('q').value;
+    var rows = s.regs.filter(function(r){
+      if (!matches(r, q)) return false;
+      if (filter === 'todos') return true;
+      if (filter === 'avisar') return r.needsNotice && r.status === 'confirmado';
+      if (filter === 'sinrecordar') return r.status === 'confirmado' && !r.reminded;
+      return r.status === filter;
+    }).sort(function(a,b){ return a.createdAt.localeCompare(b.createdAt); });
+    if (!rows.length) { $('list').innerHTML = '<div class="empty">No hay personas en esta lista.</div>'; return; }
+    $('list').innerHTML = rows.map(function(r, i){
+      var a = '';
+      if (r.status === 'confirmado') {
+        if (r.needsNotice) a += '<a class="b wa" data-act="notice" data-id="' + r.id + '" href="' + esc(wa(r.phone, msgPromoted(s, r))) + '" target="_blank" rel="noopener">Avisar que entró</a>';
+        else a += '<a class="b wa' + (r.reminded ? ' done' : '') + '" data-act="remind" data-id="' + r.id + '" href="' + esc(wa(r.phone, msgReminder(s, r))) + '" target="_blank" rel="noopener">' + (r.reminded ? 'Recordado ✓' : 'Recordar') + '</a>';
+        a += '<button class="b red" data-act="cancel" data-id="' + r.id + '" type="button">Liberar</button>';
+      } else if (r.status === 'espera') {
+        a += '<button class="b" data-act="give" data-id="' + r.id + '" type="button">Dar cupo</button>';
+        a += '<button class="b red" data-act="cancel" data-id="' + r.id + '" type="button">Quitar</button>';
+      }
+      return '<div class="item"><div class="who"><b>' + (filter==='espera' ? (i+1) + '. ' : '') + esc(r.name) + '</b>' + tags(r) +
+        '<div class="meta">' + esc(r.mesa) + ' · ' + phoneFmt(r.phone) + ' · ' + new Date(r.createdAt).toLocaleDateString('es-CO',{day:'numeric',month:'short',timeZone:'America/Bogota'}) + '</div></div>' +
+        '<div class="acts">' + a + '</div></div>';
+    }).join('');
+  }
+
+  function renderDoor(){
+    var s = viewing; if (!s) return;
+    var q = $('dq').value;
+    var rows = s.regs.filter(function(r){ return r.status !== 'cancelado' && matches(r, q); })
+      .sort(function(a,b){ return (a.status===b.status ? 0 : a.status==='confirmado' ? -1 : 1) || a.name.localeCompare(b.name, 'es'); });
+    if (!rows.length) { $('doorList').innerHTML = '<div class="empty">' + (q ? 'No aparece. Agrégala abajo.' : 'Aún no hay inscritos.') + '</div>'; return; }
+    $('doorList').innerHTML = rows.map(function(r){
+      return '<div class="item"><div class="who"><b>' + esc(r.name) + '</b>' + (r.status==='espera' ? '<span class="tags"><span class="tag wait">Espera</span></span>' : '') +
+        '<div class="meta">' + esc(r.mesa) + ' · ' + phoneFmt(r.phone).slice(-4) + '</div></div>' +
+        '<div class="acts"><button class="b toggle" data-act="att" data-id="' + r.id + '" aria-pressed="' + !!r.attended + '" type="button">' + (r.attended ? 'Llegó ✓' : 'Llegó') + '</button>' +
+        '<button class="b toggle pay" data-act="paid" data-id="' + r.id + '" aria-pressed="' + !!r.paid + '" type="button">' + (r.paid ? 'Pagó ✓' : 'Pagó') + '</button></div></div>';
+    }).join('');
+  }
+
+  // ── Acciones sobre inscripciones
+  function update(id, patch){
+    var r = viewing.regs.find(function(x){ return x.id === id; });
+    Object.assign(r, patch); // respuesta inmediata en pantalla
+    if (patch.attended === true && r.status === 'espera') r.status = 'confirmado';
+    viewing.counts = recount(viewing); render();
+    return api('/admin/reg', {method:'POST', body: Object.assign({sessionId: viewing.id, regId: id}, patch)}).then(function(x){
+      if (!x.ok) { toast(x.message || 'No se guardó'); return reload(); }
+      if (patch.status) reload();
+    });
+  }
+  function recount(s){
+    var c = {confirmado:0, espera:0, cancelado:0, llegaron:0, pagaron:0, reconfirmados:0};
+    s.regs.forEach(function(r){ c[r.status]++; if (r.attended) c.llegaron++; if (r.paid) c.pagaron++; if (r.status==='confirmado' && r.reconfirmed) c.reconfirmados++; });
+    return c;
+  }
+  document.addEventListener('click', function(e){
+    var el = e.target.closest('[data-act]'); if (!el) return;
+    var id = el.dataset.id, act = el.dataset.act, r = viewing && viewing.regs.find(function(x){ return x.id === id; });
+    if (act === 'remind') { update(id, {reminded: true}); }
+    else if (act === 'notice') { update(id, {noticeSent: true, needsNotice: false, reminded: true}); }
+    else if (act === 'cancel') { e.preventDefault(); if (confirm('¿Liberar el cupo de ' + r.name + '? Si hay lista de espera, entra la siguiente persona.')) update(id, {status: 'cancelado'}); }
+    else if (act === 'give') { e.preventDefault(); if (confirm('¿Dar cupo a ' + r.name + ' aunque el cupo esté lleno?')) update(id, {status: 'confirmado'}); }
+    else if (act === 'att') { update(id, {attended: !r.attended}); }
+    else if (act === 'paid') { update(id, {paid: !r.paid}); }
+    else if (act === 'invite') { el.classList.add('done'); el.textContent = 'Invitado ✓'; }
+    else if (act === 'open') { e.preventDefault(); api('/admin/session/' + id).then(function(x){ if (x.ok) { viewing = x.session; document.querySelector('[data-tab=ins]').click(); render(); toast('Viendo la sesión del ' + fDate(viewing)); } }); }
+  });
+
+  // ── Agregar en la puerta
+  $('addForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var m = $('addMsg');
+    api('/admin/add', {method:'POST', body:{sessionId: viewing.id, name: $('aName').value, phone: $('aPhone').value, mesa: $('aMesa').value, attended: true, paid: true}}).then(function(r){
+      m.className = 'msg show ' + (r.ok ? 'good' : 'bad');
+      m.textContent = r.ok ? 'Agregado: ' + r.reg.name : (r.message || 'No se pudo agregar.');
+      if (r.ok) { $('addForm').reset(); reload(); }
+    });
+  });
+
+  // ── CSV
+  $('csv').addEventListener('click', function(){
+    var s = viewing, cols = ['Nombre','WhatsApp','Mesa (líder)','Estado','Primera vez','Confirmó asistencia','Recordatorio enviado','Llegó','Pagó','Inscrito el','Origen'];
+    var yes = function(b){ return b ? 'Sí' : 'No'; };
+    var lines = [cols].concat(s.regs.map(function(r){
+      return [r.name, '+' + r.phone, r.mesa, r.status === 'espera' ? 'Lista de espera' : r.status === 'cancelado' ? 'Liberó su cupo' : 'Con cupo',
+        yes(r.firstTime), yes(r.reconfirmed), yes(r.reminded), yes(r.attended), yes(r.paid),
+        new Date(r.createdAt).toLocaleString('es-CO',{timeZone:'America/Bogota'}), r.source || ''];
+    })).map(function(row){ return row.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(';'); });
+    var blob = new Blob(['﻿' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'todos-a-la-mesa-' + s.id + '.csv'; a.click();
+  });
+
+  // ── Comunidad
+  function loadPeople(){
+    $('peopleList').innerHTML = '<div class="empty">Cargando…</div>';
+    api('/admin/history').then(function(r){ if (!r.ok) return toast(r.message); people = r.people; renderPeople(); });
+  }
+  function renderPeople(){
+    if (!people) return;
+    var s = data.current, inCur = {};
+    if (s) s.regs.forEach(function(r){ if (r.status !== 'cancelado') inCur[r.phone] = true; });
+    var only = $('pNot').getAttribute('aria-pressed') === 'true', q = $('pq').value;
+    var rows = people.filter(function(p){ return (!only || !inCur[p.phone]) && matches(p, q); })
+      .sort(function(a,b){ return b.asistencias - a.asistencias || a.name.localeCompare(b.name,'es'); });
+    if (!rows.length) { $('peopleList').innerHTML = '<div class="empty">' + (only ? 'Todas las personas registradas ya están inscritas en la sesión actual.' : 'Aún no hay historial.') + '</div>'; return; }
+    $('peopleList').innerHTML = rows.map(function(p){
+      var t = '<span class="tags">' + (p.asistencias ? '<span class="tag ok">' + p.asistencias + (p.asistencias===1?' asistencia':' asistencias') + '</span>' : '') +
+        (p.inasistencias ? '<span class="tag red">no llegó ' + p.inasistencias + (p.inasistencias===1?' vez':' veces') + '</span>' : '') +
+        (inCur[p.phone] ? '<span class="tag wait">Inscrito en la actual</span>' : '') + '</span>';
+      var act = (!inCur[p.phone] && s && s.state !== 'closed' && p.personToken) ? '<a class="b wa" data-act="invite" href="' + esc(wa(p.phone, msgInvite(s, p))) + '" target="_blank" rel="noopener">Invitar</a>' : '';
+      return '<div class="item"><div class="who"><b>' + esc(p.name) + '</b>' + t + '<div class="meta">' + esc(p.mesa) + ' · ' + phoneFmt(p.phone) + '</div></div><div class="acts">' + act + '</div></div>';
+    }).join('');
+  }
+
+  // ── Sesiones
+  function thirdWednesdayAfter(dateStr){
+    var d = new Date(dateStr + 'T12:00:00-05:00');
+    var y = d.getUTCFullYear(), m = d.getUTCMonth() + 1; if (m > 11) { m = 0; y++; }
+    // mismo número de semana y día de la semana que la sesión actual, el mes siguiente
+    var dow = d.getUTCDay(), nth = Math.ceil(d.getUTCDate() / 7);
+    var firstDay = new Date(Date.UTC(y, m, 1)).getUTCDay();
+    var day = 1 + ((dow - firstDay + 7) % 7) + (nth - 1) * 7;
+    if (day > new Date(Date.UTC(y, m + 1, 0)).getUTCDate()) day -= 7;
+    return y + '-' + String(m + 1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+  }
+  function toLocalInput(iso){ if (!iso) return ''; var d = new Date(new Date(iso).getTime() - 5*3600000); return d.toISOString().slice(0,16); }
+  function fillSes(s){
+    $('sDate').value = s.date; $('sTime').value = s.time; $('sDur').value = s.durationMinutes || 150;
+    $('sVenue').value = s.venue || ''; $('sAddr').value = s.address || ''; $('sMaps').value = s.mapsUrl || ''; $('sNotes').value = s.notes || '';
+    $('sPrice').value = s.price; $('sCap').value = s.capacity; $('sClose').value = toLocalInput(s.closeAt); $('sStatus').value = s.status || 'open';
+  }
+  function renderSes(){
+    newMode = false;
+    var s = data.current;
+    $('sesTitle').textContent = 'Sesión actual';
+    $('sSave').textContent = 'Guardar cambios';
+    $('sesMsg').className = 'msg';
+    if (s) fillSes(s);
+    $('sesList').innerHTML = data.sessions.map(function(x){
+      return '<div class="sesrow"><div><b>' + fDate(x) + '</b> · ' + x.time + ' · ' + esc(x.venue) + (x.id === data.currentId ? ' <span class="tag ok">Actual</span>' : '') +
+        '<div class="muted">' + x.counts.confirmado + ' con cupo · ' + x.counts.llegaron + ' llegaron · ' + x.counts.espera + ' en espera</div></div>' +
+        '<button class="b" data-act="open" data-id="' + esc(x.id) + '" type="button">Ver</button></div>';
+    }).join('') || '<div class="empty">Sin sesiones.</div>';
+  }
+  $('sNew').addEventListener('click', function(){
+    var s = data.current; if (!s) return;
+    newMode = true;
+    fillSes(Object.assign({}, s, {date: thirdWednesdayAfter(s.date), closeAt: null, notes: '', status: 'open'}));
+    $('sesTitle').textContent = 'Nueva sesión';
+    $('sSave').textContent = 'Crear y abrir inscripciones';
+    $('sesMsg').className = 'msg show good';
+    $('sesMsg').textContent = 'Revisa la fecha propuesta y guarda. Al crearla, el formulario público mostrará esta nueva sesión.';
+  });
+  $('sesForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var body = { date: $('sDate').value, time: $('sTime').value, durationMinutes: $('sDur').value, venue: $('sVenue').value, address: $('sAddr').value,
+      mapsUrl: $('sMaps').value, notes: $('sNotes').value, price: $('sPrice').value, capacity: $('sCap').value, closeAt: $('sClose').value || null, status: $('sStatus').value };
+    if (!newMode) body.id = data.currentId;
+    else if (data.sessions.some(function(x){ return x.id === body.date; })) { $('sesMsg').className='msg show bad'; $('sesMsg').textContent='Ya existe una sesión con esa fecha.'; return; }
+    api('/admin/session', {method:'POST', body: body}).then(function(r){
+      $('sesMsg').className = 'msg show ' + (r.ok ? 'good' : 'bad');
+      $('sesMsg').textContent = r.ok ? (newMode ? 'Sesión creada. El formulario ya muestra la nueva fecha. Invita a la comunidad desde la pestaña Comunidad.' : 'Cambios guardados.') + (r.promoted ? ' Entraron ' + r.promoted + ' personas de la lista de espera: avísales desde Inscritos.' : '') : (r.message || 'No se pudo guardar.');
+      if (r.ok) { viewing = null; reload().then(renderSes); }
+    });
+  });
+})();
+</script>
+</body>
+</html>
