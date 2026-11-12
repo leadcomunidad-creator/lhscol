@@ -508,6 +508,7 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
 .mesa-hero{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;max-width:900px;padding:0 2rem;text-align:center;visibility:hidden;opacity:0;transition:opacity 1s ease}
 #hero.mesa-active .mesa-hero{visibility:visible;opacity:1}
 #hero.mesa-active .hero-content{visibility:hidden}
+.mesa-hero-logo{display:block;width:92px;height:auto;margin:0 auto 1.3rem}
 .mesa-hero-eyebrow{font-size:10px;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--dorado);margin-bottom:1.4rem}
 .mesa-hero h2{font-family:'Playfair Display',serif;font-size:clamp(3rem,7vw,6.2rem);font-weight:300;line-height:.97;color:var(--blanco);margin-bottom:1.6rem}
 .mesa-hero h2 em{font-style:italic;color:#F0254F}
@@ -522,6 +523,7 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
   .mesa-new{font-size:10px;letter-spacing:.12em;padding:.5rem .8rem}
   .mesa-new b{font-size:15px}
   .mesa-hero-meta{font-size:.72rem;letter-spacing:.12em}
+  .mesa-hero-logo{width:70px;margin-bottom:1rem}
 }
 .evento-nuevo{display:inline-block;background:#F0254F;color:#fff;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:.25rem .6rem;margin-bottom:.35rem}
 /* ── HERO SLIDER ── */
@@ -597,6 +599,7 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
   <div class="hero-overlay"></div>
   <div class="hero-grid"></div>
   <div class="mesa-hero">
+    <img class="mesa-hero-logo" src="/assets/mesa/logo-todos-a-la-mesa.svg" alt="" width="92" height="58">
     <div class="mesa-hero-eyebrow">Encuentro mensual · Cupos limitados</div>
     <h2>Todos a la <em>Mesa</em></h2>
     <div class="mesa-new">Ahora es en <b>Pasión del Cielo</b></div>
@@ -822,7 +825,7 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
         </div>
       </div>
       <div class="evento-card reveal d1" id="mesaCard">
-        <div class="evento-icon-wrap">◎</div>
+        <div class="evento-icon-wrap"><img src="/assets/mesa/logo-todos-a-la-mesa.svg" alt="" width="40" height="25" style="display:block;width:40px;height:auto"></div>
         <h3>Todos a la Mesa — Encuentro mensual</h3>
         <div>
           <span class="evento-nuevo">Nuevo lugar</span>
