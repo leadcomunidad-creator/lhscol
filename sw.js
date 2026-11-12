@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'lhscol-pwa-v5-favicon';
+const CACHE_VERSION = 'lhscol-pwa-v6-sin-metanoia';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGE_CACHE = `${CACHE_VERSION}-pages`;
 
@@ -7,10 +7,6 @@ const APP_SHELL = [
   '/index.html',
   '/offline.html',
   '/assets/favicon-lhscol.png',
-  '/assets/metanoia/panoramica.png',
-  '/assets/metanoia/desktop.png',
-  '/assets/metanoia/tablet.png',
-  '/assets/metanoia/movil.png',
   '/manifest.webmanifest',
   '/assets/pwa-register.js',
   '/assets/pwa/icon-192.png',
