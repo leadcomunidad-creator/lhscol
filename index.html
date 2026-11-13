@@ -512,13 +512,16 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
 /* ── OXÍGENO EN EL HERO ── */
 .hero-slide-oxi{background-position:center 45%}
 .oxi-hero{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;max-width:900px;padding:0 2rem;text-align:center;visibility:hidden;opacity:0;transition:opacity 1s ease}
-.oxi-eyebrow{display:inline-block;background:#00FFFF;color:#000;font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;padding:.45rem 1rem;margin-bottom:1.6rem}
-.oxi-hero-logo{display:block;width:min(360px,70vw);height:auto;margin:0 auto 1rem;filter:drop-shadow(0 4px 24px rgba(0,0,0,.45))}
-.oxi-tag{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(1.1rem,2vw,1.5rem);color:#BFFFFF;margin-bottom:1.6rem}
+.oxi-hero-logo{display:block;width:92px;height:auto;margin:0 auto 1.3rem}
+.oxi-eyebrow{font-size:10px;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--dorado);margin-bottom:1.4rem}
+.oxi-hero h2{font-family:'Playfair Display',serif;font-size:clamp(3rem,7vw,6.2rem);font-weight:300;line-height:.97;color:var(--blanco);margin-bottom:1.6rem}
+.oxi-hero h2 em{font-style:italic;color:#00FFFF}
+.oxi-new{display:inline-flex;align-items:center;gap:.55rem;background:#00FFFF;color:#000;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:.6rem 1.1rem;margin-bottom:1.4rem}
+.oxi-new b{font-family:'Playfair Display',serif;font-style:italic;font-weight:400;font-size:17px;letter-spacing:0;text-transform:none}
 .oxi-meta{font-size:clamp(.8rem,1.4vw,.94rem);font-weight:300;letter-spacing:.18em;text-transform:uppercase;color:var(--crema);margin-bottom:2.4rem;line-height:1.9}
 .oxi-hero .btn-oxi{background:#00FFFF;color:#000;font-weight:700}
 .oxi-hero .btn-oxi:hover,.oxi-hero .btn-oxi:focus-visible{background:#7FFFFF;color:#000}
-@media(max-width:600px){.oxi-hero{padding:0 1.25rem;top:47%}.oxi-eyebrow{font-size:10px;letter-spacing:.16em}.oxi-meta{font-size:.72rem;letter-spacing:.12em}}
+@media(max-width:600px){.oxi-hero{padding:0 1.25rem;top:47%}.oxi-hero h2{font-size:clamp(2.6rem,12vw,3.6rem)}.oxi-new{font-size:10px;letter-spacing:.12em;padding:.5rem .8rem}.oxi-new b{font-size:15px}.oxi-meta{font-size:.72rem;letter-spacing:.12em}.oxi-hero-logo{width:70px;margin-bottom:1rem}}
 .mesa-hero-logo{display:block;width:92px;height:auto;margin:0 auto 1.3rem}
 .mesa-hero-eyebrow{font-size:10px;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--dorado);margin-bottom:1.4rem}
 .mesa-hero h2{font-family:'Playfair Display',serif;font-size:clamp(3rem,7vw,6.2rem);font-weight:300;line-height:.97;color:var(--blanco);margin-bottom:1.6rem}
@@ -611,10 +614,11 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
   <div class="hero-overlay"></div>
   <div class="hero-grid"></div>
   <div class="oxi-hero" data-expira="2026-11-14T00:00:00-05:00">
-    <div class="oxi-eyebrow" id="oxiEyebrow">Noche de adoración</div>
-    <img class="oxi-hero-logo" src="/assets/oxigeno/oxigeno-logo-blanco.svg" alt="Oxígeno" width="360" height="160">
-    <div class="oxi-tag">Un respirar de Su Presencia</div>
-    <p class="oxi-meta" id="oxiMeta">Viernes 13 de noviembre · 7:00 PM<br>Fundación Batuta · Entrada libre</p>
+    <img class="oxi-hero-logo" src="/assets/oxigeno/oxigeno-nube-cian.svg" alt="" width="92" height="66">
+    <div class="oxi-eyebrow">Oxígeno² · Noche de adoración</div>
+    <h2>Un respirar de <em>Su Presencia</em></h2>
+    <div class="oxi-new"><span id="oxiEyebrow">Este viernes en</span> <b>Fundación Batuta</b></div>
+    <p class="oxi-meta" id="oxiMeta">Viernes 13 de noviembre · 7:00 PM<br>Entrada libre</p>
     <div class="hero-actions">
       <a href="https://instagram.com/lhscol" target="_blank" rel="noopener noreferrer" class="btn-primary btn-oxi">Síguenos en Instagram</a>
       <a href="#eventos" class="btn-ghost">Próximos eventos</a>
@@ -661,8 +665,8 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
   document.getElementById('hero').setAttribute('data-panel', (first && first.dataset.panel) || '');
   var hoy = new Date().toLocaleDateString('en-CA', {timeZone:'America/Bogota'});
   var eb = document.getElementById('oxiEyebrow');
-  if (eb && hoy === '2026-11-13') eb.textContent = 'Hoy · Noche de adoración';
-  else if (eb && hoy === '2026-11-12') eb.textContent = 'Mañana · Noche de adoración';
+  if (eb && hoy === '2026-11-13') eb.textContent = 'Hoy en';
+  else if (eb && hoy === '2026-11-12') eb.textContent = 'Mañana en';
 })();
 </script>
 
