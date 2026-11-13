@@ -523,7 +523,13 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
 .ev-meta{font-size:clamp(.8rem,1.4vw,.94rem);font-weight:300;letter-spacing:.18em;text-transform:uppercase;color:var(--crema);margin-bottom:2.4rem;line-height:1.9}
 .ev-hero .btn-ev{background:var(--ev);color:var(--ev-txt,#000);font-weight:700}
 .ev-hero .btn-ev:hover,.ev-hero .btn-ev:focus-visible{filter:brightness(1.1)}
-.kids-hero{--ev:#FF6A66;--ev-txt:#fff}
+.kids-hero{--ev:#D0FF03;--ev-txt:#0221DE}
+.kids-hero h2 em span:nth-child(4n+1){color:#D0FF03}.kids-hero h2 em span:nth-child(4n+2){color:#FF6A66}.kids-hero h2 em span:nth-child(4n+3){color:#01E128}.kids-hero h2 em span:nth-child(4n+4){color:#00DACB}
+.kids-hero .ev-new{background:#0221DE;color:#fff}.kids-hero .ev-new b{color:#D0FF03}
+.kids-hero .btn-ev{background:#FF6A66;color:#fff}
+.kids-dots{display:flex;justify-content:center;gap:.5rem;margin:-.6rem 0 1.4rem}.kids-dots i{width:10px;height:10px;border-radius:50%;display:block}
+.staff-word{font-family:'DM Sans',sans-serif;font-weight:600;font-size:clamp(1.4rem,2.6vw,1.9rem);letter-spacing:.55em;padding-left:.55em;color:var(--dorado);border:1px solid rgba(200,178,115,.6);display:inline-block;padding:.55rem .9rem .55rem 1.45rem;margin-bottom:1.4rem}
+@media(max-width:600px){.staff-word{font-size:1.15rem;letter-spacing:.45em}}
 .staff-hero{--ev:#C8B273;--ev-txt:#0A0A0A}
 @media(max-width:600px){.ev-hero{padding:0 1.25rem;top:47%}.ev-hero h2{font-size:clamp(2.6rem,12vw,3.6rem)}.ev-new{font-size:10px;letter-spacing:.12em;padding:.5rem .8rem}.ev-new b{font-size:15px}.ev-meta{font-size:.72rem;letter-spacing:.12em}.ev-logo{width:84px;margin-bottom:1rem}}
 /* ── LA SALA EN EL HERO ── */
@@ -653,7 +659,8 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
   <div class="ev-hero kids-hero">
     <img class="ev-logo" src="/assets/kids/lhscol-kids-logo.svg" alt="" width="120" height="119" style="width:120px">
     <div class="ev-eyebrow">LHSCOL Kids · Para los más pequeños</div>
-    <h2>Crecer en la fe, <em>jugando</em></h2>
+    <h2>Crecer en la fe, <em><span>j</span><span>u</span><span>g</span><span>a</span><span>n</span><span>d</span><span>o</span></em></h2>
+    <div class="kids-dots" aria-hidden="true"><i style="background:#D0FF03"></i><i style="background:#FF6A66"></i><i style="background:#01E128"></i><i style="background:#00DACB"></i></div>
     <div class="ev-new">Cada domingo en <b>Fundación Batuta</b></div>
     <p class="ev-meta">Domingos 8:00 AM y 10:00 AM</p>
     <div class="hero-actions">
@@ -662,8 +669,8 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
     </div>
   </div>
   <div class="ev-hero staff-hero">
-    <img class="ev-logo" src="/assets/favicon-lhscol.png" alt="" width="92" height="92" style="width:92px">
-    <div class="ev-eyebrow">Staff LHSCOL · Servimos juntos</div>
+    <div class="staff-word">STAFF</div>
+    <div class="ev-eyebrow">El equipo de voluntarios de LHSCOL</div>
     <h2>Mejor <em>juntos</em></h2>
     <div class="ev-new">Haz parte del <b>equipo</b></div>
     <p class="ev-meta">Hay un lugar para ti sirviendo</p>
