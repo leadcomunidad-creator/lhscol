@@ -86,7 +86,11 @@ form{display:flex;flex-direction:column;gap:16px;margin-top:6px}
 label.f{display:flex;flex-direction:column;gap:7px;font-size:14px;font-weight:500;color:var(--crema)}
 label.f .hint{font-weight:400;color:var(--gris4);font-size:13px}
 input[type=text],input[type=tel]{width:100%;font:inherit;font-size:17px;color:var(--blanco);background:var(--negro);border:1px solid var(--gris3);border-radius:10px;padding:14px 14px;outline:none;transition:border-color .2s}
-input[type=text]:focus,input[type=tel]:focus{border-color:var(--rojo)}
+input[type=text]:focus,input[type=tel]:focus,select:focus{border-color:var(--rojo)}
+select{width:100%;font:inherit;font-size:17px;color:var(--blanco);background:var(--negro) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23F3EEE2' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 16px center;border:1px solid var(--gris3);border-radius:10px;padding:14px 44px 14px 14px;outline:none;appearance:none;-webkit-appearance:none;transition:border-color .2s;color-scheme:dark}
+select:invalid{color:var(--gris4)}
+select option{color:var(--blanco);background:var(--negro)}
+.hint a{color:inherit}
 input:disabled{opacity:.45}
 .check{display:flex;gap:12px;align-items:flex-start;font-size:14.5px;color:var(--crema);cursor:pointer}
 .check input{flex:0 0 22px;width:22px;height:22px;margin-top:1px;accent-color:var(--rojo)}
@@ -179,10 +183,11 @@ footer a{color:var(--gris5)}
           <span class="hint">Por aquí te enviaremos el recordatorio.</span>
         </label>
         <label class="f">¿A qué Mesa asistes?
-          <input type="text" name="mesa" id="mesa" maxlength="80" placeholder="Nombre del líder de tu Mesa">
-          <span class="hint">Escribe el nombre del líder.</span>
+          <select name="mesa" id="mesa" required>
+            <option value="" disabled selected>Escoge tu Mesa</option>
+          </select>
+          <span class="hint">Si tu Mesa no aparece, <a href="https://wa.me/573043229348" target="_blank" rel="noopener noreferrer">escríbenos por WhatsApp</a>.</span>
         </label>
-        <label class="check"><input type="checkbox" id="noMesa"> <span>Aún no asisto a una Mesa</span></label>
         <label class="check"><input type="checkbox" id="firstTime"> <span>Es mi primera vez en Todos a la Mesa</span></label>
         <div class="hp" aria-hidden="true"><label>Sitio web <input type="text" name="website" id="website" tabindex="-1" autocomplete="off"></label></div>
         <label class="check commit"><input type="checkbox" id="commit"> <span><b>Me comprometo a asistir.</b> Si no puedo ir, liberaré mi cupo con mi enlace al menos 48 horas antes. Si no llego sin avisar, acepto pagar igual mi cupo (<b class="cPrice">$30.000</b>), porque se reserva y se prepara por persona.</span></label>
@@ -390,14 +395,23 @@ footer a{color:var(--gris5)}
   }
 
   // Formulario
-  $('noMesa').addEventListener('change', function(){ $('mesa').disabled = this.checked; if (this.checked) $('mesa').value=''; });
+  // Lista de Mesas (viene del panel)
+  var NO_MESA = 'Aún no asiste a una Mesa';
+  function fillMesas(list, noMesa){
+    if (noMesa) NO_MESA = noMesa;
+    var sel = $('mesa'), keep = sel.value;
+    while (sel.options.length > 1) sel.remove(1);
+    (list || []).forEach(function(m){ sel.add(new Option(m, m)); });
+    sel.add(new Option('Aún no asisto a una Mesa', NO_MESA));
+    if (keep) sel.value = keep;
+  }
   $('form').addEventListener('submit', function(e){
     e.preventDefault();
-    var name = $('name').value.trim(), phone = $('phone').value.trim(), mesa = $('noMesa').checked ? 'Aún no asiste a una Mesa' : $('mesa').value.trim();
+    var name = $('name').value.trim(), phone = $('phone').value.trim(), mesa = $('mesa').value;
     var fe = $('fErr');
     if (name.length < 3) return err(fe, 'Escribe tu nombre completo.');
     if (phone.replace(/\D/g,'').length < 10) return err(fe, 'Escribe tu número de WhatsApp (10 dígitos).');
-    if (!mesa) return err(fe, 'Escribe el nombre del líder de tu Mesa o marca “Aún no asisto a una Mesa”.');
+    if (!mesa) return err(fe, 'Escoge tu Mesa en la lista o “Aún no asisto a una Mesa”.');
     if (!$('commit').checked) return err(fe, 'Marca el compromiso de asistencia para apartar tu cupo.');
     submit({name:name, phone:phone, mesa:mesa, firstTime:$('firstTime').checked, commit:true, website:$('website').value}, $('fGo'), fe);
   });
@@ -416,14 +430,14 @@ footer a{color:var(--gris5)}
     $('fTitle').innerHTML = wait ? 'Únete a la <em>lista de espera</em>' : 'Aparta tu <em>cupo</em>';
     $('fIntro').textContent = wait ? 'Los cupos de esta sesión están completos. Si alguien libera el suyo, entras automáticamente y te avisamos por WhatsApp.' : 'Los cupos son limitados. Inscríbete y confirma tu asistencia.';
     $('fGo').textContent = wait ? 'Unirme a la lista de espera' : 'Apartar mi cupo';
-    if (prefill) { $('name').value = prefill.name || ''; if (prefill.mesa && prefill.mesa !== 'Aún no asiste a una Mesa') $('mesa').value = prefill.mesa; }
+    if (prefill) { $('name').value = prefill.name || ''; if (prefill.mesa) $('mesa').value = prefill.mesa; }
     show('vForm');
   }
 
   function showQuick(p, t){
     quickToken = t;
     $('qName').textContent = (p.name||'').split(' ')[0];
-    $('qMesa').textContent = p.mesa === 'Aún no asiste a una Mesa' ? 'sin Mesa todavía' : 'Mesa de ' + p.mesa;
+    $('qMesa').textContent = p.mesa === NO_MESA ? 'sin Mesa todavía' : 'Mesa de ' + p.mesa;
     $('qPhone').textContent = p.phoneHint;
     $('qGo').textContent = state === 'waitlist' ? 'Unirme a la lista de espera' : 'Apartar mi cupo';
     show('vQuick');
@@ -479,7 +493,7 @@ footer a{color:var(--gris5)}
 
   api('/session').then(function(r){
     if (!r.ok) { show('vError'); return; }
-    session = r.session; state = r.state; paintInfo(session);
+    session = r.session; state = r.state; paintInfo(session); fillMesas(r.mesas, r.noMesa);
     if (state === 'closed' || state === 'none') return closed();
     var mine = store.get('reg');
     if (mine && session && mine.sessionId === session.id) {
@@ -496,6 +510,7 @@ footer a{color:var(--gris5)}
     api('/p/' + encodeURIComponent(personToken)).then(function(p){
       if (!p.ok) { store.del('person'); return showForm(); }
       if (p.alreadyStatus) { showForm(p); return err($('fErr'), 'Ya tienes un cupo apartado para esta sesión con tu número. Usa el enlace que guardaste o escríbenos por WhatsApp.'); }
+      if (!p.mesa) return showForm(p); // su Mesa anterior no está en la lista: que la escoja
       showQuick(p, personToken);
     }).catch(function(){ showForm(); });
   }

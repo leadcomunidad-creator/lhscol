@@ -26,7 +26,7 @@ async function call(path, { method = 'GET', body, headers = {} } = {}) {
   return { code: res.status, ...(await res.json()) };
 }
 const old = Date.now() - 5000;
-const reg = (i, extra = {}) => call('/register', { method: 'POST', body: { name: 'Persona ' + i, phone: '30011100' + String(i).padStart(2, '0'), mesa: 'Líder ' + i, commit: true, startedAt: old, ...extra } });
+const reg = (i, extra = {}) => call('/register', { method: 'POST', body: { name: 'Persona ' + i, phone: '30011100' + String(i).padStart(2, '0'), mesa: 'Juan y Lili', commit: true, startedAt: old, ...extra } });
 
 test('crea la primera sesión (18 de noviembre, Pasión del Cielo) sin mostrar cupo', async () => {
   const r = await call('/session');
@@ -54,7 +54,7 @@ test('20 inscripciones simultáneas con cupo 12 → 12 confirmadas y 8 en espera
 });
 
 test('no deja inscribir dos veces el mismo número ni filtra el enlace', async () => {
-  const r = await call('/register', { method: 'POST', body: { name: 'Otra', phone: '+57 300 111 0001', mesa: 'x', commit: true, startedAt: old } });
+  const r = await call('/register', { method: 'POST', body: { name: 'Otra', phone: '+57 300 111 0001', mesa: 'Juan y Lili', commit: true, startedAt: old } });
   assert.equal(r.already, true);
   assert.equal(r.token, undefined);
 });
@@ -116,4 +116,40 @@ test('sesión pasada queda cerrada', async () => {
   await call('/admin/session', { method: 'POST', headers: K, body: { id: 't0', date: '2020-01-01', time: '19:00', capacity: 85, price: 30000, venue: 'P', address: 'X' } });
   assert.equal((await call('/session')).state, 'closed');
   assert.equal((await reg(70)).code, 409);
+});
+
+test('lista de Mesas: el formulario la recibe y solo acepta Mesas de la lista', async () => {
+  await call('/admin/session', { method: 'POST', headers: K, body: { id: 't3', date: '2030-03-18', time: '19:00', capacity: 85, price: 30000, venue: 'P', address: 'X' } });
+  const pub = await call('/session');
+  assert.ok(pub.mesas.includes('Camilo y Camila'));
+  assert.equal(pub.noMesa, 'Aún no asiste a una Mesa');
+  const r = (n, mesa) => call('/register', { method: 'POST', body: { name: 'Persona M' + n, phone: '31055500' + n, mesa, commit: true, startedAt: old } });
+  assert.equal((await r(10, 'Inventada')).code, 400);
+  assert.equal((await r(11, 'Aún no asiste a una Mesa')).ok, true);
+  assert.equal((await r(12, 'carlos y yuli')).ok, true); // formulario viejo en caché: se reconoce
+  const s = (await call('/admin/session/t3', { headers: K })).session;
+  const c = s.regs.find((x) => x.phone === '573105550012');
+  assert.equal(c.mesa, 'Carlos y Yulieth');
+  assert.equal(c.mesaTexto, 'carlos y yuli');
+});
+
+test('nombres con mayúscula inicial al guardar', async () => {
+  const x = await call('/register', { method: 'POST', body: { name: 'MARIA fernanda DE LA villa', phone: '3105550020', mesa: 'Juan y Lili', commit: true, startedAt: old } });
+  assert.equal(x.name, 'Maria Fernanda de la Villa');
+  const a = await call('/admin/add', { method: 'POST', headers: K, body: { sessionId: 't3', name: 'JUAN E MEJIA T', phone: '3105550021', mesa: 'Juan y Lili' } });
+  assert.equal(a.reg.name, 'Juan E Mejia T');
+});
+
+test('panel: editar la lista de Mesas y cambiar la Mesa de una persona', async () => {
+  assert.equal((await call('/admin/mesas', { method: 'POST', body: { mesas: ['X'] } })).code, 401);
+  const saved = await call('/admin/mesas', { method: 'POST', headers: K, body: { mesas: ['Juan y Lili', ' juan y lili ', 'Nueva Mesa', 'Aún no asiste a una Mesa', ''] } });
+  assert.deepEqual(saved.mesas, ['Juan y Lili', 'Nueva Mesa']);
+  assert.deepEqual((await call('/session')).mesas, ['Juan y Lili', 'Nueva Mesa']);
+  const s = (await call('/admin/session/t3', { headers: K })).session;
+  const one = s.regs.find((x) => x.phone === '573105550012');
+  assert.equal(one.grupo, ''); // Carlos y Yulieth ya no está en la lista
+  assert.equal((await call('/admin/reg', { method: 'POST', headers: K, body: { sessionId: 't3', regId: one.id, mesa: 'Inventada' } })).code, 400);
+  const upd = await call('/admin/reg', { method: 'POST', headers: K, body: { sessionId: 't3', regId: one.id, mesa: 'nueva mesa' } });
+  assert.equal(upd.reg.mesa, 'Nueva Mesa');
+  assert.equal(upd.reg.mesaTexto, 'carlos y yuli');
 });
