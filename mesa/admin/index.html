@@ -226,7 +226,7 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
       <div id="infSes"></div></div>
     <div class="card">
       <h2>Para los líderes</h2>
-      <p class="note">Quiénes de cada Mesa apartaron cupo (✓ = confirmó). Solo nombres, sin teléfonos. “Enviar” abre WhatsApp para que escojas al líder.</p>
+      <p class="note">Quiénes de cada Mesa apartaron cupo (✓ = confirmó). Solo nombres, sin teléfonos. Si la Mesa tiene número, “Enviar al líder” abre el chat con el mensaje listo; si tiene grupo, “Copiar y abrir grupo” copia la lista y abre el grupo para que la pegues. Los grupos se configuran en Sesiones.</p>
       <div class="lgrid" id="infLeaders"></div>
     </div>
   </section>
@@ -263,6 +263,13 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
       <textarea class="mesas" id="mesasTxt" spellcheck="false"></textarea>
       <div class="row-btns"><button class="b pri" type="button" id="mesasSave">Guardar Mesas</button></div>
       <div class="msg" id="mesasMsg"></div>
+    </div>
+    <div class="card">
+      <h2>Grupos de WhatsApp de los líderes</h2>
+      <p class="note">Para enviar a cada Mesa su lista desde Informe. Pega el enlace del grupo (<b>chat.whatsapp.com/…</b>) o el número del líder con indicativo (<b>57 300 123 4567</b>). Es privado: solo se ve en este panel.</p>
+      <div class="grid" id="gruposForm"></div>
+      <div class="row-btns"><button class="b pri" type="button" id="gruposSave">Guardar grupos</button></div>
+      <div class="msg" id="gruposMsg"></div>
     </div>
     <div class="card">
       <h2>Historial</h2>
@@ -657,9 +664,16 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
       var txt = leaderText(s, m, ok, no, w);
       return '<div class="lcard"><h3>' + esc(grupoLabel(m)) + '<small>' + (ok.length + no.length) + ' con cupo' + (w.length ? ' · ' + w.length + ' en espera' : '') + '</small></h3>' +
         (rs.length ? '<ul>' + rs.map(function(r){ return '<li class="' + (r.status === 'espera' ? 'w' : r.reconfirmed ? 'ok' : '') + '">' + esc(r.name) + (r.status === 'espera' ? ' (en espera)' : '') + '</li>'; }).join('') + '</ul>' : '<p class="muted">Nadie de esta Mesa se ha inscrito todavía.</p>') +
-        '<div class="acts">' + (rs.length ? '<a class="b wa" href="' + esc('https://wa.me/?text=' + encodeURIComponent(txt)) + '" target="_blank" rel="noopener">Enviar por WhatsApp</a><button class="b" type="button" data-copy="' + esc(txt) + '">Copiar</button>' : '') + '</div></div>';
+        '<div class="acts">' + (rs.length ? sendBtn(m, txt) + '<button class="b" type="button" data-copy="' + esc(txt) + '">Copiar</button>' : '') + '</div></div>';
     });
     $('infLeaders').innerHTML = cards.join('');
+  }
+  // Botón de envío según lo guardado en Sesiones → Grupos de WhatsApp
+  function sendBtn(m, txt){
+    var c = ((data && data.grupos) || {})[m];
+    if (c && c.tipo === 'tel') return '<a class="b wa" href="' + esc('https://wa.me/' + c.phone + '?text=' + encodeURIComponent(txt)) + '" target="_blank" rel="noopener">Enviar al líder</a>';
+    if (c && c.tipo === 'grupo') return '<a class="b wa" data-copy="' + esc(txt) + '" data-open="1" href="' + esc(c.url) + '" target="_blank" rel="noopener">Copiar y abrir grupo</a>';
+    return '<a class="b wa" href="' + esc('https://wa.me/?text=' + encodeURIComponent(txt)) + '" target="_blank" rel="noopener">Enviar por WhatsApp</a>';
   }
   function leaderText(s, m, ok, no, w){
     var head = m === NO_MESA ? 'Personas inscritas que *aún no asisten a una Mesa*' : 'Tu Mesa (*' + m + '*)';
@@ -672,8 +686,8 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
   }
   document.addEventListener('click', function(e){
     var b = e.target.closest && e.target.closest('[data-copy]'); if (!b) return;
-    var t = b.getAttribute('data-copy');
-    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){ toast('Lista copiada'); }).catch(function(){ prompt('Copia la lista:', t); });
+    var t = b.getAttribute('data-copy'), open = b.hasAttribute('data-open');
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){ toast(open ? 'Lista copiada: pégala en el grupo' : 'Lista copiada'); }).catch(function(){ if (!open) prompt('Copia la lista:', t); else toast('No se pudo copiar: usa el botón Copiar'); });
   });
 
   // ── Comunidad
@@ -723,12 +737,28 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
     $('sesMsg').className = 'msg';
     if (s) fillSes(s);
     if (document.activeElement !== $('mesasTxt')) $('mesasTxt').value = mesasList().join('\n');
+    if (!$('gruposForm').contains(document.activeElement)) {
+      var g = (data && data.grupos) || {};
+      $('gruposForm').innerHTML = mesasList().map(function(m){
+        var c = g[m], v = c ? (c.tipo === 'grupo' ? c.url : '+' + c.phone) : '';
+        return '<label class="f">' + esc(m) + '<input data-mesa="' + esc(m) + '" value="' + esc(v) + '" placeholder="Enlace del grupo o número" maxlength="120"></label>';
+      }).join('');
+    }
     $('sesList').innerHTML = data.sessions.map(function(x){
       return '<div class="sesrow"><div><b>' + fDate(x) + '</b> · ' + x.time + ' · ' + esc(x.venue) + (x.id === data.currentId ? ' <span class="tag ok">Actual</span>' : '') +
         '<div class="muted">' + x.counts.confirmado + ' con cupo · ' + x.counts.llegaron + ' llegaron · ' + x.counts.espera + ' en espera</div></div>' +
         '<button class="b" data-act="open" data-id="' + esc(x.id) + '" type="button">Ver</button></div>';
     }).join('') || '<div class="empty">Sin sesiones.</div>';
   }
+  $('gruposSave').addEventListener('click', function(){
+    var grupos = {}, m = $('gruposMsg');
+    $('gruposForm').querySelectorAll('input[data-mesa]').forEach(function(i){ grupos[i.dataset.mesa] = i.value.trim(); });
+    api('/admin/grupos', {method:'POST', body:{grupos: grupos}}).then(function(r){
+      m.className = 'msg show ' + (r.ok ? 'good' : 'bad');
+      m.textContent = r.ok ? 'Guardado. ' + Object.keys(r.grupos).length + ' Mesas con grupo o número.' : (r.message || 'No se pudo guardar.');
+      if (r.ok) { data.grupos = r.grupos; }
+    });
+  });
   $('mesasSave').addEventListener('click', function(){
     var list = $('mesasTxt').value.split('\n').map(function(x){ return x.trim(); }).filter(Boolean), m = $('mesasMsg');
     api('/admin/mesas', {method:'POST', body:{mesas: list}}).then(function(r){
