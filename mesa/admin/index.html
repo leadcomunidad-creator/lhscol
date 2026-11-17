@@ -82,6 +82,21 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
 .sesrow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--g2);font-size:14px}
 .sesrow:last-child{border-bottom:0}
 .muted{color:var(--g5);font-size:13px}
+.mlink{background:none;border:0;padding:0;color:var(--crema);font:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.mlink.unk{color:#ff8fa6}
+.msel{background:var(--negro);border:1px solid var(--rojo);border-radius:7px;padding:3px 6px;font-size:13px;color:var(--blanco);color-scheme:dark;max-width:100%}
+.fsel{background:var(--g1);border:1px solid var(--g3);border-radius:999px;padding:7px 12px;font-size:13px;color:var(--g5);color-scheme:dark}
+details.bymesa{background:var(--g1);border:1px solid var(--g2);border-radius:12px;margin-bottom:14px}
+details.bymesa summary{cursor:pointer;padding:12px 14px;font-weight:600;color:var(--blanco)}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+.tbl th,.tbl td{padding:8px 10px;border-top:1px solid var(--g2);text-align:right;white-space:nowrap}
+.tbl th:first-child,.tbl td:first-child{text-align:left;white-space:normal}
+.tbl th{color:var(--g5);font-weight:600;font-size:12px}
+.tbl tr.tot td{font-weight:700;color:var(--blanco)}
+.tbl tr[data-mf]{cursor:pointer}
+.tbl tr[data-mf]:hover td{background:var(--g2)}
+.tblwrap{overflow-x:auto;padding:0 4px 8px}
+textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px solid var(--g3);border-radius:9px;padding:11px;font-size:16px;line-height:1.6;color:var(--blanco);outline:none;resize:vertical}
 @media(max-width:640px){
   .item{flex-direction:column;align-items:stretch}
   .acts{justify-content:flex-start}
@@ -127,8 +142,10 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
   <!-- INSCRITOS -->
   <section class="panel" id="t-ins">
     <div class="stats" id="stats"></div>
+    <details class="bymesa" id="byMesa"><summary>Por Mesa</summary><div class="tblwrap" id="byMesaT"></div></details>
     <div class="toolbar">
       <input class="search" id="q" type="search" placeholder="Buscar por nombre, Mesa o número">
+      <select class="fsel" id="mf" aria-label="Filtrar por Mesa"><option value="">Todas las Mesas</option></select>
     </div>
     <div class="toolbar" id="filters">
       <button class="chip" data-f="confirmado" aria-pressed="true">Con cupo</button>
@@ -154,7 +171,7 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
       <form id="addForm" class="grid">
         <label class="f">Nombre completo<input id="aName" required maxlength="80"></label>
         <label class="f">WhatsApp<input id="aPhone" type="tel" inputmode="tel" required maxlength="20"></label>
-        <label class="f">Mesa (líder)<input id="aMesa" maxlength="80"></label>
+        <label class="f">Mesa<select id="aMesa"></select></label>
         <div class="row-btns" style="align-self:end;margin:0"><button class="b pri" type="submit">Agregar · llegó y pagó</button></div>
       </form>
       <div class="msg" id="addMsg"></div>
@@ -201,6 +218,13 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
       </form>
     </div>
     <div class="card">
+      <h2>Mesas del formulario</h2>
+      <p class="note">Una Mesa por línea, como quieres que aparezca en la lista (por ejemplo <b>Camilo y Camila</b>). La opción “Aún no asisto a una Mesa” siempre aparece al final. Los cambios se ven en el formulario de inmediato, sin publicar la web.</p>
+      <textarea class="mesas" id="mesasTxt" spellcheck="false"></textarea>
+      <div class="row-btns"><button class="b pri" type="button" id="mesasSave">Guardar Mesas</button></div>
+      <div class="msg" id="mesasMsg"></div>
+    </div>
+    <div class="card">
       <h2>Historial</h2>
       <div id="sesList"></div>
     </div>
@@ -214,7 +238,13 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
   var API = '/api/mesa', SITE = 'https://lhscolweb.netlify.app';
   var $ = function(id){ return document.getElementById(id); };
   var key = null; try { key = sessionStorage.getItem('mesa.admin'); } catch(e){}
-  var data = null, viewing = null, people = null, filter = 'confirmado', newMode = false;
+  var data = null, viewing = null, people = null, filter = 'confirmado', newMode = false, mesaF = '';
+  var NO_MESA = 'Aún no asiste a una Mesa', SIN = '__sin__';
+  function mesasList(){ return (data && data.mesas) || []; }
+  function grupoLabel(g){ return g === NO_MESA ? 'Aún no asiste a una Mesa' : g; }
+  function mesaOptions(sel){
+    return mesasList().concat([NO_MESA]).map(function(m){ return '<option value="' + esc(m) + '"' + (m===sel?' selected':'') + '>' + esc(grupoLabel(m)) + '</option>'; }).join('');
+  }
 
   function api(path, opts){
     opts = opts || {};
@@ -289,16 +319,25 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
     c.addEventListener('click', function(){ filter = c.dataset.f; document.querySelectorAll('#filters .chip').forEach(function(x){ x.setAttribute('aria-pressed', x===c); }); renderList(); });
   });
   $('q').addEventListener('input', renderList);
+  $('mf').addEventListener('change', function(){ mesaF = this.value; renderList(); });
+  $('byMesaT').addEventListener('click', function(e){
+    var tr = e.target.closest('tr[data-mf]'); if (!tr) return;
+    mesaF = tr.dataset.mf; $('mf').value = mesaF;
+    filter = 'todos'; document.querySelectorAll('#filters .chip').forEach(function(x){ x.setAttribute('aria-pressed', x.dataset.f === 'todos'); });
+    renderList(); $('q').scrollIntoView({behavior:'smooth', block:'start'});
+  });
   $('dq').addEventListener('input', renderDoor);
   $('pq').addEventListener('input', renderPeople);
   $('pNot').addEventListener('click', function(){ this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') !== 'true'); renderPeople(); });
 
   function render(){
     var s = viewing;
+    if (data && data.noMesa) NO_MESA = data.noMesa;
     if (!s) { $('hSession').textContent = 'Sin sesión'; return; }
+    renderMesaControls();
     var isCur = s.id === data.currentId;
     $('hSession').textContent = (isCur ? '' : 'Viendo: ') + fDate(s) + ' · ' + fTime(s) + ' · ' + s.venue + (s.state === 'closed' ? ' · cerrada' : '');
-    renderStats(); renderList(); renderDoor();
+    renderStats(); renderByMesa(); renderList(); renderDoor();
     if (!$('t-ses').classList.contains('hidden')) renderSes();
   }
 
@@ -322,7 +361,7 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
     q = norm(q).trim(); if (!q) return true;
     var digits = q.replace(/[\s+()-]/g,'');
     if (/^\d{3,}$/.test(digits)) return r.phone.indexOf(digits) >= 0;
-    return norm(r.name + ' ' + r.mesa).indexOf(q) >= 0;
+    return norm(r.name + ' ' + r.mesa + ' ' + (r.grupo || '')).indexOf(q) >= 0;
   }
 
   function tags(r){
@@ -342,6 +381,7 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
     var q = $('q').value;
     var rows = s.regs.filter(function(r){
       if (!matches(r, q)) return false;
+      if (mesaF && (mesaF === SIN ? r.grupo : r.grupo !== mesaF)) return false;
       if (filter === 'todos') return true;
       if (filter === 'avisar') return r.needsNotice && r.status === 'confirmado';
       if (filter === 'sinrecordar') return r.status === 'confirmado' && !r.reminded;
@@ -359,9 +399,44 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
         a += '<button class="b red" data-act="cancel" data-id="' + r.id + '" type="button">Quitar</button>';
       }
       return '<div class="item"><div class="who"><b>' + (filter==='espera' ? (i+1) + '. ' : '') + esc(r.name) + '</b>' + tags(r) +
-        '<div class="meta">' + esc(r.mesa) + ' · ' + phoneFmt(r.phone) + ' · ' + new Date(r.createdAt).toLocaleDateString('es-CO',{day:'numeric',month:'short',timeZone:'America/Bogota'}) + '</div></div>' +
+        '<div class="meta">' + mesaMeta(r) + ' · ' + phoneFmt(r.phone) + ' · ' + new Date(r.createdAt).toLocaleDateString('es-CO',{day:'numeric',month:'short',timeZone:'America/Bogota'}) + '</div></div>' +
         '<div class="acts">' + a + '</div></div>';
     }).join('');
+  }
+
+  // Mesa de cada persona: se toca para cambiarla
+  function mesaMeta(r){
+    var label = r.grupo ? grupoLabel(r.grupo) : 'Sin Mesa reconocida';
+    var wrote = r.mesaTexto || (r.mesa !== r.grupo ? r.mesa : '');
+    return '<button class="mlink' + (r.grupo ? '' : ' unk') + '" type="button" data-act="mesa" data-id="' + r.id + '" title="Cambiar Mesa">' + esc(label) + '</button>' +
+      (wrote ? ' <span title="Lo que escribió">(“' + esc(wrote) + '”)</span>' : '');
+  }
+  function renderMesaControls(){
+    var mf = $('mf'), keep = mesaF;
+    mf.innerHTML = '<option value="">Todas las Mesas</option>' + mesaOptions('') + '<option value="' + SIN + '">Sin Mesa reconocida</option>';
+    mf.value = keep;
+    var am = $('aMesa'), ak = am.value;
+    am.innerHTML = '<option value="" disabled selected>Escoge</option>' + mesaOptions('');
+    if (ak) am.value = ak;
+  }
+  function renderByMesa(){
+    var s = viewing, rows = {}, order = mesasList().concat([NO_MESA, '']);
+    order.forEach(function(m){ rows[m] = {ins:0, cupo:0, conf:0, primera:0, llego:0, pago:0}; });
+    s.regs.forEach(function(r){
+      if (r.status === 'cancelado') return;
+      var k = rows[r.grupo] ? r.grupo : ''; var x = rows[k];
+      x.ins++; if (r.status === 'confirmado') x.cupo++; if (r.status==='confirmado' && r.reconfirmed) x.conf++;
+      if (r.firstTime) x.primera++; if (r.attended) x.llego++; if (r.paid) x.pago++;
+    });
+    var tot = {ins:0, cupo:0, conf:0, primera:0, llego:0, pago:0};
+    var html = '<table class="tbl"><thead><tr><th>Mesa</th><th>Inscritos</th><th>Con cupo</th><th>Confirmaron</th><th>1ª vez</th><th>Llegaron</th><th>Pagaron</th></tr></thead><tbody>';
+    order.forEach(function(m){
+      var x = rows[m]; if (!x.ins && m === '') return;
+      Object.keys(tot).forEach(function(k){ tot[k] += x[k]; });
+      html += '<tr data-mf="' + esc(m === '' ? SIN : m) + '"><td>' + esc(m === '' ? 'Sin Mesa reconocida' : grupoLabel(m)) + '</td><td>' + x.ins + '</td><td>' + x.cupo + '</td><td>' + x.conf + '</td><td>' + x.primera + '</td><td>' + x.llego + '</td><td>' + x.pago + '</td></tr>';
+    });
+    html += '<tr class="tot"><td>Total</td><td>' + tot.ins + '</td><td>' + tot.cupo + '</td><td>' + tot.conf + '</td><td>' + tot.primera + '</td><td>' + tot.llego + '</td><td>' + tot.pago + '</td></tr></tbody></table>';
+    $('byMesaT').innerHTML = html;
   }
 
   function renderDoor(){
@@ -372,7 +447,7 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
     if (!rows.length) { $('doorList').innerHTML = '<div class="empty">' + (q ? 'No aparece. Agrégala abajo.' : 'Aún no hay inscritos.') + '</div>'; return; }
     $('doorList').innerHTML = rows.map(function(r){
       return '<div class="item"><div class="who"><b>' + esc(r.name) + '</b>' + (r.status==='espera' ? '<span class="tags"><span class="tag wait">Espera</span></span>' : '') +
-        '<div class="meta">' + esc(r.mesa) + ' · ' + phoneFmt(r.phone).slice(-4) + '</div></div>' +
+        '<div class="meta">' + esc(r.grupo ? grupoLabel(r.grupo) : r.mesa) + ' · ' + phoneFmt(r.phone).slice(-4) + '</div></div>' +
         '<div class="acts"><button class="b toggle" data-act="att" data-id="' + r.id + '" aria-pressed="' + !!r.attended + '" type="button">' + (r.attended ? 'Llegó ✓' : 'Llegó') + '</button>' +
         '<button class="b toggle pay" data-act="paid" data-id="' + r.id + '" aria-pressed="' + !!r.paid + '" type="button">' + (r.paid ? 'Pagó ✓' : 'Pagó') + '</button></div></div>';
     }).join('');
@@ -381,12 +456,14 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
   // ── Acciones sobre inscripciones
   function update(id, patch){
     var r = viewing.regs.find(function(x){ return x.id === id; });
+    if (patch.mesa && r.mesa !== patch.mesa && !r.mesaTexto) r.mesaTexto = r.mesa;
     Object.assign(r, patch); // respuesta inmediata en pantalla
     if (patch.attended === true && r.status === 'espera') r.status = 'confirmado';
     viewing.counts = recount(viewing); render();
-    return api('/admin/reg', {method:'POST', body: Object.assign({sessionId: viewing.id, regId: id}, patch)}).then(function(x){
+    var body = Object.assign({sessionId: viewing.id, regId: id}, patch); delete body.grupo;
+    return api('/admin/reg', {method:'POST', body: body}).then(function(x){
       if (!x.ok) { toast(x.message || 'No se guardó'); return reload(); }
-      if (patch.status) reload();
+      if (patch.status || patch.mesa) reload();
     });
   }
   function recount(s){
@@ -397,6 +474,15 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
   document.addEventListener('click', function(e){
     var el = e.target.closest('[data-act]'); if (!el) return;
     var id = el.dataset.id, act = el.dataset.act, r = viewing && viewing.regs.find(function(x){ return x.id === id; });
+    if (act === 'mesa') {
+      e.preventDefault();
+      var sel = document.createElement('select'); sel.className = 'msel';
+      sel.innerHTML = (r.grupo ? '' : '<option value="" selected disabled>Escoge su Mesa</option>') + mesaOptions(r.grupo);
+      el.replaceWith(sel); sel.focus();
+      sel.addEventListener('change', function(){ update(id, {mesa: sel.value, grupo: sel.value}); toast('Mesa de ' + first(r.name) + ': ' + grupoLabel(sel.value)); });
+      sel.addEventListener('blur', function(){ setTimeout(renderList, 150); });
+      return;
+    }
     if (act === 'remind') { update(id, {reminded: true}); }
     else if (act === 'notice') { update(id, {noticeSent: true, needsNotice: false, reminded: true}); }
     else if (act === 'cancel') { e.preventDefault(); if (confirm('¿Liberar el cupo de ' + r.name + '? Si hay lista de espera, entra la siguiente persona.')) update(id, {status: 'cancelado'}); }
@@ -411,6 +497,7 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
   $('addForm').addEventListener('submit', function(e){
     e.preventDefault();
     var m = $('addMsg');
+    if (!$('aMesa').value) { m.className = 'msg show bad'; m.textContent = 'Escoge la Mesa.'; return; }
     api('/admin/add', {method:'POST', body:{sessionId: viewing.id, name: $('aName').value, phone: $('aPhone').value, mesa: $('aMesa').value, attended: true, paid: true}}).then(function(r){
       m.className = 'msg show ' + (r.ok ? 'good' : 'bad');
       m.textContent = r.ok ? 'Agregado: ' + r.reg.name : (r.message || 'No se pudo agregar.');
@@ -420,12 +507,18 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
 
   // ── CSV
   $('csv').addEventListener('click', function(){
-    var s = viewing, cols = ['Nombre','WhatsApp','Mesa (líder)','Estado','Primera vez','Confirmó asistencia','Recordatorio enviado','Llegó','Pagó','Inscrito el','Origen'];
+    var s = viewing, cols = ['Mesa','Nombre','WhatsApp','Estado','Primera vez','Confirmó asistencia','Recordatorio enviado','Llegó','Pagó','Inscrito el','Origen','Lo que escribió en Mesa'];
+    var pos = {}; mesasList().concat([NO_MESA]).forEach(function(m, i){ pos[m] = i; });
+    var regs = s.regs.slice().sort(function(a, b){
+      var pa = a.grupo in pos ? pos[a.grupo] : 999, pb = b.grupo in pos ? pos[b.grupo] : 999;
+      return pa - pb || a.name.localeCompare(b.name, 'es');
+    });
     var yes = function(b){ return b ? 'Sí' : 'No'; };
-    var lines = [cols].concat(s.regs.map(function(r){
-      return [r.name, '+' + r.phone, r.mesa, r.status === 'espera' ? 'Lista de espera' : r.status === 'cancelado' ? 'Liberó su cupo' : 'Con cupo',
+    var lines = [cols].concat(regs.map(function(r){
+      var wrote = r.mesaTexto || (r.mesa !== r.grupo ? r.mesa : '');
+      return [r.grupo ? grupoLabel(r.grupo) : 'Sin Mesa reconocida', r.name, '+' + r.phone, r.status === 'espera' ? 'Lista de espera' : r.status === 'cancelado' ? 'Liberó su cupo' : 'Con cupo',
         yes(r.firstTime), yes(r.reconfirmed), yes(r.reminded), yes(r.attended), yes(r.paid),
-        new Date(r.createdAt).toLocaleString('es-CO',{timeZone:'America/Bogota'}), r.source || ''];
+        new Date(r.createdAt).toLocaleString('es-CO',{timeZone:'America/Bogota'}), r.source || '', wrote];
     })).map(function(row){ return row.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(';'); });
     var blob = new Blob(['﻿' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'todos-a-la-mesa-' + s.id + '.csv'; a.click();
@@ -449,7 +542,7 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
         (p.inasistencias ? '<span class="tag red">no llegó ' + p.inasistencias + (p.inasistencias===1?' vez':' veces') + '</span>' : '') +
         (inCur[p.phone] ? '<span class="tag wait">Inscrito en la actual</span>' : '') + '</span>';
       var act = (!inCur[p.phone] && s && s.state !== 'closed' && p.personToken) ? '<a class="b wa" data-act="invite" href="' + esc(wa(p.phone, msgInvite(s, p))) + '" target="_blank" rel="noopener">Invitar</a>' : '';
-      return '<div class="item"><div class="who"><b>' + esc(p.name) + '</b>' + t + '<div class="meta">' + esc(p.mesa) + ' · ' + phoneFmt(p.phone) + '</div></div><div class="acts">' + act + '</div></div>';
+      return '<div class="item"><div class="who"><b>' + esc(p.name) + '</b>' + t + '<div class="meta">' + esc(p.grupo ? grupoLabel(p.grupo) : p.mesa) + ' · ' + phoneFmt(p.phone) + '</div></div><div class="acts">' + act + '</div></div>';
     }).join('');
   }
 
@@ -477,12 +570,21 @@ label.f input:focus,label.f textarea:focus{border-color:var(--rojo)}
     $('sSave').textContent = 'Guardar cambios';
     $('sesMsg').className = 'msg';
     if (s) fillSes(s);
+    if (document.activeElement !== $('mesasTxt')) $('mesasTxt').value = mesasList().join('\n');
     $('sesList').innerHTML = data.sessions.map(function(x){
       return '<div class="sesrow"><div><b>' + fDate(x) + '</b> · ' + x.time + ' · ' + esc(x.venue) + (x.id === data.currentId ? ' <span class="tag ok">Actual</span>' : '') +
         '<div class="muted">' + x.counts.confirmado + ' con cupo · ' + x.counts.llegaron + ' llegaron · ' + x.counts.espera + ' en espera</div></div>' +
         '<button class="b" data-act="open" data-id="' + esc(x.id) + '" type="button">Ver</button></div>';
     }).join('') || '<div class="empty">Sin sesiones.</div>';
   }
+  $('mesasSave').addEventListener('click', function(){
+    var list = $('mesasTxt').value.split('\n').map(function(x){ return x.trim(); }).filter(Boolean), m = $('mesasMsg');
+    api('/admin/mesas', {method:'POST', body:{mesas: list}}).then(function(r){
+      m.className = 'msg show ' + (r.ok ? 'good' : 'bad');
+      m.textContent = r.ok ? 'Guardado. El formulario ya muestra ' + r.mesas.length + ' Mesas.' : (r.message || 'No se pudo guardar.');
+      if (r.ok) { data.mesas = r.mesas; $('mesasTxt').value = r.mesas.join('\n'); reload(); }
+    });
+  });
   $('sNew').addEventListener('click', function(){
     var s = data.current; if (!s) return;
     newMode = true;

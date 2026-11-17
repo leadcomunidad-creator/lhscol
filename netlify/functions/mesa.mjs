@@ -16,6 +16,8 @@
 //   POST /api/mesa/admin/reg            Actualizar una inscripción (llegó, pagó, avisado, estado)
 //   POST /api/mesa/admin/add            Inscribir manualmente (p. ej. en la puerta)
 //   GET  /api/mesa/admin/history        Asistencia por persona en todas las sesiones
+//   GET  /api/mesa/admin/mesas          Lista de Mesas que muestra el formulario
+//   POST /api/mesa/admin/mesas          Guardar la lista de Mesas
 
 import { getStore } from '@netlify/blobs';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
@@ -42,6 +44,21 @@ const DEFAULT_SESSION = {
   status: 'open',
 };
 
+// Mesas (grupos) que aparecen en el formulario. Se editan desde el panel (Sesiones → Mesas);
+// esta lista solo se usa mientras no se haya guardado ninguna desde el panel.
+const NO_MESA = 'Aún no asiste a una Mesa';
+const DEFAULT_MESAS = [
+  'Alejandra y Alexander',
+  'Beatriz Tejada',
+  'Camilo y Camila',
+  'Carlos y Yulieth',
+  'Daniela y Esteban',
+  'Jimmy y Luti',
+  'Juan y Lili',
+  'Julián y Laura',
+  'War y Danna',
+];
+
 // ───────── utilidades ─────────
 const json = (data, status = 200, extra = {}) =>
   new Response(JSON.stringify(data), {
@@ -52,6 +69,51 @@ const fail = (status, error, message) => json({ ok: false, error, message }, sta
 const token = (bytes = 16) => randomBytes(bytes).toString('base64url');
 const nowIso = () => new Date().toISOString();
 const clean = (v, max = 120) => String(v ?? '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+
+const plain = (v) => String(v ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+// Nombres con mayúscula inicial: "JUAN E MEJIA T" → "Juan E Mejia T", "maria fernanda villa" → "Maria Fernanda Villa".
+// Las palabras que ya vienen con mayúsculas y minúsculas mezcladas (p. ej. "McAllister") se respetan.
+const PARTICLES = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'da', 'di', 'van', 'von']);
+function properName(raw) {
+  return clean(raw, 80).split(' ').map((w, i) => {
+    if (!w) return w;
+    const lower = w.toLocaleLowerCase('es');
+    const upper = w.toLocaleUpperCase('es');
+    if (w !== lower && w !== upper) return w; // mezcla: se deja como la escribió
+    if (i > 0 && PARTICLES.has(lower)) return lower;
+    return lower.replace(/(^|[-'’])(\p{L})/gu, (m, sep, ch) => sep + ch.toLocaleUpperCase('es'));
+  }).join(' ');
+}
+
+// Reconoce la Mesa a partir de lo que la persona escribió antes de que existiera la lista.
+// Solo devuelve un grupo que exista en la lista actual; si no la reconoce, devuelve ''.
+const MESA_HINTS = [
+  [/\baun no asist/, NO_MESA],
+  [/\b(pleno|daniela|esteban)\b/, 'Daniela y Esteban'],
+  [/\b(jimmy|luti)\b/, 'Jimmy y Luti'],
+  [/\b(julis|laura)\b|\bjulian y laura\b/, 'Julián y Laura'],
+  [/\b(war|warles|danna|dana)\b/, 'War y Danna'],
+  [/\b(carlos|yulieth|yuli|julieth)\b/, 'Carlos y Yulieth'],
+  [/\b(juan|juna|lili|liliana|parejas)\b/, 'Juan y Lili'],
+  [/\b(alejandra|alajandra|alexander|aleja|ale)\b/, 'Alejandra y Alexander'],
+  [/\b(beatriz|tejada)\b/, 'Beatriz Tejada'],
+  [/\b(camilo|camila)\b/, 'Camilo y Camila'],
+];
+function mesaGroup(text, mesas) {
+  const t = plain(text).trim();
+  if (!t) return '';
+  const exact = [NO_MESA, ...mesas].find((m) => plain(m) === t);
+  if (exact) return exact;
+  for (const [re, group] of MESA_HINTS) {
+    if (re.test(t)) {
+      const g = [NO_MESA, ...mesas].find((m) => plain(m) === plain(group));
+      if (g) return g;
+    }
+  }
+  return '';
+}
+const validMesa = (text, mesas) => [NO_MESA, ...mesas].find((m) => plain(m) === plain(text).trim()) || '';
 
 function normalizePhone(raw) {
   let d = String(raw ?? '').replace(/\D/g, '');
@@ -138,6 +200,11 @@ class HttpError extends Error {
   constructor(status, code, message) { super(message); this.status = status; this.code = code; }
 }
 
+async function getMesas() {
+  const { data } = await read('config/mesas');
+  return Array.isArray(data?.mesas) && data.mesas.length ? data.mesas : DEFAULT_MESAS;
+}
+
 async function getIndex() {
   const { data } = await read('index');
   return data;
@@ -159,8 +226,8 @@ async function currentSession() {
 
 // ───────── manejadores públicos ─────────
 async function getSession() {
-  const s = await currentSession();
-  return json({ ok: true, state: publicState(s), session: publicSession(s) });
+  const [s, mesas] = await Promise.all([currentSession(), getMesas()]);
+  return json({ ok: true, state: publicState(s), session: publicSession(s), mesas, noMesa: NO_MESA });
 }
 
 async function register(req, context) {
@@ -175,11 +242,14 @@ async function register(req, context) {
     if (t?.type === 'person') person = (await read(personKey(t.phone))).data;
   }
   const phone = person ? person.phone : normalizePhone(body.phone);
-  const name = clean(body.name, 80) || person?.name || '';
-  const mesa = clean(body.mesa, 80) || person?.mesa || '';
+  const name = properName(body.name) || person?.name || '';
+  // La Mesa viene de la lista; si llega texto libre (formulario viejo en caché o reinscripción), se intenta reconocer.
+  const mesas = await getMesas();
+  const typed = clean(body.mesa, 80);
+  const mesa = validMesa(typed, mesas) || mesaGroup(typed, mesas) || (!typed && person ? mesaGroup(person.mesa, mesas) : '');
   if (!name || name.length < 3) throw new HttpError(400, 'name', 'Escribe tu nombre completo.');
   if (!phone) throw new HttpError(400, 'phone', 'Escribe un número de WhatsApp válido (10 dígitos, o con + y el indicativo del país).');
-  if (!mesa) throw new HttpError(400, 'mesa', 'Cuéntanos a qué Mesa asistes o marca que aún no asistes a una.');
+  if (!mesa) throw new HttpError(400, 'mesa', typed ? 'Escoge tu Mesa en la lista (si no aparece, actualiza la página).' : 'Escoge tu Mesa en la lista o “Aún no asisto a una Mesa”.');
 
   const idx = await ensureIndex();
   if (!idx?.currentId) throw new HttpError(409, 'none', 'No hay inscripciones abiertas en este momento.');
@@ -197,6 +267,7 @@ async function register(req, context) {
       id: token(6),
       token: token(16),
       name, phone, mesa,
+      ...(typed && typed !== mesa ? { mesaTexto: typed } : {}),
       firstTime: body.firstTime === true,
       status: c.confirmado < s.capacity ? 'confirmado' : 'espera',
       reconfirmed: false,
@@ -286,9 +357,9 @@ async function personPrefill(t) {
   if (!ref || ref.type !== 'person') throw new HttpError(404, 'not_found', 'Este enlace no es válido.');
   const p = (await read(personKey(ref.phone))).data;
   if (!p) throw new HttpError(404, 'not_found', 'Este enlace no es válido.');
-  const s = await currentSession();
+  const [s, mesas] = await Promise.all([currentSession(), getMesas()]);
   const already = s?.regs.find((r) => r.phone === p.phone && r.status !== 'cancelado');
-  return json({ ok: true, name: p.name, mesa: p.mesa, phoneHint: '•••• ' + p.phone.slice(-4), alreadyStatus: already?.status || null });
+  return json({ ok: true, name: p.name, mesa: mesaGroup(p.mesa, mesas), phoneHint: '•••• ' + p.phone.slice(-4), alreadyStatus: already?.status || null });
 }
 
 // ───────── administración ─────────
@@ -301,8 +372,10 @@ function checkAdmin(req) {
   if (!timingSafeEqual(a, b)) throw new HttpError(401, 'unauthorized', 'Contraseña incorrecta.');
 }
 
-function adminSession(s) {
-  return { ...s, startsAt: startDate(s).toISOString(), state: publicState(s), counts: counts(s) };
+// Cada inscripción lleva su Mesa reconocida (grupo); '' si no se pudo reconocer.
+function adminSession(s, mesas) {
+  const regs = s.regs.map((r) => ({ ...r, name: properName(r.name) || r.name, grupo: mesaGroup(r.mesa, mesas) }));
+  return { ...s, regs, startsAt: startDate(s).toISOString(), state: publicState(s), counts: counts(s) };
 }
 
 async function adminOverview() {
@@ -314,13 +387,14 @@ async function adminOverview() {
   }
   sessions.sort((a, b) => b.id.localeCompare(a.id));
   const current = idx.currentId ? (await read(sessionKey(idx.currentId))).data : null;
-  return json({ ok: true, currentId: idx.currentId, sessions, current: current ? adminSession(current) : null });
+  const mesas = await getMesas();
+  return json({ ok: true, currentId: idx.currentId, sessions, mesas, noMesa: NO_MESA, current: current ? adminSession(current, mesas) : null });
 }
 
 async function adminGetSession(id) {
   const s = (await read(sessionKey(clean(id, 20)))).data;
   if (!s) throw new HttpError(404, 'not_found', 'Sesión no encontrada.');
-  return json({ ok: true, session: adminSession(s) });
+  return json({ ok: true, session: adminSession(s, await getMesas()) });
 }
 
 async function adminSaveSession(req) {
@@ -362,12 +436,18 @@ async function adminUpdateReg(req) {
   const b = await req.json().catch(() => ({}));
   const sid = clean(b.sessionId, 20);
   const rid = clean(b.regId, 20);
+  let newMesa = '';
+  if (b.mesa !== undefined) {
+    newMesa = validMesa(clean(b.mesa, 80), await getMesas());
+    if (!newMesa) throw new HttpError(400, 'mesa', 'Esa Mesa no está en la lista.');
+  }
   const reg = await mutate(sessionKey(sid), (s) => {
     const r = s?.regs.find((x) => x.id === rid);
     if (!r) throw new HttpError(404, 'not_found', 'Inscripción no encontrada.');
     for (const k of ['attended', 'paid', 'reminded', 'reconfirmed']) if (typeof b[k] === 'boolean') r[k] = b[k];
     if (b.attended === true) { r.attendedAt = nowIso(); if (r.status !== 'confirmado') r.status = 'confirmado'; }
     if (b.noticeSent === true) r.needsNotice = false;
+    if (newMesa && newMesa !== r.mesa) { if (!r.mesaTexto) r.mesaTexto = r.mesa; r.mesa = newMesa; }
     if (b.status === 'cancelado' && r.status !== 'cancelado') {
       const was = r.status === 'confirmado';
       r.status = 'cancelado'; r.cancelledAt = nowIso(); r.cancelledBy = 'admin';
@@ -377,6 +457,7 @@ async function adminUpdateReg(req) {
     }
     return { value: s, result: r };
   });
+  if (newMesa) await mutate(personKey(reg.phone), (p) => (p ? (p.mesa = newMesa, { value: p }) : { skipWrite: true }));
   return json({ ok: true, reg });
 }
 
@@ -384,8 +465,8 @@ async function adminAdd(req) {
   const b = await req.json().catch(() => ({}));
   const sid = clean(b.sessionId, 20);
   const phone = normalizePhone(b.phone);
-  const name = clean(b.name, 80);
-  const mesa = clean(b.mesa, 80) || 'Sin especificar';
+  const name = properName(b.name);
+  const mesa = validMesa(clean(b.mesa, 80), await getMesas()) || clean(b.mesa, 80) || 'Sin especificar';
   if (!name || !phone) throw new HttpError(400, 'invalid', 'Nombre y WhatsApp son obligatorios.');
   const reg = await mutate(sessionKey(sid), (s) => {
     if (!s) throw new HttpError(404, 'not_found', 'Sesión no encontrada.');
@@ -406,6 +487,7 @@ async function adminAdd(req) {
 
 async function adminHistory() {
   const idx = await ensureIndex();
+  const mesas = await getMesas();
   const people = {};
   for (const id of idx.sessions) {
     const s = (await read(sessionKey(id))).data;
@@ -423,8 +505,22 @@ async function adminHistory() {
   }
   // token de reinscripción de cada persona (para el mensaje de invitación)
   const list = Object.values(people);
+  for (const p of list) { p.grupo = mesaGroup(p.mesa, mesas); p.name = properName(p.name) || p.name; }
   await Promise.all(list.map(async (p) => { p.personToken = (await read(personKey(p.phone))).data?.token || null; }));
   return json({ ok: true, people: list });
+}
+
+async function adminSaveMesas(req) {
+  const b = await req.json().catch(() => ({}));
+  const seen = new Set();
+  const mesas = (Array.isArray(b.mesas) ? b.mesas : [])
+    .map((m) => clean(m, 60))
+    .filter((m) => m && plain(m) !== plain(NO_MESA) && !seen.has(plain(m)) && seen.add(plain(m)))
+    .slice(0, 40)
+    .sort((a, c) => a.localeCompare(c, 'es'));
+  if (!mesas.length) throw new HttpError(400, 'mesas', 'Escribe al menos una Mesa.');
+  await store().setJSON('config/mesas', { mesas, updatedAt: nowIso() });
+  return json({ ok: true, mesas });
 }
 
 // ───────── enrutador ─────────
@@ -449,6 +545,8 @@ export default async (req, context) => {
       if (parts[1] === 'reg' && m === 'POST') return await adminUpdateReg(req);
       if (parts[1] === 'add' && m === 'POST') return await adminAdd(req);
       if (parts[1] === 'history' && m === 'GET') return await adminHistory();
+      if (parts[1] === 'mesas' && m === 'GET') return json({ ok: true, mesas: await getMesas(), noMesa: NO_MESA });
+      if (parts[1] === 'mesas' && m === 'POST') return await adminSaveMesas(req);
     }
     return fail(404, 'not_found', 'Ruta no encontrada.');
   } catch (e) {
