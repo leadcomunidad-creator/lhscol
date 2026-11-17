@@ -18,6 +18,7 @@
 //   GET  /api/mesa/admin/history        Asistencia por persona en todas las sesiones
 //   GET  /api/mesa/admin/mesas          Lista de Mesas que muestra el formulario
 //   POST /api/mesa/admin/mesas          Guardar la lista de Mesas
+//   POST /api/mesa/admin/grupos         Guardar el grupo de WhatsApp (enlace) o número de cada Mesa (privado)
 
 import { getStore } from '@netlify/blobs';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
@@ -205,6 +206,21 @@ async function getMesas() {
   return Array.isArray(data?.mesas) && data.mesas.length ? data.mesas : DEFAULT_MESAS;
 }
 
+// Grupo de WhatsApp o número de contacto de cada Mesa, para enviar la lista al líder.
+// Es privado: solo lo devuelven las rutas del panel (los enlaces de grupo dejan entrar a cualquiera).
+async function getGrupos() {
+  const { data } = await read('config/grupos');
+  return data?.grupos && typeof data.grupos === 'object' ? data.grupos : {};
+}
+function parseContacto(v) {
+  const t = String(v ?? '').trim();
+  if (!t) return null;
+  const m = t.match(/^https:\/\/chat\.whatsapp\.com\/(?:invite\/)?([A-Za-z0-9]{10,40})\/?$/);
+  if (m) return { tipo: 'grupo', url: 'https://chat.whatsapp.com/' + m[1] };
+  const ph = normalizePhone(/^\d{11,15}$/.test(t.replace(/\D/g, '')) && !t.startsWith('+') ? '+' + t.replace(/\D/g, '') : t);
+  return ph ? { tipo: 'tel', phone: ph } : undefined;
+}
+
 async function getIndex() {
   const { data } = await read('index');
   return data;
@@ -387,8 +403,8 @@ async function adminOverview() {
   }
   sessions.sort((a, b) => b.id.localeCompare(a.id));
   const current = idx.currentId ? (await read(sessionKey(idx.currentId))).data : null;
-  const mesas = await getMesas();
-  return json({ ok: true, currentId: idx.currentId, sessions, mesas, noMesa: NO_MESA, current: current ? adminSession(current, mesas) : null });
+  const [mesas, grupos] = await Promise.all([getMesas(), getGrupos()]);
+  return json({ ok: true, currentId: idx.currentId, sessions, mesas, grupos, noMesa: NO_MESA, current: current ? adminSession(current, mesas) : null });
 }
 
 async function adminGetSession(id) {
@@ -523,6 +539,21 @@ async function adminSaveMesas(req) {
   return json({ ok: true, mesas });
 }
 
+async function adminSaveGrupos(req) {
+  const b = await req.json().catch(() => ({}));
+  const mesas = await getMesas();
+  const grupos = {};
+  for (const [k, v] of Object.entries(b.grupos || {})) {
+    const mesa = validMesa(clean(k, 80), mesas);
+    if (!mesa) continue;
+    const c = parseContacto(v);
+    if (c === undefined) throw new HttpError(400, 'grupo', `Revisa el contacto de ${mesa}: pega el enlace del grupo (chat.whatsapp.com/…) o un número con indicativo.`);
+    if (c) grupos[mesa] = c;
+  }
+  await store().setJSON('config/grupos', { grupos, updatedAt: nowIso() });
+  return json({ ok: true, grupos });
+}
+
 // ───────── enrutador ─────────
 export default async (req, context) => {
   const url = new URL(req.url);
@@ -547,6 +578,7 @@ export default async (req, context) => {
       if (parts[1] === 'history' && m === 'GET') return await adminHistory();
       if (parts[1] === 'mesas' && m === 'GET') return json({ ok: true, mesas: await getMesas(), noMesa: NO_MESA });
       if (parts[1] === 'mesas' && m === 'POST') return await adminSaveMesas(req);
+      if (parts[1] === 'grupos' && m === 'POST') return await adminSaveGrupos(req);
     }
     return fail(404, 'not_found', 'Ruta no encontrada.');
   } catch (e) {

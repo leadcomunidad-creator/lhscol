@@ -153,3 +153,17 @@ test('panel: editar la lista de Mesas y cambiar la Mesa de una persona', async (
   assert.equal(upd.reg.mesa, 'Nueva Mesa');
   assert.equal(upd.reg.mesaTexto, 'carlos y yuli');
 });
+
+test('grupos de WhatsApp de cada Mesa: privados y validados', async () => {
+  await call('/admin/mesas', { method: 'POST', headers: K, body: { mesas: ['Juan y Lili', 'Carlos y Yulieth', 'Beatriz Tejada'] } });
+  assert.equal((await call('/admin/grupos', { method: 'POST', body: { grupos: {} } })).code, 401);
+  assert.equal((await call('/admin/grupos', { method: 'POST', headers: K, body: { grupos: { 'Juan y Lili': 'https://otro.sitio/x' } } })).code, 400);
+  const r = await call('/admin/grupos', { method: 'POST', headers: K, body: { grupos: {
+    'Juan y Lili': 'https://chat.whatsapp.com/EjemploFalso1234567890', 'Carlos y Yulieth': '+57 300 000 0001', 'Beatriz Tejada': '57 300 000 0002', 'Inventada': 'https://chat.whatsapp.com/AAAAAAAAAAAA' } } });
+  assert.deepEqual(r.grupos['Juan y Lili'], { tipo: 'grupo', url: 'https://chat.whatsapp.com/EjemploFalso1234567890' });
+  assert.deepEqual(r.grupos['Carlos y Yulieth'], { tipo: 'tel', phone: '573000000001' });
+  assert.deepEqual(r.grupos['Beatriz Tejada'], { tipo: 'tel', phone: '573000000002' });
+  assert.equal(r.grupos['Inventada'], undefined);
+  assert.ok(!JSON.stringify(await call('/session')).includes('chat.whatsapp'));
+  assert.ok((await call('/admin/overview', { headers: K })).grupos['Juan y Lili']);
+});
