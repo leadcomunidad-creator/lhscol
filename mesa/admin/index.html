@@ -96,6 +96,28 @@ details.bymesa summary{cursor:pointer;padding:12px 14px;font-weight:600;color:va
 .tbl tr[data-mf]{cursor:pointer}
 .tbl tr[data-mf]:hover td{background:var(--g2)}
 .tblwrap{overflow-x:auto;padding:0 4px 8px}
+.chart{background:var(--g1);border:1px solid var(--g2);border-radius:14px;padding:16px;margin-bottom:14px}
+.chart h2{font-family:'Playfair Display',serif;font-size:19px;color:var(--blanco);margin-bottom:2px}
+.chart .sub{font-size:13px;color:var(--g5);margin-bottom:12px}
+.chart svg{display:block;max-width:100%;height:auto;overflow:visible}
+.chart svg text{fill:var(--g5);font-size:12px;font-family:'DM Sans',sans-serif}
+.chart svg text.v{fill:var(--crema);font-weight:600}
+.chart svg text.lab{fill:var(--crema);font-size:13px}
+.chart svg .grid{stroke:var(--g2);stroke-width:1}
+.chart svg .hit{fill:transparent}
+.chart svg g.bar:hover rect.m{opacity:.85}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--g5);margin-bottom:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.lcard{background:var(--g1);border:1px solid var(--g2);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.lcard h3{font-size:16px;color:var(--blanco);font-weight:700}
+.lcard h3 small{font-weight:500;color:var(--g5);font-size:13px;margin-left:6px}
+.lcard ul{list-style:none;font-size:14px;line-height:1.6;color:var(--crema)}
+.lcard ul li.ok::after{content:' ✓';color:var(--ok);font-weight:700}
+.lcard ul li.w{color:var(--dorado)}
+.lcard .acts{justify-content:flex-start;margin-top:auto}
+.ttip{position:fixed;z-index:30;pointer-events:none;background:var(--crema);color:var(--negro);font-size:13px;padding:6px 10px;border-radius:8px;opacity:0;transition:opacity .12s;max-width:260px}
+.ttip.show{opacity:1}
 textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px solid var(--g3);border-radius:9px;padding:11px;font-size:16px;line-height:1.6;color:var(--blanco);outline:none;resize:vertical}
 @media(max-width:640px){
   .item{flex-direction:column;align-items:stretch}
@@ -133,6 +155,7 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
       <button class="tab" role="tab" data-tab="ins" aria-selected="true">Inscritos</button>
       <button class="tab" role="tab" data-tab="door" aria-selected="false">Puerta</button>
       <button class="tab" role="tab" data-tab="people" aria-selected="false">Comunidad</button>
+      <button class="tab" role="tab" data-tab="inf" aria-selected="false">Informe</button>
       <button class="tab" role="tab" data-tab="ses" aria-selected="false">Sesiones</button>
     </nav>
   </div>
@@ -188,6 +211,23 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
         <button class="chip" id="pNot" aria-pressed="true" type="button">Solo quienes no están inscritos</button>
       </div>
       <div class="list" id="peopleList"></div>
+    </div>
+  </section>
+
+  <!-- INFORME -->
+  <section class="panel hidden" id="t-inf">
+    <div class="stats" id="infStats"></div>
+    <div class="chart"><h2>Inscripciones por día</h2><p class="sub" id="infDaySub"></p><div id="infDay"></div></div>
+    <div class="chart"><h2>Por Mesa</h2><p class="sub">Personas con cupo en cada Mesa. Pasa el dedo o el mouse sobre una barra para ver el detalle.</p>
+      <div class="legend"><span><i style="background:#F0254F"></i>Confirmaron</span><span><i style="background:#4A90D9"></i>Aún no confirman</span></div>
+      <div id="infMesa"></div></div>
+    <div class="chart hidden" id="infSesW"><h2>Sesiones anteriores</h2><p class="sub">Con cupo y cuántos llegaron en cada sesión.</p>
+      <div class="legend"><span><i style="background:#4A90D9"></i>Con cupo</span><span><i style="background:#F0254F"></i>Llegaron</span></div>
+      <div id="infSes"></div></div>
+    <div class="card">
+      <h2>Para los líderes</h2>
+      <p class="note">Quiénes de cada Mesa apartaron cupo (✓ = confirmó). Solo nombres, sin teléfonos. “Enviar” abre WhatsApp para que escojas al líder.</p>
+      <div class="lgrid" id="infLeaders"></div>
     </div>
   </section>
 
@@ -310,9 +350,10 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
   document.querySelectorAll('.tab').forEach(function(t){
     t.addEventListener('click', function(){
       document.querySelectorAll('.tab').forEach(function(x){ x.setAttribute('aria-selected', x===t); });
-      ['ins','door','people','ses'].forEach(function(n){ $('t-'+n).classList.toggle('hidden', n !== t.dataset.tab); });
+      ['ins','door','people','inf','ses'].forEach(function(n){ $('t-'+n).classList.toggle('hidden', n !== t.dataset.tab); });
       if (t.dataset.tab === 'people') loadPeople();
       if (t.dataset.tab === 'ses') renderSes();
+      if (t.dataset.tab === 'inf') renderInf();
     });
   });
   document.querySelectorAll('#filters .chip').forEach(function(c){
@@ -339,6 +380,7 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
     $('hSession').textContent = (isCur ? '' : 'Viendo: ') + fDate(s) + ' · ' + fTime(s) + ' · ' + s.venue + (s.state === 'closed' ? ' · cerrada' : '');
     renderStats(); renderByMesa(); renderList(); renderDoor();
     if (!$('t-ses').classList.contains('hidden')) renderSes();
+    if (!$('t-inf').classList.contains('hidden')) renderInf();
   }
 
   function renderStats(){
@@ -522,6 +564,116 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
     })).map(function(row){ return row.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(';'); });
     var blob = new Blob(['﻿' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'todos-a-la-mesa-' + s.id + '.csv'; a.click();
+  });
+
+  // ── Informe
+  var C1 = '#F0254F', C2 = '#4A90D9', tip = document.createElement('div'); tip.className = 'ttip'; document.body.appendChild(tip);
+  document.addEventListener('mousemove', function(e){
+    var g = e.target.closest && e.target.closest('[data-tip]');
+    if (!g) { tip.classList.remove('show'); return; }
+    tip.textContent = g.getAttribute('data-tip'); tip.classList.add('show');
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8) + 'px'; tip.style.top = (e.clientY + 14) + 'px';
+  });
+  document.addEventListener('click', function(e){ var g = e.target.closest && e.target.closest('[data-tip]'); if (g) { var r = g.getBoundingClientRect(); tip.textContent = g.getAttribute('data-tip'); tip.classList.add('show'); tip.style.left = Math.min(r.left, innerWidth - tip.offsetWidth - 8) + 'px'; tip.style.top = (r.top - 36) + 'px'; } });
+  function nice(m){ if (m <= 5) return 5; var p = Math.pow(10, Math.floor(Math.log10(m))), f = m / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
+  function dayKey(iso){ return new Date(iso).toLocaleDateString('en-CA', {timeZone:'America/Bogota'}); }
+  function dayLabel(k){ return new Date(k + 'T12:00:00-05:00').toLocaleDateString('es-CO', {weekday:'short', day:'numeric', timeZone:'America/Bogota'}).replace('.', ''); }
+
+  function renderInf(){
+    var s = viewing; if (!s) return;
+    var act = s.regs.filter(function(r){ return r.status !== 'cancelado'; });
+    var cupo = act.filter(function(r){ return r.status === 'confirmado'; });
+    var conf = cupo.filter(function(r){ return r.reconfirmed; }).length;
+    var prim = cupo.filter(function(r){ return r.firstTime; }).length;
+    var sinMesa = cupo.filter(function(r){ return r.grupo === NO_MESA; }).length;
+    var c = s.counts, pct = Math.round(cupo.length / s.capacity * 100);
+    $('infStats').innerHTML =
+      '<div class="stat hl"><b>' + pct + '%</b><span>Ocupación · ' + cupo.length + ' de ' + s.capacity + '</span><div class="bar"><i style="width:' + Math.min(100,pct) + '%"></i></div></div>' +
+      '<div class="stat"><b>' + conf + '</b><span>Confirmaron (' + (cupo.length ? Math.round(conf / cupo.length * 100) : 0) + '%)</span></div>' +
+      '<div class="stat"><b>' + prim + '</b><span>Primera vez</span></div>' +
+      '<div class="stat"><b>' + sinMesa + '</b><span>Aún no asisten a una Mesa</span></div>' +
+      '<div class="stat"><b>' + c.espera + ' · ' + (c.cancelado||0) + '</b><span>En espera · Liberaron</span></div>' +
+      (c.llegaron || c.pagaron ? '<div class="stat"><b>' + c.llegaron + '</b><span>Llegaron · pagaron ' + c.pagaron + ' (' + money(c.pagaron * s.price) + ')</span></div>' : '');
+
+    // Por día (una serie) y acumulado en texto
+    var byDay = {}; s.regs.forEach(function(r){ var k = dayKey(r.createdAt); byDay[k] = (byDay[k] || 0) + 1; });
+    var CW = Math.max(300, ($('infMesa').clientWidth || 640)), lw = CW < 520 ? 136 : 170;
+    var days = Object.keys(byDay).sort(), W = CW, H = 220, pl = 30, pb = 26, pt = 18, max = nice(Math.max.apply(null, days.map(function(k){ return byDay[k]; }).concat([1])));
+    var bw = Math.min(56, (W - pl) / Math.max(days.length, 1) - 8), step = (W - pl) / Math.max(days.length, 1), acc = 0;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Inscripciones por día">';
+    [0, .5, 1].forEach(function(f){ var y = pt + (H - pt - pb) * (1 - f); svg += '<line class="grid" x1="' + pl + '" x2="' + W + '" y1="' + y + '" y2="' + y + '"/><text x="' + (pl - 6) + '" y="' + (y + 4) + '" text-anchor="end">' + Math.round(max * f) + '</text>'; });
+    days.forEach(function(k, i){
+      var v = byDay[k]; acc += v;
+      var h = (H - pt - pb) * v / max, x = pl + i * step + (step - bw) / 2, y = H - pb - h;
+      svg += '<g class="bar" data-tip="' + esc(dayLabel(k)) + ': ' + v + ' inscripciones · ' + acc + ' en total"><rect class="hit" x="' + (pl + i * step) + '" y="' + pt + '" width="' + step + '" height="' + (H - pt - pb) + '"/>' +
+        '<path class="m" fill="' + C1 + '" d="M' + x + ',' + (H - pb) + 'V' + (y + 4) + 'q0,-4 4,-4h' + (bw - 8) + 'q4,0 4,4V' + (H - pb) + 'Z"/>' +
+        '<text class="v" x="' + (x + bw / 2) + '" y="' + (y - 5) + '" text-anchor="middle">' + v + '</text>' +
+        '<text x="' + (x + bw / 2) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc((days.length > 8 && i % 2 ? '' : dayLabel(k))) + '</text></g>';
+    });
+    $('infDay').innerHTML = svg + '</svg>';
+    var best = days.slice().sort(function(a, b){ return byDay[b] - byDay[a]; })[0];
+    $('infDaySub').textContent = days.length ? s.regs.length + ' inscripciones en ' + days.length + (days.length === 1 ? ' día' : ' días') + ' (incluye a quienes liberaron). El día con más fue ' + dayLabel(best) + ', con ' + byDay[best] + '.' : 'Aún no hay inscripciones.';
+
+    // Por Mesa: barras horizontales apiladas (confirmaron / aún no)
+    var groups = mesasList().concat([NO_MESA, '']).map(function(m){
+      var rs = cupo.filter(function(r){ return (r.grupo || '') === m; });
+      return {m: m, ok: rs.filter(function(r){ return r.reconfirmed; }).length, no: rs.filter(function(r){ return !r.reconfirmed; }).length};
+    }).filter(function(g){ return g.m !== '' || g.ok + g.no; }).sort(function(a, b){ return (b.ok + b.no) - (a.ok + a.no); });
+    var rh = 30, W2 = CW, H2 = groups.length * rh + 6, mx = Math.max.apply(null, groups.map(function(g){ return g.ok + g.no; }).concat([1])), sc = (W2 - lw - 40) / mx;
+    var svg2 = '<svg viewBox="0 0 ' + W2 + ' ' + H2 + '" role="img" aria-label="Personas con cupo por Mesa">';
+    groups.forEach(function(g, i){
+      var y = i * rh + 4, t = g.ok + g.no, name = g.m === '' ? 'Sin reconocer' : g.m === NO_MESA ? 'Aún sin Mesa' : g.m, w1 = g.ok * sc, w2 = g.no * sc, x = lw;
+      svg2 += '<g class="bar" data-tip="' + esc(name) + ': ' + t + ' con cupo · ' + g.ok + ' confirmaron · ' + g.no + ' aún no">' +
+        '<rect class="hit" x="0" y="' + (y - 3) + '" width="' + W2 + '" height="' + rh + '"/>' +
+        '<text class="lab" x="' + (lw - 10) + '" y="' + (y + 16) + '" text-anchor="end">' + esc(name) + '</text>';
+      if (w1 > 0) svg2 += '<rect class="m" x="' + x + '" y="' + y + '" width="' + Math.max(w1 - (w2 > 0 ? 2 : 0), 2) + '" height="22" rx="4" fill="' + C1 + '"/>';
+      if (w2 > 0) svg2 += '<rect class="m" x="' + (x + w1) + '" y="' + y + '" width="' + w2 + '" height="22" rx="4" fill="' + C2 + '"/>';
+      svg2 += '<text class="v" x="' + (x + w1 + w2 + 8) + '" y="' + (y + 16) + '">' + t + '</text></g>';
+    });
+    $('infMesa').innerHTML = svg2 + '</svg>';
+
+    // Sesiones anteriores (solo si hay más de una)
+    var ses = (data.sessions || []).slice().sort(function(a, b){ return a.id.localeCompare(b.id); });
+    $('infSesW').classList.toggle('hidden', ses.length < 2);
+    if (ses.length >= 2) {
+      var W3 = CW, rh3 = 44, H3 = ses.length * rh3 + 6, mx3 = Math.max.apply(null, ses.map(function(x){ return x.counts.confirmado; }).concat([1])), sc3 = (W3 - lw - 40) / mx3;
+      var svg3 = '<svg viewBox="0 0 ' + W3 + ' ' + H3 + '" role="img" aria-label="Sesiones anteriores">';
+      ses.forEach(function(x, i){
+        var y = i * rh3 + 4, n = fDate(x);
+        svg3 += '<g class="bar" data-tip="' + esc(n) + ': ' + x.counts.confirmado + ' con cupo · ' + x.counts.llegaron + ' llegaron"><rect class="hit" x="0" y="' + y + '" width="' + W3 + '" height="' + rh3 + '"/>' +
+          '<text class="lab" x="' + (lw - 10) + '" y="' + (y + 22) + '" text-anchor="end">' + esc(n) + '</text>' +
+          '<rect class="m" x="' + lw + '" y="' + y + '" width="' + Math.max(x.counts.confirmado * sc3, 2) + '" height="16" rx="4" fill="' + C2 + '"/>' +
+          '<text class="v" x="' + (lw + x.counts.confirmado * sc3 + 8) + '" y="' + (y + 13) + '">' + x.counts.confirmado + '</text>' +
+          '<rect class="m" x="' + lw + '" y="' + (y + 18) + '" width="' + Math.max(x.counts.llegaron * sc3, 2) + '" height="16" rx="4" fill="' + C1 + '"/>' +
+          '<text class="v" x="' + (lw + x.counts.llegaron * sc3 + 8) + '" y="' + (y + 31) + '">' + x.counts.llegaron + '</text></g>';
+      });
+      $('infSes').innerHTML = svg3 + '</svg>';
+    }
+
+    // Listas para líderes (solo nombres)
+    var cards = mesasList().concat([NO_MESA]).map(function(m){
+      var rs = act.filter(function(r){ return r.grupo === m; }).sort(function(a, b){ return a.name.localeCompare(b.name, 'es'); });
+      var ok = rs.filter(function(r){ return r.status === 'confirmado' && r.reconfirmed; }), no = rs.filter(function(r){ return r.status === 'confirmado' && !r.reconfirmed; }), w = rs.filter(function(r){ return r.status === 'espera'; });
+      var txt = leaderText(s, m, ok, no, w);
+      return '<div class="lcard"><h3>' + esc(grupoLabel(m)) + '<small>' + (ok.length + no.length) + ' con cupo' + (w.length ? ' · ' + w.length + ' en espera' : '') + '</small></h3>' +
+        (rs.length ? '<ul>' + rs.map(function(r){ return '<li class="' + (r.status === 'espera' ? 'w' : r.reconfirmed ? 'ok' : '') + '">' + esc(r.name) + (r.status === 'espera' ? ' (en espera)' : '') + '</li>'; }).join('') + '</ul>' : '<p class="muted">Nadie de esta Mesa se ha inscrito todavía.</p>') +
+        '<div class="acts">' + (rs.length ? '<a class="b wa" href="' + esc('https://wa.me/?text=' + encodeURIComponent(txt)) + '" target="_blank" rel="noopener">Enviar por WhatsApp</a><button class="b" type="button" data-copy="' + esc(txt) + '">Copiar</button>' : '') + '</div></div>';
+    });
+    $('infLeaders').innerHTML = cards.join('');
+  }
+  function leaderText(s, m, ok, no, w){
+    var head = m === NO_MESA ? 'Personas inscritas que *aún no asisten a una Mesa*' : 'Tu Mesa (*' + m + '*)';
+    var t = '🍽️ *Todos a la Mesa* · ' + fDate(s).toLowerCase() + ', ' + fTime(s) + '\n' + head + ': ' + (ok.length + no.length) + (ok.length + no.length === 1 ? ' persona apartó cupo' : ' personas apartaron cupo') + ' 🙌\n';
+    if (ok.length) t += '\n✅ Ya confirmaron (' + ok.length + '):\n' + ok.map(function(r){ return '• ' + r.name; }).join('\n') + '\n';
+    if (no.length) t += '\n⏳ Aún no confirman (' + no.length + '):\n' + no.map(function(r){ return '• ' + r.name; }).join('\n') + '\n';
+    if (w.length) t += '\n🕒 En lista de espera (' + w.length + '):\n' + w.map(function(r){ return '• ' + r.name; }).join('\n') + '\n';
+    if (no.length) t += '\nAnímalos a confirmar con el enlace que les llegó por WhatsApp, o a liberar su cupo si ya no pueden ir. ¡Gracias! 💛';
+    return t;
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-copy]'); if (!b) return;
+    var t = b.getAttribute('data-copy');
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){ toast('Lista copiada'); }).catch(function(){ prompt('Copia la lista:', t); });
   });
 
   // ── Comunidad
