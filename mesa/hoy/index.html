@@ -131,8 +131,10 @@ main{position:relative;max-width:460px;margin:0 auto;padding:28px 20px 40px;min-
     $('lab').textContent = 'Tu lugar está apartado';
     $('msg').textContent = 'La mesa está llena y estamos felices de que vengas, ' + first(r.name) + '.';
     $('badgeW').innerHTML = r.reconfirmed ? '<span class="badge ok">✓ Asistencia confirmada</span>' : '<span class="badge wait">Falta confirmar tu asistencia</span>';
-    $('btns').innerHTML = (r.reconfirmed ? '' : '<a class="btn pri" href="' + link + '">Confirmar que voy</a>') +
-      '<a class="btn sec" href="' + link + '">No puedo ir: liberar mi cupo</a>';
+    // Quien ya confirmó no ve opciones: solo lo esperamos. Quien no ha confirmado, confirma aquí.
+    $('btns').innerHTML = r.reconfirmed ? '' :
+      '<a class="btn pri" href="' + link + '">Confirmar que voy</a>' +
+      '<a class="btn sec" href="' + link + '">No puedo ir</a>';
   }).catch(function(){ $('msg').textContent = 'Sin conexión. Intenta de nuevo en un momento.'; }).then(show);
 })();
 </script>

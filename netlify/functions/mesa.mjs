@@ -338,7 +338,7 @@ async function regView(t) {
   const idx = await getIndex();
   return json({
     ok: true,
-    name: r.name,
+    name: properName(r.name) || r.name,
     status: r.status,
     reconfirmed: r.reconfirmed,
     isCurrent: idx?.currentId === s.id,
@@ -375,7 +375,7 @@ async function personPrefill(t) {
   if (!p) throw new HttpError(404, 'not_found', 'Este enlace no es válido.');
   const [s, mesas] = await Promise.all([currentSession(), getMesas()]);
   const already = s?.regs.find((r) => r.phone === p.phone && r.status !== 'cancelado');
-  return json({ ok: true, name: p.name, mesa: mesaGroup(p.mesa, mesas), phoneHint: '•••• ' + p.phone.slice(-4), alreadyStatus: already?.status || null });
+  return json({ ok: true, name: properName(p.name) || p.name, mesa: mesaGroup(p.mesa, mesas), phoneHint: '•••• ' + p.phone.slice(-4), alreadyStatus: already?.status || null });
 }
 
 // ───────── administración ─────────
