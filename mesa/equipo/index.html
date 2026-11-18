@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Plan del equipo · Todos a la Mesa</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A0A0A">
+<meta property="og:title" content="Plan del equipo · Todos a la Mesa">
+<meta property="og:description" content="Funciones, horarios y todo lo que necesitas para servir esta noche.">
+<meta property="og:image" content="https://lhscolweb.netlify.app/assets/mesa/og-todos-a-la-mesa.jpg">
+<link rel="icon" type="image/svg+xml" href="/assets/mesa/logo-todos-a-la-mesa.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,800&family=Playfair+Display:ital,wght@0,400;1,400;1,600;1,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--rojo:#F0254F;--crema:#F3EEE2;--dorado:#C8B273;--negro:#0A0A0A;--g1:#141414;--g2:#1F1F1F;--g3:#2C2C2C;--g5:#9A9A96;--blanco:#fff}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--negro);color:var(--crema);font-family:'DM Sans',system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+.serif{font-family:'Playfair Display',serif;font-style:italic}
+.big{font-family:'Archivo',sans-serif;font-stretch:125%;font-weight:800;text-transform:uppercase;line-height:.88;letter-spacing:-.01em}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--dorado)}
+section{padding:44px 0 8px}
+h2{font-family:'Playfair Display',serif;font-weight:400;font-size:clamp(30px,8vw,40px);line-height:1.05;color:var(--blanco);margin:8px 0 18px}
+h2 em{color:var(--rojo)}
+
+/* Hero */
+.hero{position:relative;min-height:88vh;display:flex;align-items:flex-end;overflow:hidden}
+.hero .ph{position:absolute;inset:0;background:url(/assets/mesa/fondo-terraza.jpg) 40% 50%/cover no-repeat;transform:scale(1.05)}
+.hero .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,.55) 0%,rgba(10,10,10,.35) 30%,rgba(10,10,10,.85) 65%,var(--negro) 100%)}
+.hero .wrap{position:relative;padding-bottom:40px;width:100%}
+.hero .handle{position:absolute;top:22px;left:0;right:0;text-align:center;font-family:'Playfair Display',serif;font-style:italic;font-weight:600;color:var(--rojo);font-size:18px}
+.hero img{width:74px;display:block;margin-bottom:22px}
+.hero .big{font-size:clamp(46px,14vw,92px)}
+.hero .big span{display:block}
+.hero .big .b{color:var(--rojo)}
+.hero .sub{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(24px,6.5vw,34px);color:var(--blanco);margin-top:18px}
+.hero .meta{margin-top:14px;font-size:15px;color:#cfcac0;line-height:1.5}
+.hero .meta b{color:var(--blanco)}
+
+/* Ahora */
+.now{margin-top:-6px;background:var(--rojo);color:var(--blanco);border-radius:18px;padding:20px 22px;box-shadow:0 18px 50px rgba(240,37,79,.25)}
+.now .lab{font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.now .dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}70%{box-shadow:0 0 0 10px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+.now .t{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;font-size:clamp(28px,7.5vw,38px);line-height:1.1;margin:8px 0 4px}
+.now .d{font-size:15px;opacity:.95}
+.now .nx{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.35);font-size:14px}
+.now .nx b{font-weight:700}
+
+/* Quién eres */
+.who{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--g3);background:var(--g1);color:var(--crema);border-radius:999px;padding:9px 15px;font:inherit;font-size:14.5px;cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--g5)}
+.chip[aria-pressed=true]{background:var(--crema);color:var(--negro);border-color:var(--crema);font-weight:700}
+.mine{margin-top:16px;background:var(--g1);border:1px solid var(--g2);border-left:4px solid var(--rojo);border-radius:14px;padding:16px 18px;display:none}
+.mine.show{display:block}
+.mine h3{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;font-size:24px;color:var(--blanco)}
+.mine p{color:#d8d3c8;margin-top:6px;font-size:15px}
+.mine ul{margin-top:10px;list-style:none;font-size:14.5px}
+.mine li{padding:4px 0;color:var(--crema)}
+.mine li b{color:var(--rojo);display:inline-block;min-width:78px}
+
+/* Timeline */
+.tl{position:relative;list-style:none;margin-top:6px}
+.tl::before{content:'';position:absolute;left:73px;top:8px;bottom:8px;width:2px;background:var(--g3)}
+.tl li{position:relative;display:grid;grid-template-columns:56px 1fr;gap:36px;padding:12px 0;transition:opacity .2s}
+.tl .h{font-weight:700;font-size:14px;color:var(--g5);text-align:right;padding-top:2px;font-variant-numeric:tabular-nums}
+.tl .h small{display:block;font-weight:500;font-size:11px;letter-spacing:.08em}
+.tl li::after{content:'';position:absolute;left:68px;top:19px;width:12px;height:12px;border-radius:50%;background:var(--negro);border:2px solid var(--g5)}
+.tl .m{font-family:'Playfair Display',serif;font-style:italic;font-size:22px;line-height:1.15;color:var(--blanco)}
+.tl .q{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dorado);margin-top:4px}
+.tl .x{font-size:14.5px;color:#cbc6bb;margin-top:4px}
+.tl li.past{opacity:.45}
+.tl li.cur::after{background:var(--rojo);border-color:var(--rojo);box-shadow:0 0 0 5px rgba(240,37,79,.25)}
+.tl li.cur .h{color:var(--rojo)}
+.tl li.cur .m::after{content:'Ahora';font-family:'DM Sans',sans-serif;font-style:normal;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;background:var(--rojo);color:#fff;border-radius:999px;padding:3px 9px;margin-left:10px;vertical-align:4px}
+.tl li.me .m{color:var(--rojo)}
+.tl li.me::after{border-color:var(--crema)}
+body.picked .tl li:not(.me):not(.cur){opacity:.5}
+body.picked .tl li.me.past{opacity:.6}
+body.picked .tl li.cur{opacity:1}
+
+/* Roles */
+.roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.role{background:var(--g1);border:1px solid var(--g2);border-radius:16px;padding:18px;transition:all .2s}
+.role .ic{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dorado)}
+.role h3{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;font-size:23px;color:var(--blanco);margin:6px 0 2px;line-height:1.15}
+.role .wh{font-size:13px;color:var(--g5)}
+.role .pp{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.role .pp span{background:var(--g2);border-radius:999px;padding:4px 11px;font-size:13.5px;font-weight:500}
+.role p{font-size:14.5px;color:#cfcac0}
+.role.me{border-color:var(--rojo);background:linear-gradient(180deg,rgba(240,37,79,.12),var(--g1) 60%)}
+.role.me .pp span.you{background:var(--rojo);color:#fff}
+body.picked .role:not(.me){opacity:.45}
+
+/* Llegada */
+.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;counter-reset:s}
+.step{background:var(--g1);border:1px solid var(--g2);border-radius:16px;padding:18px 16px;position:relative}
+.step::before{counter-increment:s;content:counter(s);font-family:'Archivo',sans-serif;font-stretch:125%;font-weight:800;font-size:44px;line-height:1;color:var(--rojo)}
+.step h3{font-size:16px;font-weight:700;color:var(--blanco);margin:10px 0 2px}
+.step .wh{font-size:13px;color:var(--dorado);font-weight:700}
+.step p{font-size:14px;color:#cfcac0;margin-top:8px}
+@media(max-width:620px){.flow{grid-template-columns:1fr}}
+.tips{margin-top:14px;list-style:none;display:grid;gap:8px}
+.tips li{background:var(--g1);border-radius:12px;padding:12px 14px 12px 40px;position:relative;font-size:14.5px;color:#d8d3c8}
+.tips li::before{content:'→';position:absolute;left:15px;color:var(--rojo);font-weight:700}
+
+/* Principios */
+.pr{display:grid;gap:10px}
+.pr>div{border-top:1px solid var(--g3);padding-top:14px;display:grid;grid-template-columns:44px 1fr;gap:12px}
+.pr .n{font-family:'Archivo',sans-serif;font-stretch:125%;font-weight:800;font-size:28px;color:var(--rojo);line-height:1}
+.pr b{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;font-size:21px;color:var(--blanco);display:block;line-height:1.2}
+.pr span{font-size:14.5px;color:#cfcac0}
+
+/* Casos */
+details{background:var(--g1);border:1px solid var(--g2);border-radius:14px;margin-bottom:8px}
+summary{list-style:none;cursor:pointer;padding:15px 44px 15px 18px;font-weight:700;color:var(--blanco);position:relative}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';position:absolute;right:18px;top:11px;font-size:22px;color:var(--rojo);font-weight:400;transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details .bd{padding:0 18px 16px;font-size:14.5px;color:#cfcac0}
+details .bd i{font-style:normal;color:var(--dorado);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;display:block;margin-top:6px}
+
+footer{padding:56px 0 70px;text-align:center}
+footer .serif{font-size:clamp(28px,7vw,40px);color:var(--blanco);line-height:1.15}
+footer .serif em{color:var(--rojo)}
+footer p{color:var(--g5);font-size:13px;margin-top:14px}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}.now .dot{animation:none}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="ph"></div><div class="ov"></div>
+  <div class="handle">· @lhscol ·</div>
+  <div class="wrap">
+    <img src="/assets/mesa/logo-todos-a-la-mesa.svg" alt="Todos a la Mesa">
+    <div class="eyebrow">Plan del equipo</div>
+    <div class="big" style="margin-top:14px"><span>Todos a</span><span class="b">la Mesa</span></div>
+    <div class="sub">Gracias por servir esta noche</div>
+    <div class="meta"><b>Miércoles 18 de noviembre · 7:00 p. m.</b><br>Pasión del Cielo · Edificio Capitalia, piso 12<br>Equipo en el lugar a más tardar a las 6:30 p. m.</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="now" id="now" aria-live="polite">
+    <div class="lab"><span class="dot"></span><span id="nowLab">Esta noche</span></div>
+    <div class="t" id="nowT">Todos a la Mesa</div>
+    <div class="d" id="nowD"></div>
+    <div class="nx" id="nowN"></div>
+  </div>
+
+  <section class="reveal">
+    <div class="eyebrow">Tu lugar</div>
+    <h2>¿Quién <em>eres?</em></h2>
+    <div class="who" id="who"></div>
+    <div class="mine" id="mine"></div>
+  </section>
+
+  <section class="reveal" id="orden">
+    <div class="eyebrow">Orden del día</div>
+    <h2>Minuto a <em>minuto</em></h2>
+    <ol class="tl" id="tl"></ol>
+  </section>
+
+  <section class="reveal">
+    <div class="eyebrow">Equipo</div>
+    <h2>Quién hace <em>qué</em></h2>
+    <div class="roles" id="roles"></div>
+  </section>
+
+  <section class="reveal">
+    <div class="eyebrow">Llegada</div>
+    <h2>Tres paradas, <em>cero filas</em></h2>
+    <div class="flow">
+      <div class="step"><h3>Portería</h3><div class="wh">Jimmy y Luti</div><p>“¿Vienes a Todos a la Mesa?” Indicamos el ascensor y el piso 12, y avisamos que arriba se registra la asistencia y se pagan los $30.000 en efectivo.</p></div>
+      <div class="step"><h3>Puerta del piso 12</h3><div class="wh">Camila y Carlos</div><p>Camila busca a la persona en la app y marca <b>Llegó</b>. Carlos recibe los $30.000, da el cambio y marca <b>Pagó</b>.</p></div>
+      <div class="step"><h3>Su puesto</h3><div class="wh">Julián y Katha</div><p>Nadie tiene puesto asignado. Acompañamos a quien llega solo o por primera vez y lo presentamos con un grupito.</p></div>
+    </div>
+    <ul class="tips">
+      <li>Camila y Carlos llegan con el celular cargado. Juan les deja todo listo en la app.</li>
+      <li>Desde las 7:30 p. m., Jimmy o Luti se queda en portería para quien llegue tarde.</li>
+    </ul>
+  </section>
+
+  <section class="reveal">
+    <div class="eyebrow">El estilo de la noche</div>
+    <h2>Tres <em>principios</em></h2>
+    <div class="pr">
+      <div><span class="n">1</span><div><b>Natural, no formal</b><span>Como un café: nada de mesas largas ni puestos asignados. La gente se sienta en grupitos donde va llegando.</span></div></div>
+      <div><span class="n">2</span><div><b>Nadie llega solo</b><span>Jimmy y Luti reciben abajo, Camila y Carlos arriba, y Julián y Katha acompañan a quien no encuentra con quién sentarse.</span></div></div>
+      <div><span class="n">3</span><div><b>Music desconectado</b><span>Acústico, sentados y cómodos. El sonido se prueba completo antes de las 7:30 p. m.</span></div></div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="eyebrow">Si pasa algo</div>
+    <h2>Casos <em>especiales</em></h2>
+    <p style="color:#cfcac0;font-size:14.5px;margin:-6px 0 14px">Lo que no esté aquí lo deciden Juan o Lili. Nadie niega ni promete nada: decimos “dame un momento” y los llamamos.</p>
+    <div id="casos"></div>
+  </section>
+
+  <footer>
+    <div class="serif">Hoy nos sentamos <em>todos</em> a la mesa.</div>
+    <p>LHSCOL · Un lugar para pertenecer</p>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  var ROLES = [
+    {id:'coord', ic:'Coordinación', t:'Coordinación general', pp:['Juan','Lili'], wh:'Todo el lugar', d:'Llevan los tiempos, hablan con el café y con la portería, y deciden los casos especiales. Juan da la bienvenida y dirige la transición. Lili es el enlace con el café para el Brinner.'},
+    {id:'port', ic:'Bienvenida', t:'Portería', pp:['Jimmy','Luti'], wh:'Portería del Edificio Capitalia, primer piso', d:'Reciben a cada persona, confirman que viene a Todos a la Mesa y le indican cómo subir al piso 12. Avisan por el grupo si se forma fila en el ascensor.'},
+    {id:'puerta', ic:'Recibimiento', t:'Asistencia y pagos', pp:['Camila','Carlos'], wh:'Entrada de Pasión del Cielo, piso 12', d:'Camila registra la asistencia en la app (Llegó). Carlos recibe los pagos de $30.000, da el cambio y marca Pagó.'},
+    {id:'acom', ic:'Acomodación', t:'Acomodación', pp:['Julián','Katha'], wh:'Salón', d:'No asignan puestos. Acompañan a quien llega solo o por primera vez, lo presentan con un grupito y consiguen sillas cuando un grupo crece.'},
+    {id:'music', ic:'Music', t:'Music', pp:['Esteban','Dani','Laura Sofía','Camilo García','Danny','Santi'], wh:'Frente del salón', d:'Esteban y Dani a cargo. Acústico, sentados y cómodos, en formato desconectado. Llegan antes a montar y prueban todo el sonido.'},
+    {id:'msj', ic:'Mensaje', t:'Mensaje', pp:['Camilo Gómez'], wh:'Frente del salón', d:'Comparte la palabra de 8:05 a 8:35 p. m. y cierra con la oración.'},
+    {id:'media', ic:'Media', t:'Fotos y video', pp:['War','Danna'], wh:'Todo el lugar', d:'Coordinan a su equipo: fotos, clips verticales para reels y la grabación del mensaje con buen celular o cámara y buen audio.'}
+  ];
+  // Hora en Bogotá, día 2026-11-18
+  var D = '2026-11-18T', Z = ':00-05:00';
+  var TL = [
+    {s:'18:00', e:'18:30', h:'Antes', m:'Montaje de Music', q:'Esteban y Dani', r:['music'], x:'Llegan antes a montar y probar el sonido.'},
+    {s:'18:30', e:'19:00', h:'6:30', m:'Llegada del equipo y oración', q:'Juan y Lili · todo el equipo', r:['coord','port','puerta','acom','music','msj','media'], x:'Repasamos funciones y oramos. Cada quien en su puesto a las 6:55 p. m.'},
+    {s:'19:00', e:'19:30', h:'7:00', m:'Llegada, asistencia y pagos', q:'Portería · Puerta · Acomodación', r:['port','puerta','acom','media','coord'], x:'Bienvenida abajo, asistencia y pagos arriba, cada quien se sienta donde llega. Media graba la llegada.'},
+    {s:'19:30', e:'19:35', h:'7:30', m:'Bienvenida', q:'Juan', r:['coord'], x:'Saludo y cómo será la noche.'},
+    {s:'19:35', e:'19:55', h:'7:35', m:'Music', q:'Esteban y Dani', r:['music','media'], x:'Sentados y acústico.'},
+    {s:'19:55', e:'20:05', h:'7:55', m:'Transición', q:'Juan', r:['coord'], x:'Oración, conversación informal y presentación de Camilo Gómez.'},
+    {s:'20:05', e:'20:35', h:'8:05', m:'Mensaje', q:'Camilo Gómez', r:['msj','media'], x:'Media lo graba completo.'},
+    {s:'20:35', e:'20:40', h:'8:35', m:'Oración de cierre', q:'Camilo Gómez', r:['msj'], x:'Como cierre del mensaje.'},
+    {s:'20:40', e:'21:00', h:'8:40', m:'Brinner y charla en mesas', q:'Lili, con el café', r:['coord','acom','media'], x:'Capuchino y pastel de pollo. Conversación libre.'},
+    {s:'21:00', e:'21:15', h:'9:00', m:'Despedida', q:'Jimmy y Luti · Media', r:['port','media'], x:'Fotos de grupo y salida por el ascensor.'},
+    {s:'21:15', e:'21:45', h:'9:15', m:'Cierre del equipo', q:'Juan y Lili · Camila y Carlos', r:['coord','puerta'], x:'Revisión de la app y cierre. Media le pasa a Juan fotos, clips y el mensaje.'}
+  ];
+  TL.forEach(function(b){ b.S = new Date(D + b.s + Z); b.E = new Date(D + b.e + Z); });
+
+  var CASOS = [
+    ['Llega alguien sin inscripción', 'Los cupos están llenos. Juan o Lili revisan si hay puesto y Brinner. Si entra, Camila lo agrega en la app: “Llegó alguien sin inscripción”.', 'Juan y Lili · Camila'],
+    ['No trae efectivo', 'Se le recibe igual y Carlos lo anota para que pague antes de irse. No se marca Pagó hasta que pague.', 'Carlos'],
+    ['Llega tarde, durante Music o el mensaje', 'Entra en silencio y se sienta cerca de la entrada.', 'Julián y Katha'],
+    ['Viene por primera vez', 'Lo presentamos con un grupito. Media no lo graba de cerca sin preguntarle.', 'Julián y Katha · Media'],
+    ['No puede comer pollo o tiene otra restricción', 'Se le pregunta al café si hay otra opción.', 'Lili'],
+    ['Fila en la portería o el ascensor', 'Jimmy y Luti avisan por el grupo, y Julián baja a ayudar hasta que se despeje.', 'Jimmy y Luti · Julián'],
+    ['El ascensor no funciona', 'Juan habla con la administración del edificio.', 'Juan'],
+    ['Alguien se siente mal', 'Lili lo acompaña a un lugar tranquilo. Si es grave, se llama al 123.', 'Lili'],
+    ['El programa va atrasado', 'Se acorta la transición, no el mensaje. El Brinner puede extenderse hasta las 9:15 p. m.', 'Juan']
+  ];
+
+  // Personas (orden del selector)
+  var PEOPLE = [];
+  ROLES.forEach(function(r){ r.pp.forEach(function(p){ if (PEOPLE.indexOf(p) < 0) PEOPLE.push(p); }); });
+  function rolesOf(p){ return ROLES.filter(function(r){ return r.pp.indexOf(p) >= 0; }); }
+
+  // Render roles
+  $('roles').innerHTML = ROLES.map(function(r){
+    return '<article class="role" data-r="' + r.id + '"><div class="ic">' + esc(r.ic) + '</div><h3>' + esc(r.t) + '</h3><div class="wh">' + esc(r.wh) + '</div>' +
+      '<div class="pp">' + r.pp.map(function(p){ return '<span data-p="' + esc(p) + '">' + esc(p) + '</span>'; }).join('') + '</div><p>' + esc(r.d) + '</p></article>';
+  }).join('');
+  // Render timeline
+  $('tl').innerHTML = TL.map(function(b, i){
+    var hr = b.h === 'Antes' ? 'Antes<small>de 6:30</small>' : b.h + '<small>p. m.</small>';
+    return '<li data-i="' + i + '"><div class="h">' + hr + '</div><div><div class="m">' + esc(b.m) + '</div><div class="q">' + esc(b.q) + '</div><div class="x">' + esc(b.x) + '</div></div></li>';
+  }).join('');
+  // Render casos
+  $('casos').innerHTML = CASOS.map(function(c){ return '<details><summary>' + esc(c[0]) + '</summary><div class="bd">' + esc(c[1]) + '<i>' + esc(c[2]) + '</i></div></details>'; }).join('');
+  // Selector
+  $('who').innerHTML = PEOPLE.map(function(p){ return '<button class="chip" type="button" aria-pressed="false" data-p="' + esc(p) + '">' + esc(p) + '</button>'; }).join('');
+
+  var picked = '';
+  function pick(p){
+    picked = (picked === p) ? '' : p;
+    try { picked ? localStorage.setItem('mesaEquipoYo', picked) : localStorage.removeItem('mesaEquipoYo'); } catch(e) {}
+    document.body.classList.toggle('picked', !!picked);
+    document.querySelectorAll('#who .chip').forEach(function(c){ c.setAttribute('aria-pressed', c.dataset.p === picked); });
+    var mine = rolesOf(picked), ids = mine.map(function(r){ return r.id; });
+    document.querySelectorAll('.role').forEach(function(el){
+      el.classList.toggle('me', ids.indexOf(el.dataset.r) >= 0);
+      el.querySelectorAll('.pp span').forEach(function(s){ s.classList.toggle('you', s.dataset.p === picked); });
+    });
+    var mineTL = [];
+    document.querySelectorAll('#tl li').forEach(function(li){
+      var b = TL[+li.dataset.i], on = !!picked && b.r.some(function(x){ return ids.indexOf(x) >= 0; });
+      li.classList.toggle('me', on); if (on) mineTL.push(b);
+    });
+    var box = $('mine');
+    if (!picked) { box.classList.remove('show'); box.innerHTML = ''; return; }
+    box.innerHTML = '<h3>' + esc(picked) + ', esta noche estás en ' + esc(mine.map(function(r){ return r.t; }).join(' y ')) + '</h3>' +
+      '<p>' + esc(mine[0].wh) + '. ' + esc(mine[0].d) + '</p>' +
+      '<ul>' + mineTL.map(function(b){ return '<li><b>' + (b.h === 'Antes' ? 'Antes' : b.h + ' p. m.') + '</b>' + esc(b.m) + '</li>'; }).join('') + '</ul>';
+    box.classList.add('show');
+  }
+  $('who').addEventListener('click', function(e){ var c = e.target.closest('.chip'); if (c) pick(c.dataset.p); });
+  try { var saved = localStorage.getItem('mesaEquipoYo'); if (saved && PEOPLE.indexOf(saved) >= 0) pick(saved); } catch(e) {}
+
+  // Ahora
+  function fmt(ms){ var m = Math.round(ms / 60000), h = Math.floor(m / 60); m = m % 60; return (h ? h + ' h ' : '') + m + ' min'; }
+  function tick(){
+    var now = new Date(), cur = -1;
+    TL.forEach(function(b, i){ if (now >= b.S && now < b.E) cur = i; });
+    document.querySelectorAll('#tl li').forEach(function(li){
+      var b = TL[+li.dataset.i];
+      li.classList.toggle('cur', +li.dataset.i === cur);
+      li.classList.toggle('past', now >= b.E);
+    });
+    var first = TL[1], last = TL[TL.length - 1];
+    if (now < first.S) {
+      $('nowLab').textContent = 'Esta noche';
+      $('nowT').textContent = 'Faltan ' + fmt(first.S - now);
+      $('nowD').textContent = 'para que llegue el equipo a Pasión del Cielo (6:30 p. m.).';
+      $('nowN').innerHTML = 'Music llega antes a montar. A las <b>7:00 p. m.</b> empieza la llegada.';
+    } else if (cur >= 0) {
+      var b = TL[cur], n = TL[cur + 1];
+      $('nowLab').textContent = 'Ahora · hasta las ' + b.e.replace(/^(\d+):/, function(m, h){ return (h % 12 || 12) + ':'; }) + ' p. m.';
+      $('nowT').textContent = b.m;
+      $('nowD').textContent = b.q + ' · ' + b.x;
+      $('nowN').innerHTML = n ? 'Sigue: <b>' + esc(n.m) + '</b> a las ' + n.h + ' p. m. · ' + esc(n.q) : 'Último momento de la noche.';
+    } else if (now >= last.E) {
+      $('nowLab').textContent = 'Terminó';
+      $('nowT').textContent = '¡Gracias, equipo!';
+      $('nowD').textContent = 'Hoy nos sentamos todos a la mesa gracias a ustedes.';
+      $('nowN').innerHTML = 'War y Danna: fotos, clips y el mensaje para Juan.';
+    }
+  }
+  tick(); setInterval(tick, 30000);
+
+  // Aparición suave
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, {threshold:.08}) : null;
+  document.querySelectorAll('.reveal').forEach(function(el){ io ? io.observe(el) : el.classList.add('in'); });
+})();
+</script>
+</body>
+</html>
