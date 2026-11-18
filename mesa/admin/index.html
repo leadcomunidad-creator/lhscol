@@ -322,7 +322,7 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
     return '¡Hola ' + first(r.name) + '! Hoy es *Todos a la Mesa* y la mesa está llena. Estamos felices de que vengas: tu lugar ya está apartado.\n\n' +
       '*Aquí está tu boleta:*\n' + SITE + '/mesa/hoy/?r=' + r.token + '\n\n' +
       'Te esperamos desde las ' + fTime(s) + ' en ' + s.venue + ' (' + s.address + ').\n\n' +
-      'Si a última hora no puedes ir, desde tu boleta puedes liberar el cupo para que otra persona lo aproveche. ¡Nos vemos esta noche!';
+      (r.reconfirmed ? '¡Nos vemos esta noche!' : 'Entra a tu boleta y confirma que vas. ¡Nos vemos esta noche!');
   }
   function msgPromoted(s, r){
     return '¡Hola ' + first(r.name) + '! Se liberó un cupo y ya es tuyo: te esperamos en *Todos a la Mesa* el ' + fDate(s).toLowerCase() + ' a las ' + fTime(s) + ' en ' + s.venue + '.\n\n' +
