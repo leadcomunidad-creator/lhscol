@@ -312,24 +312,24 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
   // ── Mensajes de WhatsApp
   function wa(phone, text){ return 'https://wa.me/' + phone + '?text=' + encodeURIComponent(text); }
   function msgReminder(s, r){
-    return 'Hola ' + first(r.name) + ' ✨ Te esperamos en *Todos a la Mesa* el ' + fDate(s).toLowerCase() + ' a las ' + fTime(s) + ' en ' + s.venue + ' (' + s.address + ').\n\n' +
+    return 'Hola ' + first(r.name) + ', te esperamos en *Todos a la Mesa* el ' + fDate(s).toLowerCase() + ' a las ' + fTime(s) + ' en ' + s.venue + ' (' + s.address + ').\n\n' +
       'Recuerda llevar ' + money(s.price) + ' en efectivo.\n\n' +
       '¿Nos confirmas tu asistencia? Toca aquí para confirmar o, si no puedes ir, liberar tu cupo para que otra persona lo aproveche:\n' + SITE + '/mesa/?r=' + r.token;
   }
   // Día del evento (hora de Bogotá)
   function isToday(s){ return !!s && new Date().toLocaleDateString('en-CA', {timeZone:'America/Bogota'}) === s.date; }
   function msgHoy(s, r){
-    return '¡Hola ' + first(r.name) + '! ☕ *Hoy es Todos a la Mesa* y la mesa está llena. Estamos felices de que vengas: tu lugar ya está apartado.\n\n' +
-      'Aquí está tu pase ⬇️\n' + SITE + '/mesa/hoy/?r=' + r.token + '\n\n' +
-      '⏰ Te esperamos desde las ' + fTime(s) + '\n➜ ' + s.venue + ' · ' + s.address + '\n✔ Lleva ' + money(s.price) + ' en efectivo\n\n' +
-      'Si a última hora no puedes ir, desde tu pase puedes liberar el cupo para que otra persona lo aproveche. ¡Nos vemos esta noche! ❤️';
+    return '¡Hola ' + first(r.name) + '! Hoy es *Todos a la Mesa* y la mesa está llena. Estamos felices de que vengas: tu lugar ya está apartado.\n\n' +
+      '*Aquí está tu boleta:*\n' + SITE + '/mesa/hoy/?r=' + r.token + '\n\n' +
+      'Te esperamos desde las ' + fTime(s) + ' en ' + s.venue + ' (' + s.address + ').\n\n' +
+      'Si a última hora no puedes ir, desde tu boleta puedes liberar el cupo para que otra persona lo aproveche. ¡Nos vemos esta noche!';
   }
   function msgPromoted(s, r){
-    return '¡Hola ' + first(r.name) + '! ✨ Se liberó un cupo y ya es tuyo: te esperamos en *Todos a la Mesa* el ' + fDate(s).toLowerCase() + ' a las ' + fTime(s) + ' en ' + s.venue + '.\n\n' +
+    return '¡Hola ' + first(r.name) + '! Se liberó un cupo y ya es tuyo: te esperamos en *Todos a la Mesa* el ' + fDate(s).toLowerCase() + ' a las ' + fTime(s) + ' en ' + s.venue + '.\n\n' +
       'Confírmanos aquí que vas (o libera el cupo si ya no puedes):\n' + SITE + '/mesa/?r=' + r.token;
   }
   function msgInvite(s, p){
-    return 'Hola ' + first(p.name) + ' ✨ Ya abrimos inscripciones para *Todos a la Mesa*: ' + fDate(s).toLowerCase() + ', ' + fTime(s) + ' en ' + s.venue + '.\n\n' +
+    return 'Hola ' + first(p.name) + ', ya abrimos inscripciones para *Todos a la Mesa*: ' + fDate(s).toLowerCase() + ', ' + fTime(s) + ' en ' + s.venue + '.\n\n' +
       'Tus datos ya están guardados; aparta tu cupo con un toque:\n' + SITE + '/mesa/?p=' + p.personToken;
   }
 
@@ -690,11 +690,11 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
   }
   function leaderText(s, m, ok, no, w){
     var head = m === NO_MESA ? 'Personas inscritas que *aún no asisten a una Mesa*' : 'Tu Mesa (*' + m + '*)';
-    var t = '☕ *Todos a la Mesa* · ' + fDate(s).toLowerCase() + ', ' + fTime(s) + '\n' + head + ': ' + (ok.length + no.length) + (ok.length + no.length === 1 ? ' persona apartó cupo' : ' personas apartaron cupo') + ' ✨\n';
-    if (ok.length) t += '\n✅ Ya confirmaron (' + ok.length + '):\n' + ok.map(function(r){ return '• ' + r.name; }).join('\n') + '\n';
-    if (no.length) t += '\n⏳ Aún no confirman (' + no.length + '):\n' + no.map(function(r){ return '• ' + r.name; }).join('\n') + '\n';
-    if (w.length) t += '\n⏳ En lista de espera (' + w.length + '):\n' + w.map(function(r){ return '• ' + r.name; }).join('\n') + '\n';
-    if (no.length) t += '\nAnímalos a confirmar con el enlace que les llegó por WhatsApp, o a liberar su cupo si ya no pueden ir. ¡Gracias! ❤️';
+    var t = '*Todos a la Mesa* · ' + fDate(s).toLowerCase() + ', ' + fTime(s) + '\n' + head + ': ' + (ok.length + no.length) + (ok.length + no.length === 1 ? ' persona apartó cupo' : ' personas apartaron cupo') + '\n';
+    if (ok.length) t += '\nYa confirmaron (' + ok.length + '):\n' + ok.map(function(r){ return '• ' + r.name; }).join('\n') + '\n';
+    if (no.length) t += '\nAún no confirman (' + no.length + '):\n' + no.map(function(r){ return '• ' + r.name; }).join('\n') + '\n';
+    if (w.length) t += '\nEn lista de espera (' + w.length + '):\n' + w.map(function(r){ return '• ' + r.name; }).join('\n') + '\n';
+    if (no.length) t += '\nAnímalos a confirmar con el enlace que les llegó por WhatsApp, o a liberar su cupo si ya no pueden ir. ¡Gracias!';
     return t;
   }
   document.addEventListener('click', function(e){

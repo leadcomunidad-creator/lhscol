@@ -76,13 +76,12 @@ main{position:relative;max-width:460px;margin:0 auto;padding:28px 20px 40px;min-
     <div class="hoy" id="hoyT">es <span>hoy</span></div>
     <div class="stamp">Mesa llena<small>Cupo completo</small></div>
     <div class="cut"></div>
-    <div class="lab" id="lab">Tu pase</div>
+    <div class="lab" id="lab">Tu boleta</div>
     <div class="name" id="name">Te esperamos</div>
     <div class="msg" id="msg">La mesa está llena y estamos felices de que vengas.</div>
     <div id="badgeW"></div>
     <div class="grid">
-      <div><span>Cuándo</span><b id="when">Hoy · 7:00 p. m.</b></div>
-      <div><span>Valor</span><b id="price">$30.000 en efectivo</b></div>
+      <div class="full"><span>Cuándo</span><b id="when">Hoy · 7:00 p. m.</b></div>
       <div class="full"><span>Dónde</span><b id="where">Pasión del Cielo</b><span id="addr">Edificio Capitalia, piso 12 · Carrera 23 # 62-39, Manizales</span></div>
     </div>
     <div class="btns" id="btns"></div>
@@ -104,7 +103,6 @@ main{position:relative;max-width:460px;margin:0 auto;padding:28px 20px 40px;min-
     var dia = d.toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long', timeZone:'America/Bogota'});
     $('when').textContent = (today ? 'Hoy' : dia.charAt(0).toUpperCase() + dia.slice(1)) + ' · ' + hora;
     if (!today) $('hoyT').innerHTML = dia.split(',')[0].charAt(0).toUpperCase() + dia.split(',')[0].slice(1);
-    $('price').textContent = money(s.price) + ' en efectivo';
     $('where').textContent = s.venue;
     $('addr').textContent = s.address;
   }
@@ -115,11 +113,11 @@ main{position:relative;max-width:460px;margin:0 auto;padding:28px 20px 40px;min-
   }
   var link = '/mesa/?r=' + encodeURIComponent(t);
   fetch('/api/mesa/r/' + encodeURIComponent(t)).then(function(r){ return r.json(); }).then(function(r){
-    if (!r.ok) { $('msg').textContent = r.message || 'No encontramos este pase. Revisa el enlace.'; return; }
+    if (!r.ok) { $('msg').textContent = r.message || 'No encontramos esta boleta. Revisa el enlace.'; return; }
     paintSession(r.session);
     $('name').textContent = r.name;
     if (r.status === 'cancelado') {
-      $('lab').textContent = 'Pase liberado';
+      $('lab').textContent = 'Boleta liberada';
       $('msg').textContent = first(r.name) + ', liberaste tu cupo. ¡Gracias por avisar! Te esperamos en la próxima Mesa.';
       $('btns').innerHTML = '';
       return;
