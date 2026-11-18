@@ -452,8 +452,10 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
       var a = '';
       if (r.status === 'confirmado') {
         if (r.needsNotice) a += '<a class="b wa" data-act="notice" data-id="' + r.id + '" href="' + esc(wa(r.phone, msgPromoted(s, r))) + '" target="_blank" rel="noopener">Avisar que entró</a>';
-        else if (isToday(s)) a += '<a class="b wa' + (r.hoySent ? ' done' : '') + '" data-act="hoy" data-id="' + r.id + '" href="' + esc(wa(r.phone, msgHoy(s, r))) + '" target="_blank" rel="noopener">' + (r.hoySent ? 'Es hoy ✓' : 'Es hoy') + '</a>';
-        else a += '<a class="b wa' + (r.reminded ? ' done' : '') + '" data-act="remind" data-id="' + r.id + '" href="' + esc(wa(r.phone, msgReminder(s, r))) + '" target="_blank" rel="noopener">' + (r.reminded ? 'Recordado ✓' : 'Recordar') + '</a>';
+        else {
+          if (isToday(s)) a += '<a class="b wa' + (r.hoySent ? ' done' : '') + '" data-act="hoy" data-id="' + r.id + '" href="' + esc(wa(r.phone, msgHoy(s, r))) + '" target="_blank" rel="noopener">' + (r.hoySent ? 'Es hoy ✓' : 'Es hoy') + '</a>';
+          a += '<a class="b wa' + (r.reminded ? ' done' : '') + '" data-act="remind" data-id="' + r.id + '" href="' + esc(wa(r.phone, msgReminder(s, r))) + '" target="_blank" rel="noopener">' + (r.reminded ? 'Recordado ✓' : 'Recordar') + '</a>';
+        }
         a += '<button class="b red" data-act="cancel" data-id="' + r.id + '" type="button">Liberar</button>';
       } else if (r.status === 'espera') {
         a += '<button class="b" data-act="give" data-id="' + r.id + '" type="button">Dar cupo</button>';
