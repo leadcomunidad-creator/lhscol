@@ -205,7 +205,7 @@ footer a{color:var(--gris5)}
       <ol class="steps hidden" id="dSteps">
         <li>Agenda la fecha en tu calendario.</li>
         <li>Guarda tu enlace personal: con él confirmas o liberas tu cupo.</li>
-        <li>El día anterior te escribiremos para que confirmes.</li>
+        <li id="dStepConf">El día anterior te escribiremos para que confirmes.</li>
         <li><span>Lleva <b id="dPrice"></b> en efectivo.</span></li>
       </ol>
       <div class="btns" id="dBtns">
@@ -352,7 +352,10 @@ footer a{color:var(--gris5)}
       : 'Liberaste tu cupo. Si cambias de planes, puedes volver a inscribirte mientras haya disponibilidad.';
     $('dSteps').classList.toggle('hidden', !(isConf && !d.reconfirmed));
     var active = !isCan && !d.past;
-    $('dConfirm').classList.toggle('hidden', !(isConf && !d.reconfirmed && d.askConfirm));
+    // Si la Mesa es en menos de 36 horas (p. ej. se inscribe el mismo día), puede confirmar enseguida
+    var soon = !!session && (new Date(session.startsAt || (session.date + 'T' + session.time + ':00-05:00')).getTime() - Date.now()) < 36 * 3600000;
+    $('dStepConf').textContent = soon ? 'Confirma aquí abajo que vas: así tu lugar queda seguro.' : 'El día anterior te escribiremos para que confirmes.';
+    $('dConfirm').classList.toggle('hidden', !(isConf && !d.reconfirmed && (d.askConfirm || soon)));
     $('dGcal').classList.toggle('hidden', !(isConf && !d.past));
     $('dIcs').classList.toggle('hidden', !(isConf && !d.past));
     $('dSave').classList.toggle('hidden', !active);
