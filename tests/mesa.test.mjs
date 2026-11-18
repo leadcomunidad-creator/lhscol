@@ -167,3 +167,10 @@ test('grupos de WhatsApp de cada Mesa: privados y validados', async () => {
   assert.ok(!JSON.stringify(await call('/session')).includes('chat.whatsapp'));
   assert.ok((await call('/admin/overview', { headers: K })).grupos['Juan y Lili']);
 });
+
+test('panel: marcar el mensaje de hoy (hoySent)', async () => {
+  const s = (await call('/admin/session/t3', { headers: K })).session;
+  const r = s.regs.find((x) => x.status === 'confirmado');
+  const u = await call('/admin/reg', { method: 'POST', headers: K, body: { sessionId: 't3', regId: r.id, hoySent: true } });
+  assert.equal(u.reg.hoySent, true);
+});

@@ -460,7 +460,7 @@ async function adminUpdateReg(req) {
   const reg = await mutate(sessionKey(sid), (s) => {
     const r = s?.regs.find((x) => x.id === rid);
     if (!r) throw new HttpError(404, 'not_found', 'Inscripción no encontrada.');
-    for (const k of ['attended', 'paid', 'reminded', 'reconfirmed']) if (typeof b[k] === 'boolean') r[k] = b[k];
+    for (const k of ['attended', 'paid', 'reminded', 'reconfirmed', 'hoySent']) if (typeof b[k] === 'boolean') r[k] = b[k];
     if (b.attended === true) { r.attendedAt = nowIso(); if (r.status !== 'confirmado') r.status = 'confirmado'; }
     if (b.noticeSent === true) r.needsNotice = false;
     if (newMesa && newMesa !== r.mesa) { if (!r.mesaTexto) r.mesaTexto = r.mesa; r.mesa = newMesa; }

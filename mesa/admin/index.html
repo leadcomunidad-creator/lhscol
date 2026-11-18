@@ -175,6 +175,7 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
       <button class="chip" data-f="espera" aria-pressed="false">Lista de espera</button>
       <button class="chip" data-f="avisar" aria-pressed="false">Por avisar</button>
       <button class="chip" data-f="sinrecordar" aria-pressed="false">Sin recordatorio</button>
+      <button class="chip hidden" data-f="sinhoy" aria-pressed="false" id="chipHoy">Sin mensaje de hoy</button>
       <button class="chip" data-f="cancelado" aria-pressed="false">Liberados</button>
       <button class="chip" data-f="todos" aria-pressed="false">Todos</button>
       <span style="flex:1"></span>
@@ -315,6 +316,14 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
       'Recuerda llevar ' + money(s.price) + ' en efectivo.\n\n' +
       '¿Nos confirmas tu asistencia? Toca aquí para confirmar o, si no puedes ir, liberar tu cupo para que otra persona lo aproveche:\n' + SITE + '/mesa/?r=' + r.token;
   }
+  // Día del evento (hora de Bogotá)
+  function isToday(s){ return !!s && new Date().toLocaleDateString('en-CA', {timeZone:'America/Bogota'}) === s.date; }
+  function msgHoy(s, r){
+    return '¡Hola ' + first(r.name) + '! 🍽️ *Hoy es Todos a la Mesa* y la mesa está llena. Estamos felices de que vengas: tu lugar ya está apartado.\n\n' +
+      'Aquí está tu pase 👇\n' + SITE + '/mesa/hoy/?r=' + r.token + '\n\n' +
+      '🕖 Te esperamos desde las ' + fTime(s) + '\n📍 ' + s.venue + ' · ' + s.address + '\n💵 Lleva ' + money(s.price) + ' en efectivo\n\n' +
+      'Si a última hora no puedes ir, desde tu pase puedes liberar el cupo para que otra persona lo aproveche. ¡Nos vemos esta noche! 💛';
+  }
   function msgPromoted(s, r){
     return '¡Hola ' + first(r.name) + '! 🎉 Se liberó un cupo y ya es tuyo: te esperamos en *Todos a la Mesa* el ' + fDate(s).toLowerCase() + ' a las ' + fTime(s) + ' en ' + s.venue + '.\n\n' +
       'Confírmanos aquí que vas (o libera el cupo si ya no puedes):\n' + SITE + '/mesa/?r=' + r.token;
@@ -383,6 +392,7 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
     if (data && data.noMesa) NO_MESA = data.noMesa;
     if (!s) { $('hSession').textContent = 'Sin sesión'; return; }
     renderMesaControls();
+    $('chipHoy').classList.toggle('hidden', !isToday(s));
     var isCur = s.id === data.currentId;
     $('hSession').textContent = (isCur ? '' : 'Viendo: ') + fDate(s) + ' · ' + fTime(s) + ' · ' + s.venue + (s.state === 'closed' ? ' · cerrada' : '');
     renderStats(); renderByMesa(); renderList(); renderDoor();
@@ -434,6 +444,7 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
       if (filter === 'todos') return true;
       if (filter === 'avisar') return r.needsNotice && r.status === 'confirmado';
       if (filter === 'sinrecordar') return r.status === 'confirmado' && !r.reminded;
+      if (filter === 'sinhoy') return r.status === 'confirmado' && !r.hoySent;
       return r.status === filter;
     }).sort(function(a,b){ return a.createdAt.localeCompare(b.createdAt); });
     if (!rows.length) { $('list').innerHTML = '<div class="empty">No hay personas en esta lista.</div>'; return; }
@@ -441,6 +452,7 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
       var a = '';
       if (r.status === 'confirmado') {
         if (r.needsNotice) a += '<a class="b wa" data-act="notice" data-id="' + r.id + '" href="' + esc(wa(r.phone, msgPromoted(s, r))) + '" target="_blank" rel="noopener">Avisar que entró</a>';
+        else if (isToday(s)) a += '<a class="b wa' + (r.hoySent ? ' done' : '') + '" data-act="hoy" data-id="' + r.id + '" href="' + esc(wa(r.phone, msgHoy(s, r))) + '" target="_blank" rel="noopener">' + (r.hoySent ? 'Es hoy ✓' : 'Es hoy') + '</a>';
         else a += '<a class="b wa' + (r.reminded ? ' done' : '') + '" data-act="remind" data-id="' + r.id + '" href="' + esc(wa(r.phone, msgReminder(s, r))) + '" target="_blank" rel="noopener">' + (r.reminded ? 'Recordado ✓' : 'Recordar') + '</a>';
         a += '<button class="b red" data-act="cancel" data-id="' + r.id + '" type="button">Liberar</button>';
       } else if (r.status === 'espera') {
@@ -533,6 +545,7 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
       return;
     }
     if (act === 'remind') { update(id, {reminded: true}); }
+    else if (act === 'hoy') { update(id, {hoySent: true}); }
     else if (act === 'notice') { update(id, {noticeSent: true, needsNotice: false, reminded: true}); }
     else if (act === 'cancel') { e.preventDefault(); if (confirm('¿Liberar el cupo de ' + r.name + '? Si hay lista de espera, entra la siguiente persona.')) update(id, {status: 'cancelado'}); }
     else if (act === 'give') { e.preventDefault(); if (confirm('¿Dar cupo a ' + r.name + ' aunque el cupo esté lleno?')) update(id, {status: 'confirmado'}); }

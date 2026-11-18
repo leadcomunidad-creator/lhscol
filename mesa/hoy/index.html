@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Es hoy · Todos a la Mesa</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A0A0A">
+<meta name="description" content="Hoy es Todos a la Mesa y la mesa está llena. Tu lugar está apartado.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LHSCOL">
+<meta property="og:locale" content="es_CO">
+<meta property="og:title" content="Hoy es Todos a la Mesa · Mesa llena">
+<meta property="og:description" content="Tu lugar está apartado. Te esperamos desde las 7:00 p. m. en Pasión del Cielo.">
+<meta property="og:image" content="https://lhscolweb.netlify.app/assets/mesa/og-hoy-mesa-llena.jpg">
+<meta property="og:image:secure_url" content="https://lhscolweb.netlify.app/assets/mesa/og-hoy-mesa-llena.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Todos a la Mesa es hoy · Mesa llena">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="/assets/mesa/logo-todos-a-la-mesa.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,800&family=Playfair+Display:ital,wght@0,400;1,400;1,600;1,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--rojo:#F0254F;--crema:#F3EEE2;--dorado:#C8B273;--negro:#0A0A0A;--g1:#141414;--g2:#1F1F1F;--g5:#9A9A96}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--negro);color:var(--crema);font-family:'DM Sans',system-ui,sans-serif;line-height:1.5;min-height:100vh;-webkit-font-smoothing:antialiased}
+.bg{position:fixed;inset:0;background:url(/assets/mesa/fondo-terraza.jpg) 45% 50%/cover no-repeat}
+.bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,.6),rgba(10,10,10,.82) 45%,var(--negro))}
+main{position:relative;max-width:460px;margin:0 auto;padding:28px 20px 40px;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.handle{text-align:center;font-family:'Playfair Display',serif;font-style:italic;font-weight:600;color:var(--rojo);font-size:18px;margin-bottom:22px}
+.pass{position:relative;background:rgba(20,20,20,.88);backdrop-filter:blur(6px);border:1px solid #2a2a2a;border-radius:22px;padding:26px 24px 24px;text-align:center;overflow:hidden;opacity:0;transform:translateY(16px) scale(.98);transition:all .6s cubic-bezier(.2,.8,.2,1)}
+.pass.in{opacity:1;transform:none}
+
+.top{display:flex;align-items:center;justify-content:center;gap:12px}
+.top img{width:46px}
+.big{font-family:'Archivo',sans-serif;font-stretch:125%;font-weight:800;text-transform:uppercase;line-height:.9;letter-spacing:-.01em}
+.top .big{font-size:22px;color:var(--crema)}
+.hoy{font-family:'Playfair Display',serif;font-style:italic;font-size:54px;color:#fff;line-height:1;margin-top:18px}
+.hoy span{color:var(--rojo);font-weight:800}
+.stamp{display:inline-block;margin-top:20px;transform:rotate(-5deg);border:4px solid var(--rojo);color:var(--rojo);border-radius:10px;padding:8px 16px 7px;font-family:'Archivo',sans-serif;font-stretch:125%;font-weight:800;font-size:34px;text-transform:uppercase;line-height:1;animation:stampIn .5s .5s both cubic-bezier(.2,1.6,.4,1)}
+.stamp small{display:block;font-family:'DM Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.32em;color:var(--crema);margin-top:6px}
+@keyframes stampIn{from{opacity:0;transform:rotate(-5deg) scale(1.6)}to{opacity:1;transform:rotate(-5deg) scale(1)}}
+.cut{position:relative;margin:26px -24px 22px;border-top:2px dashed #333}
+.cut::before,.cut::after{content:'';position:absolute;top:-15px;width:28px;height:28px;border-radius:50%;background:var(--negro)}
+.cut::before{left:-15px}.cut::after{right:-15px}
+.lab{font-size:11px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--dorado)}
+.name{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;font-size:clamp(30px,9vw,40px);color:#fff;line-height:1.1;margin-top:6px;word-break:break-word}
+.msg{margin-top:10px;font-size:16px;color:#ddd8cd}
+.badge{display:inline-flex;align-items:center;gap:7px;margin-top:14px;border-radius:999px;padding:6px 13px;font-size:13px;font-weight:700}
+.badge.ok{background:rgba(70,190,120,.15);color:#7fe0a5}
+.badge.wait{background:rgba(200,178,115,.15);color:var(--dorado)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;text-align:left}
+.grid div{background:#0f0f0f;border-radius:12px;padding:11px 13px}
+.grid b{display:block;color:#fff;font-size:15px;margin-top:2px}
+.grid .full{grid-column:1/-1}
+.grid span{font-size:13.5px;color:#cfcac0}
+.btns{display:grid;gap:10px;margin-top:20px}
+.btn{display:block;text-align:center;text-decoration:none;font-weight:700;font-size:15px;border-radius:12px;padding:14px;border:1px solid transparent}
+.btn.pri{background:var(--rojo);color:#fff}
+.btn.sec{border-color:#3a3a3a;color:var(--crema)}
+.foot{text-align:center;margin-top:22px;font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:#fff}
+.foot small{display:block;font-family:'DM Sans',sans-serif;font-style:normal;font-size:12px;color:var(--g5);margin-top:8px}
+.hidden{display:none !important}
+@media (prefers-reduced-motion:reduce){.pass{transition:none;opacity:1;transform:none}.stamp{animation:none}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<main>
+  <div class="handle">· @lhscol ·</div>
+  <article class="pass" id="pass">
+    <div class="top"><img src="/assets/mesa/logo-todos-a-la-mesa.svg" alt=""><div class="big">Todos a la Mesa</div></div>
+    <div class="hoy" id="hoyT">es <span>hoy</span></div>
+    <div class="stamp">Mesa llena<small>Cupo completo</small></div>
+    <div class="cut"></div>
+    <div class="lab" id="lab">Tu pase</div>
+    <div class="name" id="name">Te esperamos</div>
+    <div class="msg" id="msg">La mesa está llena y estamos felices de que vengas.</div>
+    <div id="badgeW"></div>
+    <div class="grid">
+      <div><span>Cuándo</span><b id="when">Hoy · 7:00 p. m.</b></div>
+      <div><span>Valor</span><b id="price">$30.000 en efectivo</b></div>
+      <div class="full"><span>Dónde</span><b id="where">Pasión del Cielo</b><span id="addr">Edificio Capitalia, piso 12 · Carrera 23 # 62-39, Manizales</span></div>
+    </div>
+    <div class="btns" id="btns"></div>
+  </article>
+  <div class="foot">Hoy nos sentamos todos a la mesa.<small>LHSCOL · Un lugar para pertenecer</small></div>
+</main>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var t = new URLSearchParams(location.search).get('r');
+  function money(n){ return '$' + Number(n||0).toLocaleString('es-CO'); }
+  function first(n){ return (n||'').split(' ')[0]; }
+  function show(){ $('pass').classList.add('in'); }
+  function paintSession(s){
+    if (!s) return;
+    var d = new Date(s.startsAt || (s.date + 'T' + s.time + ':00-05:00'));
+    var today = new Date().toLocaleDateString('en-CA', {timeZone:'America/Bogota'}) === s.date;
+    var hora = d.toLocaleTimeString('es-CO', {hour:'numeric', minute:'2-digit', timeZone:'America/Bogota'});
+    var dia = d.toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long', timeZone:'America/Bogota'});
+    $('when').textContent = (today ? 'Hoy' : dia.charAt(0).toUpperCase() + dia.slice(1)) + ' · ' + hora;
+    if (!today) $('hoyT').innerHTML = dia.split(',')[0].charAt(0).toUpperCase() + dia.split(',')[0].slice(1);
+    $('price').textContent = money(s.price) + ' en efectivo';
+    $('where').textContent = s.venue;
+    $('addr').textContent = s.address;
+  }
+  if (!t) {
+    $('btns').innerHTML = '';
+    fetch('/api/mesa/session').then(function(r){ return r.json(); }).then(function(r){ if (r.ok) paintSession(r.session); }).catch(function(){}).then(show);
+    return;
+  }
+  var link = '/mesa/?r=' + encodeURIComponent(t);
+  fetch('/api/mesa/r/' + encodeURIComponent(t)).then(function(r){ return r.json(); }).then(function(r){
+    if (!r.ok) { $('msg').textContent = r.message || 'No encontramos este pase. Revisa el enlace.'; return; }
+    paintSession(r.session);
+    $('name').textContent = r.name;
+    if (r.status === 'cancelado') {
+      $('lab').textContent = 'Pase liberado';
+      $('msg').textContent = first(r.name) + ', liberaste tu cupo. ¡Gracias por avisar! Te esperamos en la próxima Mesa.';
+      $('btns').innerHTML = '';
+      return;
+    }
+    if (r.status === 'espera') {
+      $('lab').textContent = 'Lista de espera';
+      $('msg').textContent = 'Estás en la lista de espera. Si se libera un cupo, te avisamos por WhatsApp.';
+      $('btns').innerHTML = '<a class="btn sec" href="' + link + '">Ver mi inscripción</a>';
+      return;
+    }
+    $('lab').textContent = 'Tu lugar está apartado';
+    $('msg').textContent = 'La mesa está llena y estamos felices de que vengas, ' + first(r.name) + '.';
+    $('badgeW').innerHTML = r.reconfirmed ? '<span class="badge ok">✓ Asistencia confirmada</span>' : '<span class="badge wait">Falta confirmar tu asistencia</span>';
+    $('btns').innerHTML = (r.reconfirmed ? '' : '<a class="btn pri" href="' + link + '">Confirmar que voy</a>') +
+      '<a class="btn sec" href="' + link + '">No puedo ir: liberar mi cupo</a>';
+  }).catch(function(){ $('msg').textContent = 'Sin conexión. Intenta de nuevo en un momento.'; }).then(show);
+})();
+</script>
+</body>
+</html>
