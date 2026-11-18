@@ -174,3 +174,13 @@ test('panel: marcar el mensaje de hoy (hoySent)', async () => {
   const u = await call('/admin/reg', { method: 'POST', headers: K, body: { sessionId: 't3', regId: r.id, hoySent: true } });
   assert.equal(u.reg.hoySent, true);
 });
+
+test('hora real de inicio para la página del equipo', async () => {
+  assert.equal((await call('/admin/equipo', { method: 'POST', body: { start: '19:45' } })).code, 401);
+  assert.equal((await call('/admin/equipo', { method: 'POST', headers: K, body: { start: '7:45pm' } })).code, 400);
+  const r = await call('/admin/equipo', { method: 'POST', headers: K, body: { start: '19:45' } });
+  assert.equal(r.start, '19:45');
+  assert.equal((await call('/equipo')).start, '19:45');
+  await call('/admin/equipo', { method: 'POST', headers: K, body: { start: null } });
+  assert.equal((await call('/equipo')).start, null);
+});

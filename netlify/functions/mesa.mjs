@@ -18,6 +18,8 @@
 //   GET  /api/mesa/admin/history        Asistencia por persona en todas las sesiones
 //   GET  /api/mesa/admin/mesas          Lista de Mesas que muestra el formulario
 //   POST /api/mesa/admin/mesas          Guardar la lista de Mesas
+//   GET  /api/mesa/equipo               Hora real de inicio de la noche (para /mesa/equipo), público
+//   POST /api/mesa/admin/equipo         Fijar la hora real de inicio { start: "19:45" } o { start: null }
 //   POST /api/mesa/admin/grupos         Guardar el grupo de WhatsApp (enlace) o número de cada Mesa (privado)
 
 import { getStore } from '@netlify/blobs';
@@ -539,6 +541,21 @@ async function adminSaveMesas(req) {
   return json({ ok: true, mesas });
 }
 
+// Hora real de inicio del programa de la noche: la página del equipo corre su orden del día.
+async function equipoStart() {
+  const { data } = await read('config/equipo');
+  return json({ ok: true, date: data?.date || null, start: data?.start || null, updatedAt: data?.updatedAt || null });
+}
+async function adminSaveEquipo(req) {
+  const b = await req.json().catch(() => ({}));
+  const start = b.start === null || b.start === '' ? null : clean(b.start, 5);
+  if (start !== null && !/^([01]\d|2[0-3]):[0-5]\d$/.test(start)) throw new HttpError(400, 'start', 'Escribe la hora como 19:45.');
+  const date = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+  const value = { date, start, updatedAt: nowIso() };
+  await store().setJSON('config/equipo', value);
+  return json({ ok: true, ...value });
+}
+
 async function adminSaveGrupos(req) {
   const b = await req.json().catch(() => ({}));
   const mesas = await getMesas();
@@ -561,6 +578,7 @@ export default async (req, context) => {
   const m = req.method;
   try {
     if (parts[0] === 'session' && m === 'GET') return await getSession();
+    if (parts[0] === 'equipo' && m === 'GET') return await equipoStart();
     if (parts[0] === 'register' && m === 'POST') return await register(req, context);
     if (parts[0] === 'r' && parts[1]) {
       if (!parts[2] && m === 'GET') return await regView(parts[1]);
@@ -579,6 +597,7 @@ export default async (req, context) => {
       if (parts[1] === 'mesas' && m === 'GET') return json({ ok: true, mesas: await getMesas(), noMesa: NO_MESA });
       if (parts[1] === 'mesas' && m === 'POST') return await adminSaveMesas(req);
       if (parts[1] === 'grupos' && m === 'POST') return await adminSaveGrupos(req);
+      if (parts[1] === 'equipo' && m === 'POST') return await adminSaveEquipo(req);
     }
     return fail(404, 'not_found', 'Ruta no encontrada.');
   } catch (e) {
