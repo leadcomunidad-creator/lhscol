@@ -50,6 +50,8 @@ h2 em{color:var(--rojo)}
 .now .d{font-size:15px;opacity:.95}
 .now .nx{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.35);font-size:14px}
 .now .nx b{font-weight:700}
+.now .adj{margin-top:10px;background:rgba(0,0,0,.25);border-radius:10px;padding:8px 12px;font-size:13.5px;font-weight:700}
+.hidden{display:none !important}
 
 /* Quién eres */
 .who{display:flex;flex-wrap:wrap;gap:8px}
@@ -154,6 +156,7 @@ footer p{color:var(--g5);font-size:13px;margin-top:14px}
     <div class="t" id="nowT">Todos a la Mesa</div>
     <div class="d" id="nowD"></div>
     <div class="nx" id="nowN"></div>
+    <div class="adj hidden" id="nowAdj"></div>
   </div>
 
   <section class="reveal">
@@ -241,7 +244,23 @@ footer p{color:var(--g5);font-size:13px;margin-top:14px}
     {s:'21:00', e:'21:15', h:'9:00', m:'Despedida', q:'Jimmy y Luti · Media', r:['port','media'], x:'Fotos de grupo y salida por el ascensor.'},
     {s:'21:15', e:'21:45', h:'9:15', m:'Cierre del equipo', q:'Juan y Lili · Camila y Carlos', r:['coord','puerta'], x:'Revisión de la app y cierre. Media le pasa a Juan fotos, clips y el mensaje.'}
   ];
-  TL.forEach(function(b){ b.S = new Date(D + b.s + Z); b.E = new Date(D + b.e + Z); });
+  // Hora real de inicio: Juan la fija en el panel (Puerta) y todo se corre desde la bienvenida (7:30)
+  var BASE_START = '19:30', startReal = null;
+  function mins(t){ var a = t.split(':'); return +a[0] * 60 + +a[1]; }
+  function hhmm(m){ m = (m + 1440) % 1440; return ('0' + Math.floor(m / 60)).slice(-2) + ':' + ('0' + m % 60).slice(-2); }
+  function lab12(t){ var m = mins(t), h = Math.floor(m / 60) % 12 || 12; return h + ':' + ('0' + m % 60).slice(-2); }
+  TL.forEach(function(b){ b.bs = b.s; b.be = b.e; });
+  function applyStart(st){
+    var off = st ? mins(st) - mins(BASE_START) : 0;
+    TL.forEach(function(b){
+      if (b.bs >= BASE_START) { b.s = hhmm(mins(b.bs) + off); b.e = hhmm(mins(b.be) + off); }
+      else if (b.be === BASE_START) { b.s = b.bs; b.e = hhmm(mins(b.be) + off); }
+      else { b.s = b.bs; b.e = b.be; }
+      if (b.h !== 'Antes') b.h = lab12(b.s);
+      b.S = new Date(D + b.s + Z); b.E = new Date(D + b.e + Z);
+    });
+  }
+  applyStart(null);
 
   var CASOS = [
     ['Llega alguien sin inscripción', 'Los cupos están llenos. Juan o Lili revisan si hay puesto y Brinner. Si entra, Camila lo agrega en la app: “Llegó alguien sin inscripción”.', 'Juan y Lili · Camila'],
@@ -266,10 +285,11 @@ footer p{color:var(--g5);font-size:13px;margin-top:14px}
       '<div class="pp">' + r.pp.map(function(p){ return '<span data-p="' + esc(p) + '">' + esc(p) + '</span>'; }).join('') + '</div><p>' + esc(r.d) + '</p></article>';
   }).join('');
   // Render timeline
-  $('tl').innerHTML = TL.map(function(b, i){
+  function renderTL(){ $('tl').innerHTML = TL.map(function(b, i){
     var hr = b.h === 'Antes' ? 'Antes<small>de 6:30</small>' : b.h + '<small>p. m.</small>';
     return '<li data-i="' + i + '"><div class="h">' + hr + '</div><div><div class="m">' + esc(b.m) + '</div><div class="q">' + esc(b.q) + '</div><div class="x">' + esc(b.x) + '</div></div></li>';
-  }).join('');
+  }).join(''); }
+  renderTL();
   // Render casos
   $('casos').innerHTML = CASOS.map(function(c){ return '<details><summary>' + esc(c[0]) + '</summary><div class="bd">' + esc(c[1]) + '<i>' + esc(c[2]) + '</i></div></details>'; }).join('');
   // Selector
@@ -277,8 +297,8 @@ footer p{color:var(--g5);font-size:13px;margin-top:14px}
     PEOPLE.map(function(p){ return '<button class="chip" type="button" aria-pressed="false" data-p="' + esc(p) + '">' + esc(p) + '</button>'; }).join('');
 
   var picked = '';
-  function pick(p){
-    picked = (picked === p || !p) ? '' : p;
+  function pick(p, keep){
+    picked = keep ? p : ((picked === p || !p) ? '' : p);
     try { picked ? localStorage.setItem('mesaEquipoYo', picked) : localStorage.removeItem('mesaEquipoYo'); } catch(e) {}
     document.body.classList.toggle('picked', !!picked);
     document.querySelectorAll('#who .chip').forEach(function(c){ c.setAttribute('aria-pressed', c.dataset.p === picked); });
@@ -324,7 +344,9 @@ footer p{color:var(--g5);font-size:13px;margin-top:14px}
       $('nowT').textContent = b.m;
       $('nowD').textContent = b.q + ' · ' + b.x;
       $('nowN').innerHTML = n ? 'Sigue: <b>' + esc(n.m) + '</b> a las ' + n.h + ' p. m. · ' + esc(n.q) : 'Último momento de la noche.';
-    } else if (now >= last.E) {
+    }
+    $('nowAdj').classList.toggle('hidden', !startReal || startReal === BASE_START);
+    if (startReal) $('nowAdj').textContent = 'Horario ajustado: el programa empieza a las ' + lab12(startReal) + ' p. m.'; else if (now >= last.E) {
       $('nowLab').textContent = 'Terminó';
       $('nowT').textContent = '¡Gracias, equipo!';
       $('nowD').textContent = 'Hoy nos sentamos todos a la mesa gracias a ustedes.';
@@ -332,6 +354,16 @@ footer p{color:var(--g5);font-size:13px;margin-top:14px}
     }
   }
   tick(); setInterval(tick, 30000);
+
+  // Leer la hora real de inicio (la cambia Juan desde el panel)
+  function loadStart(){
+    fetch('/api/mesa/equipo', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(r){
+      var st = (r && r.ok && r.date === D.slice(0, 10) && r.start) ? r.start : null;
+      if (st === startReal) return;
+      startReal = st; applyStart(st); renderTL(); pick(picked, true); tick();
+    }).catch(function(){});
+  }
+  loadStart(); setInterval(loadStart, 30000);
 
   // Aparición suave
   var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, {threshold:.08}) : null;

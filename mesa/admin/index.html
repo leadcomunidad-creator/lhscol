@@ -186,6 +186,13 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
 
   <!-- PUERTA -->
   <section class="panel hidden door" id="t-door">
+    <div class="card" id="horaCard" style="margin-bottom:14px">
+      <h2>Hora real de inicio</h2>
+      <p class="note">Programado: 7:30 p. m. (bienvenida). Si se corre, escribe la hora real y la página del equipo (/mesa/equipo) recalcula todo el orden del día. Se ve en todos los celulares en menos de un minuto.</p>
+      <div class="row-btns" style="align-items:center"><input type="time" id="horaReal" value="19:30" style="font-size:18px;padding:10px;border-radius:9px;border:1px solid var(--g3);background:var(--negro);color:var(--blanco);color-scheme:dark">
+        <button class="b pri" type="button" id="horaAplicar">Aplicar</button><button class="b" type="button" id="horaReset">Volver al horario</button></div>
+      <div class="msg" id="horaMsg"></div>
+    </div>
     <div class="stats" id="doorStats"></div>
     <div class="toolbar"><input class="search" id="dq" type="search" placeholder="Buscar persona que llega…"></div>
     <div class="list" id="doorList"></div>
@@ -765,6 +772,21 @@ textarea.mesas{width:100%;min-height:220px;background:var(--negro);border:1px so
         '<button class="b" data-act="open" data-id="' + esc(x.id) + '" type="button">Ver</button></div>';
     }).join('') || '<div class="empty">Sin sesiones.</div>';
   }
+  // Hora real de inicio (página del equipo)
+  function h12(t){ var p = t.split(':'), h = +p[0]; return (h % 12 || 12) + ':' + p[1] + (h < 12 ? ' a. m.' : ' p. m.'); }
+  function horaSet(start){
+    var m = $('horaMsg');
+    api('/admin/equipo', {method:'POST', body:{start: start}}).then(function(r){
+      m.className = 'msg show ' + (r.ok ? 'good' : 'bad');
+      m.textContent = r.ok ? (r.start ? 'Listo: el programa empieza a las ' + h12(r.start) + '. La página del equipo ya se está actualizando.' : 'Listo: volvió al horario programado.') : (r.message || 'No se pudo guardar.');
+      if (r.ok) $('horaReal').value = r.start || '19:30';
+    });
+  }
+  $('horaAplicar').addEventListener('click', function(){ if ($('horaReal').value) horaSet($('horaReal').value); });
+  $('horaReset').addEventListener('click', function(){ horaSet(null); });
+  fetch('/api/mesa/equipo', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(r){
+    if (r && r.ok && r.start && r.date === new Date().toLocaleDateString('en-CA', {timeZone:'America/Bogota'})) { $('horaReal').value = r.start; $('horaMsg').className = 'msg show good'; $('horaMsg').textContent = 'Ahora: el programa empieza a las ' + h12(r.start) + '.'; }
+  }).catch(function(){});
   $('gruposSave').addEventListener('click', function(){
     var grupos = {}, m = $('gruposMsg');
     $('gruposForm').querySelectorAll('input[data-mesa]').forEach(function(i){ grupos[i.dataset.mesa] = i.value.trim(); });
