@@ -222,7 +222,7 @@ footer p{color:var(--g5);font-size:13px;margin-top:14px}
     {id:'port', ic:'Bienvenida', t:'Portería', pp:['Jimmy','Luti'], wh:'Portería del Edificio Capitalia, primer piso', d:'Reciben a cada persona, confirman que viene a Todos a la Mesa y le indican cómo subir al piso 12. Avisan por el grupo si se forma fila en el ascensor.'},
     {id:'puerta', ic:'Recibimiento', t:'Asistencia y pagos', pp:['Camila','Carlos'], wh:'Entrada de Pasión del Cielo, piso 12', d:'Camila registra la asistencia en la app (Llegó). Carlos recibe los pagos de $30.000, da el cambio y marca Pagó.'},
     {id:'acom', ic:'Acomodación', t:'Acomodación', pp:['Julián','Katha'], wh:'Salón', d:'No asignan puestos. Acompañan a quien llega solo o por primera vez, lo presentan con un grupito y consiguen sillas cuando un grupo crece.'},
-    {id:'music', ic:'Music', t:'Music', pp:['Esteban','Dani','Laura Sofía','Camilo García','Danny','Santi'], wh:'Frente del salón', d:'Esteban y Dani a cargo. Acústico, sentados y cómodos, en formato desconectado. Llegan antes a montar y prueban todo el sonido.'},
+    {id:'music', ic:'Music', t:'Music', pp:['Esteban','Dani'], wh:'Frente del salón', d:'Esteban y Dani a cargo, con su equipo. Acústico, sentados y cómodos, en formato desconectado. Llegan antes a montar y prueban todo el sonido.'},
     {id:'msj', ic:'Mensaje', t:'Mensaje', pp:['Camilo Gómez'], wh:'Frente del salón', d:'Comparte la palabra de 8:05 a 8:35 p. m. y cierra con la oración.'},
     {id:'media', ic:'Media', t:'Fotos y video', pp:['War','Danna'], wh:'Todo el lugar', d:'Coordinan a su equipo: fotos, clips verticales para reels y la grabación del mensaje con buen celular o cámara y buen audio.'}
   ];
@@ -273,11 +273,12 @@ footer p{color:var(--g5);font-size:13px;margin-top:14px}
   // Render casos
   $('casos').innerHTML = CASOS.map(function(c){ return '<details><summary>' + esc(c[0]) + '</summary><div class="bd">' + esc(c[1]) + '<i>' + esc(c[2]) + '</i></div></details>'; }).join('');
   // Selector
-  $('who').innerHTML = PEOPLE.map(function(p){ return '<button class="chip" type="button" aria-pressed="false" data-p="' + esc(p) + '">' + esc(p) + '</button>'; }).join('');
+  $('who').innerHTML = '<button class="chip" type="button" aria-pressed="true" data-p="">Todos</button>' +
+    PEOPLE.map(function(p){ return '<button class="chip" type="button" aria-pressed="false" data-p="' + esc(p) + '">' + esc(p) + '</button>'; }).join('');
 
   var picked = '';
   function pick(p){
-    picked = (picked === p) ? '' : p;
+    picked = (picked === p || !p) ? '' : p;
     try { picked ? localStorage.setItem('mesaEquipoYo', picked) : localStorage.removeItem('mesaEquipoYo'); } catch(e) {}
     document.body.classList.toggle('picked', !!picked);
     document.querySelectorAll('#who .chip').forEach(function(c){ c.setAttribute('aria-pressed', c.dataset.p === picked); });
@@ -298,7 +299,7 @@ footer p{color:var(--g5);font-size:13px;margin-top:14px}
       '<ul>' + mineTL.map(function(b){ return '<li><b>' + (b.h === 'Antes' ? 'Antes' : b.h + ' p. m.') + '</b>' + esc(b.m) + '</li>'; }).join('') + '</ul>';
     box.classList.add('show');
   }
-  $('who').addEventListener('click', function(e){ var c = e.target.closest('.chip'); if (c) pick(c.dataset.p); });
+  $('who').addEventListener('click', function(e){ var c = e.target.closest('.chip'); if (c) pick(c.dataset.p || ''); });
   try { var saved = localStorage.getItem('mesaEquipoYo'); if (saved && PEOPLE.indexOf(saved) >= 0) pick(saved); } catch(e) {}
 
   // Ahora
