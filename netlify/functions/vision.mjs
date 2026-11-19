@@ -45,7 +45,7 @@ const DEFAULT_EDITION = {
   tagline: 'Celebramos lo vivido. Descubrimos lo que viene.',
   includes: 'Incluye comida y dos bebidas por persona.',
   highlights: 'Music · Mensaje · Tema 2027',
-  theme: 'claro', // 'claro' (blanco y azul) o 'negro' (negro y dorado)
+  theme: 'negro', // 'negro' (negro y dorado, aprobado el 19-11-2026) o 'claro' (blanco y azul)
   prices: { adult: 75000, child: 35000 },
   childAgeMin: 2,
   childAgeMax: 11,
