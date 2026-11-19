@@ -9,6 +9,8 @@
 //   GET  /api/vision/g/:token              Estado del grupo (enlace personal del responsable)
 //   POST /api/vision/g/:token/proof        Subir el comprobante (cuerpo binario JPG, PNG o PDF)
 //   GET  /api/vision/t/:token              Boleta de una persona
+//   POST /api/vision/waitlist              Lista de espera (solo cuando no hay cupo)
+//   GET  /api/vision/equipo                Plan de la noche para la página del equipo (sin cifras)
 //
 // Administración (cabecera x-admin-key = VISION_ADMIN_KEY; si no existe, MESA_ADMIN_KEY):
 //   GET  /api/vision/admin/overview
@@ -19,6 +21,8 @@
 //   POST /api/vision/admin/flags               Marcar mensajes enviados (boletas, recordatorio, es hoy)
 //   POST /api/vision/admin/checkin             Llegada por código de boleta o por persona
 //   POST /api/vision/admin/add                 Inscribir en la puerta o a mano (queda aprobado)
+//   POST /api/vision/admin/waitlist            Marcar avisado o quitar de la lista de espera
+//   POST /api/vision/admin/equipo              Guardar plan y equipos, o la hora real de inicio
 
 import { getStore } from '@netlify/blobs';
 import { createHash, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
@@ -45,11 +49,12 @@ const DEFAULT_EDITION = {
   tagline: 'Celebramos lo vivido. Descubrimos lo que viene.',
   includes: 'Incluye comida y dos bebidas por persona.',
   highlights: 'Music · Mensaje · Tema 2027',
+  refundText: 'Al pagar, tu cupo queda reservado para ti. No hacemos devoluciones de dinero, salvo casos de fuerza mayor (por ejemplo, un accidente o una calamidad). Si no puedes asistir, escríbenos por WhatsApp.',
   theme: 'negro', // 'negro' (negro y dorado, aprobado el 19-11-2026) o 'claro' (blanco y azul)
   prices: { adult: 75000, child: 35000 },
   childAgeMin: 2,
   childAgeMax: 11,
-  closeAt: '2026-12-05T23:59:59-05:00',
+  closeAt: '2026-12-15T23:59:59-05:00', // inscripciones del 15 de noviembre al 15 de diciembre
   maxGroup: 10,
   status: 'open',
   contactWhatsapp: '573043229348',
@@ -59,7 +64,49 @@ const DEFAULT_EDITION = {
   correctionHours: 24,
   paymentUrl: 'https://checkout.wompi.co/l/VPOS_nEkNT7',
 };
-const PRIVATE_FIELDS = ['capacity', 'holdMinutes', 'correctionHours', 'paymentUrl', 'groups', 'hasQr'];
+const PRIVATE_FIELDS = ['capacity', 'holdMinutes', 'correctionHours', 'paymentUrl', 'groups', 'hasQr', 'waitlist', 'equipo', 'rev'];
+
+// Borrador del plan de la noche y de los equipos (se edita en Panel → Equipo).
+const DEFAULT_EQUIPO = {
+  plan: [
+    { t: '17:00', title: 'Llega el equipo', who: 'Todos', note: 'Oración, prueba de sonido, comida y puerta listas.' },
+    { t: '17:30', title: 'Abren puertas', who: 'Puerta y boletas', note: 'Escanear cada boleta. Quien no tiene boleta pasa a la mesa de inscripción.' },
+    { t: '18:00', title: 'Bienvenida', who: 'Coordinación', note: '' },
+    { t: '18:10', title: 'Music', who: 'Music', note: '' },
+    { t: '18:45', title: 'Celebramos lo vivido', who: 'Media', note: 'Video y testimonios del año.' },
+    { t: '19:05', title: 'Comida y bebidas', who: 'Comida y bebidas', note: 'Una comida y dos bebidas por persona.' },
+    { t: '19:45', title: 'Mensaje', who: 'Coordinación', note: '' },
+    { t: '20:15', title: 'Revelación del tema 2027', who: 'Media', note: 'Momento central de la noche.' },
+    { t: '20:30', title: 'Music y cierre', who: 'Music', note: '' },
+    { t: '21:00', title: 'Despedida', who: 'Todos', note: 'Salida ordenada; el equipo recoge.' },
+  ],
+  roles: [
+    { name: 'Coordinación', people: 'Juan y Lili', tasks: ['Bienvenida y mensaje', 'Decide si el programa se corre'] },
+    { name: 'Music', people: 'Esteban y Dani', tasks: ['Prueba de sonido a las 5:00', 'Music de apertura y de cierre'] },
+    { name: 'Media', people: 'War y Danna', tasks: ['Fotos y reels', 'Video de lo vivido', 'Grabar el mensaje', 'Revelación del tema'] },
+    { name: 'Puerta y boletas', people: 'Por definir', tasks: ['Escanear boletas en Panel → Puerta', 'Inscribir a quien paga en la puerta'] },
+    { name: 'Comida y bebidas', people: 'Por definir', tasks: ['Una comida y dos bebidas por persona'] },
+    { name: 'Kids', people: 'Por definir', tasks: ['Acompañar a los niños'] },
+    { name: 'Logística', people: 'Por definir', tasks: ['Auditorio, sillas y salida'] },
+  ],
+};
+
+// Ediciones guardadas antes de un cambio de reglas se ponen al día al leerlas.
+const OLD_INCLUDES = 'Incluye alimentación y un concierto de nuestro grupo musical.';
+function migrate(e) {
+  if (!e || typeof e !== 'object' || !Array.isArray(e.groups)) return e;
+  if ((e.rev || 0) < 2) {
+    if (e.closeAt && Date.parse(e.closeAt) === Date.parse('2026-12-05T23:59:59-05:00')) e.closeAt = DEFAULT_EDITION.closeAt;
+    if (e.includes === OLD_INCLUDES) e.includes = DEFAULT_EDITION.includes;
+    e.rev = 2;
+  }
+  if (e.highlights === undefined) e.highlights = DEFAULT_EDITION.highlights;
+  if (e.refundText === undefined) e.refundText = DEFAULT_EDITION.refundText;
+  if (!e.theme) e.theme = DEFAULT_EDITION.theme;
+  if (!Array.isArray(e.waitlist)) e.waitlist = [];
+  if (!e.equipo) e.equipo = structuredClone(DEFAULT_EQUIPO);
+  return e;
+}
 
 // ───────── utilidades ─────────
 const json = (data, status = 200, extra = {}) =>
@@ -146,18 +193,8 @@ function publicState(e, now = Date.now()) {
   return counts(e, now).ocupados < e.capacity ? 'open' : 'full';
 }
 
-const OLD_INCLUDES = 'Incluye alimentación y un concierto de nuestro grupo musical.';
-function withDefaults(e) {
-  if (!e) return e;
-  if (e.includes === OLD_INCLUDES) e.includes = DEFAULT_EDITION.includes;
-  if (e.highlights === undefined) e.highlights = DEFAULT_EDITION.highlights;
-  if (!e.theme) e.theme = DEFAULT_EDITION.theme;
-  return e;
-}
-
 function publicEdition(e) {
   if (!e) return null;
-  withDefaults(e);
   const out = {};
   for (const [k, v] of Object.entries(e)) if (!PRIVATE_FIELDS.includes(k) && k !== 'createdAt' && k !== 'updatedAt') out[k] = v;
   out.startsAt = startDate(e).toISOString();
@@ -178,6 +215,7 @@ const qrKey = (eid) => `qr/${eid}`;
 
 async function read(key) {
   const r = await store().getWithMetadata(key, { type: 'json' });
+  if (r && key.startsWith('edition/')) migrate(r.data);
   return r ? { data: r.data, etag: r.etag } : { data: null, etag: null };
 }
 
@@ -198,7 +236,7 @@ async function mutate(key, fn) {
 async function ensureIndex() {
   let { data: idx } = await read('index');
   if (idx) return idx;
-  await store().setJSON(editionKey(DEFAULT_EDITION.id), { ...DEFAULT_EDITION, groups: [], createdAt: nowIso() }, { onlyIfNew: true });
+  await store().setJSON(editionKey(DEFAULT_EDITION.id), migrate({ ...DEFAULT_EDITION, groups: [], rev: 2, createdAt: nowIso() }), { onlyIfNew: true });
   await store().setJSON('index', { currentId: DEFAULT_EDITION.id, editions: [DEFAULT_EDITION.id] }, { onlyIfNew: true });
   return (await read('index')).data;
 }
@@ -394,7 +432,6 @@ function checkAdmin(req) {
 function adminEdition(e) {
   const now = Date.now();
   const groups = e.groups.map((g) => ({ ...g, eff: effStatus(g, now) }));
-  withDefaults(e);
   return { ...e, groups, state: publicState(e, now), counts: counts(e, now), startsAt: startDate(e).toISOString() };
 }
 
@@ -430,6 +467,7 @@ async function adminSaveEdition(req) {
     tagline: clean(b.tagline, 120),
     includes: clean(b.includes, 200),
     highlights: clean(b.highlights, 120),
+    refundText: clean(b.refundText, 400),
     theme: b.theme === 'negro' ? 'negro' : 'claro',
     prices: { adult: int(b.priceAdult, 75000, 0, 2000000), child: int(b.priceChild, 35000, 0, 2000000) },
     closeAt: b.closeAt ? new Date(`${clean(b.closeAt, 16)}:59${TZ_OFFSET}`).toISOString() : null,
@@ -441,7 +479,7 @@ async function adminSaveEdition(req) {
     paymentUrl: String(b.paymentUrl || '').slice(0, 500),
   };
   await mutate(editionKey(id), (e) => {
-    if (!e) e = { ...DEFAULT_EDITION, id, groups: [], createdAt: nowIso() };
+    if (!e) e = migrate({ ...DEFAULT_EDITION, id, groups: [], rev: 2, createdAt: nowIso() });
     Object.assign(e, fields, { updatedAt: nowIso() });
     return { value: e };
   });
@@ -529,7 +567,7 @@ async function adminFlags(req) {
   const g = await mutate(editionKey(idx.currentId), (e) => {
     const g = e?.groups.find((x) => x.id === gid);
     if (!g) throw new HttpError(404, 'not_found', 'Inscripción no encontrada.');
-    for (const k of ['sentAt', 'remindedAt', 'hoyAt', 'rejectSentAt']) if (k in b) g[k] = b[k] ? nowIso() : null;
+    for (const k of ['sentAt', 'remindedAt', 'hoyAt', 'rejectSentAt', 'payAskedAt']) if (k in b) g[k] = b[k] ? nowIso() : null;
     return { value: e, result: g };
   });
   return json({ ok: true, group: { ...g, eff: effStatus(g) } });
@@ -589,6 +627,84 @@ async function adminAdd(req) {
   return json({ ok: true, group: { ...res.g, eff: 'aprobado' } });
 }
 
+// ───────── lista de espera ─────────
+async function joinWaitlist(req) {
+  const b = await req.json().catch(() => ({}));
+  if (b.website) return json({ ok: true });
+  if (b.startedAt && Date.now() - Number(b.startedAt) < 2500) throw new HttpError(400, 'too_fast', 'Revisa tus datos e intenta de nuevo.');
+  const phone = normalizePhone(b.phone);
+  const name = properName(b.name);
+  if (name.length < 3) throw new HttpError(400, 'name', 'Escribe tu nombre completo.');
+  if (!phone) throw new HttpError(400, 'phone', 'Escribe un número de WhatsApp válido.');
+  if (b.consent !== true) throw new HttpError(400, 'consent', 'Marca la autorización de datos para continuar.');
+  const adults = int(b.adults, 1, 1, 20), children = int(b.children, 0, 0, 20);
+  const idx = await ensureIndex();
+  const res = await mutate(editionKey(idx.currentId), (e) => {
+    const st = publicState(e);
+    if (st === 'closed') throw new HttpError(409, 'closed', 'Las inscripciones ya cerraron.');
+    if (st === 'open') return { skipWrite: true, result: { open: true } };
+    if (e.waitlist.some((w) => w.phone === phone && !w.removed)) return { skipWrite: true, result: { already: true } };
+    if (e.waitlist.length >= 500) throw new HttpError(409, 'full', 'La lista de espera está completa. Escríbenos por WhatsApp.');
+    e.waitlist.push({ id: token(6), name, phone, adults, children, createdAt: nowIso() });
+    return { value: e, result: {} };
+  });
+  if (res.open) return json({ ok: false, error: 'open', message: 'Ya hay cupo: puedes inscribirte ahora mismo.' }, 409);
+  return json({ ok: true, already: !!res.already });
+}
+
+async function adminWaitlist(req) {
+  const b = await req.json().catch(() => ({}));
+  const idx = await ensureIndex();
+  const id = clean(b.id, 20);
+  const w = await mutate(editionKey(idx.currentId), (e) => {
+    const w = e.waitlist.find((x) => x.id === id);
+    if (!w) throw new HttpError(404, 'not_found', 'No está en la lista de espera.');
+    if ('notified' in b) w.notifiedAt = b.notified ? nowIso() : null;
+    if (b.remove === true) w.removed = true;
+    return { value: e, result: w };
+  });
+  return json({ ok: true, entry: w });
+}
+
+// ───────── página del equipo ─────────
+async function equipoView() {
+  const e = await currentEdition();
+  if (!e) throw new HttpError(404, 'not_found', 'Sin edición.');
+  const q = e.equipo || DEFAULT_EQUIPO;
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+  return json({ ok: true, name: e.name, year: e.year, date: e.date, time: e.time, endTime: e.endTime, venue: e.venue, city: e.city,
+    plan: q.plan, roles: q.roles, start: q.startDate === today ? q.start || null : null, updatedAt: q.updatedAt || null });
+}
+
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+async function adminEquipo(req) {
+  const b = await req.json().catch(() => ({}));
+  const idx = await ensureIndex();
+  const out = await mutate(editionKey(idx.currentId), (e) => {
+    const q = e.equipo || structuredClone(DEFAULT_EQUIPO);
+    if ('start' in b) {
+      const start = b.start === null || b.start === '' ? null : clean(b.start, 5);
+      if (start !== null && !HHMM.test(start)) throw new HttpError(400, 'start', 'Escribe la hora como 18:15.');
+      q.start = start;
+      q.startDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+    }
+    if (Array.isArray(b.plan)) {
+      const plan = b.plan.slice(0, 40).map((x) => ({ t: clean(x?.t, 5), title: clean(x?.title, 80), who: clean(x?.who, 60), note: clean(x?.note, 200) }))
+        .filter((x) => HHMM.test(x.t) && x.title).sort((a, c) => a.t.localeCompare(c.t));
+      if (!plan.length) throw new HttpError(400, 'plan', 'Escribe al menos un momento con hora (18:00 | Bienvenida).');
+      q.plan = plan;
+    }
+    if (Array.isArray(b.roles)) {
+      q.roles = b.roles.slice(0, 20).map((r) => ({ name: clean(r?.name, 40), people: clean(r?.people, 120),
+        tasks: (Array.isArray(r?.tasks) ? r.tasks : []).slice(0, 12).map((t) => clean(t, 120)).filter(Boolean) })).filter((r) => r.name);
+    }
+    q.updatedAt = nowIso();
+    e.equipo = q;
+    return { value: e, result: q };
+  });
+  return json({ ok: true, equipo: out });
+}
+
 // ───────── enrutador ─────────
 export default async (req, context) => {
   const url = new URL(req.url);
@@ -603,6 +719,8 @@ export default async (req, context) => {
       if (parts[2] === 'proof' && m === 'POST') return await uploadProof(req, parts[1]);
     }
     if (parts[0] === 't' && parts[1] && m === 'GET') return await ticketView(parts[1]);
+    if (parts[0] === 'waitlist' && m === 'POST') return await joinWaitlist(req);
+    if (parts[0] === 'equipo' && m === 'GET') return await equipoView();
     if (parts[0] === 'admin') {
       checkAdmin(req);
       if (parts[1] === 'overview' && m === 'GET') return await adminOverview();
@@ -613,6 +731,8 @@ export default async (req, context) => {
       if (parts[1] === 'flags' && m === 'POST') return await adminFlags(req);
       if (parts[1] === 'checkin' && m === 'POST') return await adminCheckin(req);
       if (parts[1] === 'add' && m === 'POST') return await adminAdd(req);
+      if (parts[1] === 'waitlist' && m === 'POST') return await adminWaitlist(req);
+      if (parts[1] === 'equipo' && m === 'POST') return await adminEquipo(req);
     }
     return fail(404, 'not_found', 'Ruta no encontrada.');
   } catch (e) {

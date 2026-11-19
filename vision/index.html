@@ -208,6 +208,7 @@ body.negro .badge{background:#1d1d1d}
   <p>Total a pagar</p>
   <div class="big" id="t4"></div>
   <p class="note" id="pHold"></p>
+  <p class="note" id="refund" style="margin-top:-.8rem"></p>
   <a class="btn" id="payLink" href="#" target="_blank" rel="noopener">Pagar con enlace de pago</a>
   <div id="qrWrap" class="hidden"><p class="note" style="margin-top:1.4rem">O escanea este código QR desde tu app bancaria:</p>
     <div class="qr"><img id="qrImg" alt="Código QR de pago de LHSCOL" loading="lazy"></div></div>
@@ -229,6 +230,22 @@ body.negro .badge{background:#1d1d1d}
     <a class="btn ghost" id="gcal" href="#" target="_blank" rel="noopener">Agregar a Google Calendar</a>
     <button class="link" type="button" id="copyLink">Copiar mi enlace</button>
   </div>
+</section>
+
+<section class="step" data-s="8">
+  <h2>Lista de espera</h2>
+  <p class="lead">Por ahora los cupos están completos. Déjanos tus datos y te escribimos por WhatsApp si se libera un cupo.</p>
+  <form id="wfrm" novalidate>
+    <fieldset><legend>Tus datos</legend>
+      <label>Nombre completo<input id="wName" autocomplete="name" maxlength="60"></label>
+      <label>WhatsApp<input id="wPhone" type="tel" inputmode="tel" placeholder="300 000 0000" autocomplete="tel" maxlength="20"></label>
+    </fieldset>
+    <div class="row"><div><strong>Adultos</strong></div><div class="ctr"><button type="button" data-w="a" data-d="-1" aria-label="Quitar un adulto">−</button><output id="wa">1</output><button type="button" data-w="a" data-d="1" aria-label="Agregar un adulto">+</button></div></div>
+    <div class="row"><div><strong>Niños</strong></div><div class="ctr"><button type="button" data-w="n" data-d="-1" aria-label="Quitar un niño">−</button><output id="wn">0</output><button type="button" data-w="n" data-d="1" aria-label="Agregar un niño">+</button></div></div>
+    <label class="chk"><input type="checkbox" id="wc"><span>Autorizo a LHSCOL a usar estos datos solo para avisarme si hay cupo en Visión 2027.</span></label>
+    <p class="msg" id="wm" role="alert"></p>
+    <div class="bar"><button class="btn" type="submit" id="wGo">Unirme a la lista de espera</button><button class="btn ghost" type="button" data-go="1">Volver</button></div>
+  </form>
 </section>
 
 <section class="step" data-s="9">
@@ -305,9 +322,11 @@ body.negro .badge{background:#1d1d1d}
     $('#maxNote').textContent = 'Los bebés menores de ' + E.childAgeMin + ' años no se registran. Máximo ' + E.maxGroup + ' personas por inscripción.';
     if (E.closeAt) $('#hNote').textContent += ' Inscripciones abiertas hasta el ' + new Date(E.closeAt).toLocaleDateString('es-CO',{day:'numeric',month:'long',timeZone:'America/Bogota'}) + '.';
     var b = $('#goReg');
-    b.disabled = state !== 'open';
-    b.textContent = state === 'open' ? 'Inscribirme' : state === 'full' ? 'Cupos completos' : 'Inscripciones cerradas';
-    if (state === 'full') $('#m1').textContent = 'Por ahora no hay disponibilidad. Escríbenos por WhatsApp y te avisamos si se libera un cupo.';
+    b.disabled = state !== 'open' && state !== 'full';
+    b.textContent = state === 'open' ? 'Inscribirme' : state === 'full' ? 'Unirme a la lista de espera' : 'Inscripciones cerradas';
+    b.dataset.go = state === 'full' ? '8' : '2';
+    $('#m1').textContent = state === 'full' ? 'Por ahora los cupos están completos. Si se libera alguno, te avisamos.' : '';
+    $('#refund').textContent = E.refundText || '';
     render2();
   }
 
@@ -359,11 +378,34 @@ body.negro .badge{background:#1d1d1d}
     var btn = $('#send3'); btn.disabled = true; btn.textContent = 'Reservando…';
     api('/register', {method:'POST', body:{adults:adults, children:children, phone: v('wa'), mesa: $('#mesa').value, consent:true, guardian: !!st.n && $('#c2').checked, website: $('#website').value, startedAt: startedAt}}).then(function(r){
       btn.disabled = false; btn.textContent = 'Ir al pago';
+      if (!r.ok && r.error === 'full') { state = 'full'; paint(); $('#wName').value = v('a1n') + ' ' + v('a1l'); $('#wPhone').value = v('wa'); ws.a = st.a; ws.n = st.n; renderW(); go(8); $('#wm').textContent = 'No alcanzan los cupos para tu grupo. Únete a la lista de espera y te avisamos.'; return; }
       if (!r.ok) { m.textContent = r.message || 'No pudimos completar la inscripción.'; return; }
       gToken = r.token; store.set('group', {edition: E.id, token: r.token});
       history.replaceState(null, '', '/vision/?g=' + r.token);
       loadGroup(r.token, true);
     }).catch(function(){ btn.disabled = false; btn.textContent = 'Ir al pago'; m.textContent = 'Sin conexión. Revisa tu internet e intenta de nuevo.'; });
+  });
+
+  // ── Lista de espera
+  var ws = {a:1, n:0};
+  function renderW(){ $('#wa').textContent = ws.a; $('#wn').textContent = ws.n; }
+  $$('[data-w]').forEach(function(b){ b.addEventListener('click', function(){
+    var k = b.dataset.w, val = ws[k] + (+b.dataset.d); if (val < (k === 'a' ? 1 : 0) || val > 10) return; ws[k] = val; renderW();
+  }); });
+  $('#wfrm').addEventListener('submit', function(e){
+    e.preventDefault(); var m = $('#wm'), btn = $('#wGo');
+    if ($('#wName').value.trim().length < 3) { m.textContent = 'Escribe tu nombre completo.'; return; }
+    if ($('#wPhone').value.replace(/\D/g,'').length < 10) { m.textContent = 'Escribe tu WhatsApp (10 dígitos).'; return; }
+    if (!$('#wc').checked) { m.textContent = 'Marca la autorización para continuar.'; return; }
+    btn.disabled = true;
+    api('/waitlist', {method:'POST', body:{name:$('#wName').value, phone:$('#wPhone').value, adults:ws.a, children:ws.n, consent:true, website:$('#website').value, startedAt:startedAt}}).then(function(r){
+      btn.disabled = false;
+      if (!r.ok && r.error === 'open') { state = 'open'; paint(); go(2); return; }
+      if (!r.ok) { m.textContent = r.message || 'No pudimos guardar tus datos.'; return; }
+      $('#xTitle').textContent = r.already ? 'Ya estás en la lista' : 'Quedaste en la lista de espera';
+      $('#xText').textContent = 'Si se libera un cupo, te escribimos por WhatsApp. Gracias por tu paciencia.';
+      go(9);
+    }).catch(function(){ btn.disabled = false; m.textContent = 'Sin conexión. Intenta de nuevo.'; });
   });
 
   // ── Paso 4: pago y comprobante

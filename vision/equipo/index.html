@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Equipo · Visión 2027</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" type="image/png" href="/assets/vision/logo-lhscol-dorado.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Jost:wght@500&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--negro:#0A0A0A;--g1:#141414;--g2:#262626;--g3:#3a3a3a;--dorado:#C8B273;--soft:#E0D3A9;--crema:#EDE9DE;--tx:#A9A69C}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(120% 55% at 88% 0,rgba(200,178,115,.12),transparent 60%),var(--negro);background-attachment:fixed;color:var(--crema);font:400 16px/1.5 'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+main{max-width:520px;margin:0 auto;padding:20px 16px calc(40px + env(safe-area-inset-bottom,0px))}
+.wm{display:block;width:72%;max-width:300px;height:auto;margin:6px 0 8px}
+.k{font:500 12px/1.4 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--tx)}
+.sub{color:var(--soft);font-size:15px;margin-bottom:18px}
+.now{background:var(--g1);border:1px solid rgba(200,178,115,.35);border-radius:16px;padding:18px;margin-bottom:16px}
+.now .t{font:italic 400 30px/1.1 'Playfair Display',serif;color:var(--dorado);margin:6px 0 2px}
+.now .who{font-size:14.5px;color:var(--soft)}
+.now .note{font-size:15px;margin-top:8px}
+.now .next{border-top:1px solid var(--g2);margin-top:14px;padding-top:12px;font-size:14.5px;color:var(--tx)}
+.now .next b{color:var(--crema);font-weight:600}
+.late{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--negro);background:var(--dorado);border-radius:99px;padding:3px 10px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin:6px 0 14px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;background:var(--g1);border:1px solid var(--g3);border-radius:999px;padding:8px 14px;font:600 14px 'DM Sans',sans-serif;color:var(--soft);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--dorado);border-color:var(--dorado);color:var(--negro)}
+.role{background:var(--g1);border:1px solid var(--g2);border-radius:14px;padding:16px;margin-bottom:16px}
+.role h2{font:italic 400 24px 'Playfair Display',serif;color:var(--dorado)}
+.role p{color:var(--soft);font-size:14.5px;margin-bottom:8px}
+.role ul{padding-left:18px;font-size:15px;line-height:1.7}
+h3{font:500 12px/1 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--tx);margin:22px 0 10px}
+ol.tl{list-style:none;border-left:1px solid var(--g3);margin-left:6px}
+ol.tl li{position:relative;padding:0 0 16px 18px}
+ol.tl li::before{content:'';position:absolute;left:-5px;top:7px;width:9px;height:9px;border-radius:50%;background:var(--g3)}
+ol.tl li.mine::before{background:var(--dorado)}
+ol.tl li.past{opacity:.45}
+ol.tl li.cur::before{background:var(--dorado);box-shadow:0 0 0 5px rgba(200,178,115,.25)}
+ol.tl .h{font-weight:700;color:var(--dorado);font-variant-numeric:tabular-nums}
+ol.tl .h s{color:var(--tx);font-weight:400;margin-left:6px}
+ol.tl .w{font-size:13.5px;color:var(--tx)}
+ol.tl .n{font-size:14.5px;color:var(--soft)}
+ol.tl li.mine .ti{color:#fff;font-weight:600}
+.foot{margin-top:24px;font-size:13px;color:var(--tx);text-align:center}
+</style>
+</head>
+<body>
+<main>
+  <img class="wm" src="/assets/vision/wordmark-dorado.png" alt="Visión 2027" width="1000" height="232">
+  <p class="k">Plan del equipo</p>
+  <p class="sub" id="sub">Cargando…</p>
+  <section class="now" id="now"></section>
+  <p class="k">¿Quién eres?</p>
+  <div class="chips" id="chips"></div>
+  <section class="role" id="role" hidden></section>
+  <h3>Orden de la noche</h3>
+  <ol class="tl" id="tl"></ol>
+  <p class="foot">Se actualiza solo cada 30 segundos. Si el programa se corre, Coordinación ajusta la hora real desde el panel.</p>
+</main>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var D = null, me = null; try { me = localStorage.getItem('vision.equipo.rol'); } catch(e){}
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function mins(hhmm){ var p = hhmm.split(':'); return +p[0] * 60 + +p[1]; }
+  function hhmm(m){ m = ((m % 1440) + 1440) % 1440; var h = Math.floor(m / 60), mm = m % 60, ap = h >= 12 ? 'p. m.' : 'a. m.'; return ((h % 12) || 12) + ':' + String(mm).padStart(2, '0') + ' ' + ap; }
+  function nowB(){ var s = new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit', timeZone:'America/Bogota', hour12:false}); return mins(s); }
+  function today(){ return new Date().toLocaleDateString('en-CA', {timeZone:'America/Bogota'}) === D.date; }
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  function load(){
+    fetch('/api/vision/equipo', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(r){ if (r.ok) { D = r; render(); } }).catch(function(){});
+  }
+  function render(){
+    var day = new Date(D.date + 'T12:00:00-05:00').toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long'});
+    $('sub').textContent = cap(day) + ' · ' + hhmm(mins(D.time)) + ' · ' + D.venue;
+    // Desfase: si se fijó hora real, todo lo que va desde el inicio se corre esa diferencia
+    var off = D.start ? mins(D.start) - mins(D.time) : 0, base = mins(D.time);
+    var plan = D.plan.map(function(x){ var m = mins(x.t); return Object.assign({}, x, {m: m, real: m >= base ? m + off : m}); });
+    var isToday = today(), n = nowB(), cur = -1;
+    if (isToday) plan.forEach(function(x, i){ if (x.real <= n) cur = i; });
+    // Ahora
+    var h = '';
+    if (!isToday) {
+      h = '<p class="k">El ' + esc(day) + '</p><p class="t">' + esc(plan[0] ? plan[0].title : '') + '</p><p class="who">Primer momento: ' + (plan[0] ? hhmm(plan[0].m) : '') + '</p>';
+    } else if (cur < 0) {
+      h = '<p class="k">Todavía no empieza</p><p class="t">' + esc(plan[0].title) + '</p><p class="who">A las ' + hhmm(plan[0].real) + ' · faltan ' + (plan[0].real - n) + ' min</p>';
+    } else {
+      var c = plan[cur], nx = plan[cur + 1];
+      h = '<p class="k">Ahora</p><p class="t">' + esc(c.title) + '</p><p class="who">' + esc(c.who) + ' · desde las ' + hhmm(c.real) + '</p>' + (c.note ? '<p class="note">' + esc(c.note) + '</p>' : '') +
+        (nx ? '<div class="next">Sigue: <b>' + esc(nx.title) + '</b> a las ' + hhmm(nx.real) + ' (en ' + Math.max(0, nx.real - n) + ' min) · ' + esc(nx.who) + '</div>' : '<div class="next">Es el último momento de la noche.</div>');
+    }
+    if (isToday && off) h += '<span class="late">' + (off > 0 ? 'Vamos ' + off + ' min corridos' : 'Vamos ' + (-off) + ' min adelantados') + '</span>';
+    $('now').innerHTML = h;
+    // ¿Quién eres?
+    var names = D.roles.map(function(r){ return r.name; });
+    if (me && me !== 'Todos' && names.indexOf(me) < 0) me = null;
+    $('chips').innerHTML = ['Todos'].concat(names).map(function(nm){ return '<button class="chip" type="button" data-r="' + esc(nm) + '" aria-pressed="' + (nm === (me || 'Todos')) + '">' + esc(nm) + '</button>'; }).join('');
+    var role = D.roles.filter(function(r){ return r.name === me; })[0];
+    $('role').hidden = !role;
+    if (role) $('role').innerHTML = '<h2>' + esc(role.name) + '</h2><p>' + esc(role.people) + '</p>' + (role.tasks.length ? '<ul>' + role.tasks.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '');
+    // Orden de la noche
+    $('tl').innerHTML = plan.map(function(x, i){
+      var mine = me && me !== 'Todos' && (x.who === me || x.who === 'Todos');
+      var cls = [mine ? 'mine' : '', isToday && i < cur ? 'past' : '', i === cur ? 'cur' : ''].join(' ');
+      return '<li class="' + cls + '"><div class="h">' + hhmm(x.real) + (x.real !== x.m ? '<s>' + hhmm(x.m) + '</s>' : '') + '</div><div class="ti">' + esc(x.title) + '</div><div class="w">' + esc(x.who) + '</div>' + (x.note ? '<div class="n">' + esc(x.note) + '</div>' : '') + '</li>';
+    }).join('');
+  }
+  $('chips').addEventListener('click', function(e){
+    var b = e.target.closest('[data-r]'); if (!b) return;
+    me = b.dataset.r === 'Todos' ? null : b.dataset.r;
+    try { me ? localStorage.setItem('vision.equipo.rol', me) : localStorage.removeItem('vision.equipo.rol'); } catch(err){}
+    render();
+  });
+  load(); setInterval(function(){ if (!document.hidden) load(); }, 30000);
+  setInterval(function(){ if (D && !document.hidden) render(); }, 15000);
+})();
+</script>
+</body>
+</html>

@@ -50,6 +50,9 @@ test('crea la edición con los datos confirmados y sin cifras privadas', async (
   assert.equal(r.edition.date, '2026-12-19');
   assert.equal(r.edition.prices.adult, 75000);
   assert.equal(r.edition.prices.child, 35000);
+  assert.equal(Date.parse(r.edition.closeAt), Date.parse('2026-12-15T23:59:59-05:00'));
+  assert.match(r.edition.refundText, /fuerza mayor/);
+  for (const k of ['waitlist', 'equipo']) assert.ok(!(k in r.edition), k);
   for (const k of ['capacity', 'groups', 'paymentUrl', 'holdMinutes']) assert.ok(!(k in r.edition), k);
   assert.deepEqual(r.mesas, ['Juan y Lili', 'Daniela y Esteban']);
 });
@@ -165,6 +168,18 @@ test('aforo: 40 familias de 4 al mismo tiempo con aforo 60 → nunca se pasa', a
   assert.ok(o2.edition.counts.ocupados <= 60);
 });
 
+test('lista de espera: solo con aforo lleno, sin repetir número, y el panel la ve', async () => {
+  const w = (extra = {}) => call('/waitlist', { method: 'POST', body: { name: 'marta ruiz', phone: '3115556677', adults: 2, children: 1, consent: true, startedAt: old, ...extra } });
+  const a = await w();
+  assert.equal(a.ok, true, a.message);
+  assert.equal((await w()).already, true);
+  const o = await call('/admin/overview', { headers: K });
+  const entry = o.edition.waitlist[0];
+  assert.equal(entry.name, 'Marta Ruiz');
+  const n = await call('/admin/waitlist', { method: 'POST', headers: K, body: { id: entry.id, notified: true } });
+  assert.ok(n.entry.notifiedAt);
+});
+
 test('inscripción en la puerta: queda aprobada, con boletas y llegada', async () => {
   const r = await call('/admin/add', { method: 'POST', headers: K, body: { phone: '3109998877', atDoor: true, payMethod: 'efectivo', adults: [{ firstName: 'Luis', lastName: 'Mora' }], children: [] } });
   assert.equal(r.ok, true, r.message);
@@ -181,3 +196,25 @@ test('el nombre de la temporada no aparece en la API ni en las páginas', async 
   for (const f of files) assert.ok(!plainText(readFileSync(f, 'utf8')).includes(secret), f);
 });
 function plainText(s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
+test('página del equipo: plan público sin cifras y hora real del día', async () => {
+  const r = await call('/equipo');
+  assert.equal(r.ok, true);
+  assert.ok(r.plan.length >= 5);
+  assert.ok(!/recaudo|capacity|paymentUrl|groups/.test(JSON.stringify(r)));
+  assert.equal((await call('/admin/equipo', { method: 'POST', headers: K, body: { start: '25:00' } })).error, 'start');
+  await call('/admin/equipo', { method: 'POST', headers: K, body: { start: '18:20', plan: [{ t: '18:00', title: 'Bienvenida', who: 'Coordinación' }, { t: 'xx', title: 'mal' }] } });
+  const q = await call('/equipo');
+  assert.equal(q.start, '18:20');
+  assert.equal(q.plan.length, 1);
+});
+
+test('una edición guardada con el cierre viejo (5 de diciembre) pasa al 15 de diciembre', async () => {
+  const k = 'v:edition/2027';
+  const raw = JSON.parse(data.get(k).s);
+  raw.closeAt = '2026-12-06T04:59:59.000Z'; delete raw.rev; delete raw.refundText;
+  data.set(k, { s: JSON.stringify(raw) });
+  const r = await call('/event');
+  assert.equal(Date.parse(r.edition.closeAt), Date.parse('2026-12-15T23:59:59-05:00'));
+  assert.match(r.edition.refundText, /devoluciones/);
+});
