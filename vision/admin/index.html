@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Panel · Visión 2027</title>
-<meta name="theme-color" content="#ffffff">
-<link rel="icon" type="image/png" href="/assets/vision/logo-lhscol-azul.png">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" type="image/png" href="/assets/vision/logo-lhscol-dorado.png">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -118,6 +118,20 @@ label.f input:focus,label.f select:focus{border-color:var(--azul)}
 .tbl th,.tbl td{padding:8px 10px;border-top:1px solid var(--g2);text-align:right}
 .tbl th:first-child,.tbl td:first-child{text-align:left}
 .tbl th{color:var(--tx);font-weight:600;font-size:12px}
+/* Negro y dorado (diseño aprobado de VISIÓN) */
+:root{--azul:#C8B273;--soft:#E0D3A9;--tx:#A9A69C;--g0:#141414;--g1:#0A0A0A;--g2:#262626;--g3:#3a3a3a;--ok:#8fd3a8;--okbg:rgba(111,207,151,.13);--warn:#E0C778;--warnbg:rgba(200,178,115,.14);--bad:#ff9d93;--badbg:rgba(240,80,70,.13);color-scheme:dark}
+body{color:#EDE9DE}
+header{background:rgba(10,10,10,.94)}
+.tab[aria-selected=true],.b.pri,.login button,.toast{color:#0A0A0A}
+.b.okb{color:#06210f;background:#6FCF97;border-color:#6FCF97}
+.chip[aria-pressed=true]{color:#0A0A0A}
+.toggle[aria-pressed=true]{color:#06210f;background:#6FCF97;border-color:#6FCF97}
+label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl input{color:#fff;background:#0A0A0A}
+.pay .ctrl input{border-color:var(--g3)}
+.pay .pv{background:#1d1d1d}
+.viewer{background:rgba(0,0,0,.92)}
+.lcard{background:#1b1b1b}
+.chart svg text.v{fill:#EDE9DE}
 @media(max-width:640px){
   .item{flex-direction:column;align-items:stretch}
   .acts{justify-content:flex-start}
@@ -130,7 +144,7 @@ label.f input:focus,label.f select:focus{border-color:var(--azul)}
 <body>
 
 <div class="login" id="login">
-  <img src="/assets/vision/wordmark.png" alt="Visión 2027" width="1000" height="232">
+  <img src="/assets/vision/wordmark-dorado.png" alt="Visión 2027" width="1000" height="232">
   <p>Panel del equipo. Escribe la contraseña del panel.</p>
   <form id="loginForm">
     <input type="password" id="pw" autocomplete="current-password" placeholder="Contraseña" required>
@@ -143,7 +157,7 @@ label.f input:focus,label.f select:focus{border-color:var(--azul)}
 <header>
   <div class="wrap">
     <div class="hbar">
-      <div><img class="wm" src="/assets/vision/wordmark.png" alt="Visión 2027" width="112" height="26"><small id="hEv">—</small></div>
+      <div><img class="wm" src="/assets/vision/wordmark-dorado.png" alt="Visión 2027" width="112" height="26"><small id="hEv">—</small></div>
       <div style="display:flex;gap:6px">
         <a class="b" href="/vision/" target="_blank" rel="noopener">Ver formulario</a>
         <button class="b" id="logout" type="button">Salir</button>
@@ -642,12 +656,12 @@ label.f input:focus,label.f select:focus{border-color:var(--azul)}
       (c.llegaron ? '<div class="stat"><b>' + c.llegaron + '</b><span>Llegaron</span></div>' : '');
     var byDay = {};
     E.groups.forEach(function(g){ if (g.eff !== 'aprobado' && g.eff !== 'revision') return; var d = new Date(g.createdAt).toLocaleDateString('en-CA',{timeZone:'America/Bogota'}); byDay[d] = (byDay[d] || 0) + g.attendees.length; });
-    $('infDay').innerHTML = bars(Object.keys(byDay).sort().map(function(d){ return [new Date(d + 'T12:00:00-05:00').toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'}), byDay[d]]; }), '#0e1958');
+    $('infDay').innerHTML = bars(Object.keys(byDay).sort().map(function(d){ return [new Date(d + 'T12:00:00-05:00').toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'}), byDay[d]]; }), '#C8B273');
     var byMesa = {}, names = {};
     E.groups.forEach(function(g){ if (g.eff !== 'aprobado') return; var k = g.mesa || 'Sin Mesa indicada'; if (k === data.noMesa) k = 'Aún no asiste a una Mesa';
       byMesa[k] = (byMesa[k] || 0) + g.attendees.length; (names[k] = names[k] || []).push.apply(names[k], g.attendees.map(function(a){ return a.firstName + ' ' + a.lastName + (a.type === 'child' ? ' (niño)' : ''); })); });
     var keys = Object.keys(byMesa).sort(function(a,b){ return byMesa[b] - byMesa[a]; });
-    $('infMesa').innerHTML = bars(keys.map(function(k){ return [k, byMesa[k]]; }), '#3a4170');
+    $('infMesa').innerHTML = bars(keys.map(function(k){ return [k, byMesa[k]]; }), '#8a7838');
     $('infLeaders').innerHTML = keys.length ? keys.map(function(k){
       var list = names[k].sort(function(a,b){ return a.localeCompare(b,'es'); });
       var txt = '*Visión 2027 · ' + k + '*\n' + list.map(function(n){ return '- ' + n; }).join('\n');
