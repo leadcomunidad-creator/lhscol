@@ -538,6 +538,9 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
 #hero[data-panel="vision"] .vision-hero{visibility:visible;opacity:1}
 .vision-hero{--ev:#C8B273;--ev-txt:#0A0A0A}
 .vision-hero .vision-wm{display:block;width:min(440px,78vw);height:auto;margin:0 auto 1.4rem}
+.vision-hero h2{font-size:clamp(2.2rem,5vw,4.2rem);line-height:1.05}
+.vision-hero h2 .vl{display:block;white-space:nowrap}
+@media(max-width:600px){.vision-hero h2{font-size:clamp(1.5rem,7.4vw,2.3rem)}}
 .vision-hero .ev-new{background:transparent;color:var(--ev);border:1px solid rgba(200,178,115,.6)}
 /* ── LA SALA EN EL HERO ── */
 .sala-hero{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;max-width:900px;padding:0 2rem;text-align:center;visibility:hidden;opacity:0;transition:opacity 1s ease}
@@ -667,7 +670,7 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
   <div class="ev-hero vision-hero" data-expira="2026-12-20T00:00:00-05:00">
     <img class="vision-wm" src="/assets/vision/wordmark-dorado.png" alt="Visión 2027" width="1000" height="232">
     <div class="ev-eyebrow">Experiencia de fin de año · LHSCOL</div>
-    <h2>Celebramos lo <em>vivido</em></h2>
+    <h2><span class="vl">Celebramos lo <em>vivido</em>.</span> <span class="vl">Descubrimos lo que <em>viene</em>.</span></h2>
     <div class="ev-new">Sábado 19 de diciembre en <b>Fundación Batuta</b></div>
     <p class="ev-meta">6:00 PM · Music · Mensaje · Tema 2027<br>Inscripciones hasta el 15 de diciembre</p>
     <div class="hero-actions">
