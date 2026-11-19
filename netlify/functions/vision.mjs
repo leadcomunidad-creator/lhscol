@@ -43,7 +43,9 @@ const DEFAULT_EDITION = {
   address: '',
   mapsUrl: '',
   tagline: 'Celebramos lo vivido. Descubrimos lo que viene.',
-  includes: 'Incluye alimentación y un concierto de nuestro grupo musical.',
+  includes: 'Incluye comida y dos bebidas por persona.',
+  highlights: 'Music · Mensaje · Tema 2027',
+  theme: 'claro', // 'claro' (blanco y azul) o 'negro' (negro y dorado)
   prices: { adult: 75000, child: 35000 },
   childAgeMin: 2,
   childAgeMax: 11,
@@ -144,8 +146,18 @@ function publicState(e, now = Date.now()) {
   return counts(e, now).ocupados < e.capacity ? 'open' : 'full';
 }
 
+const OLD_INCLUDES = 'Incluye alimentación y un concierto de nuestro grupo musical.';
+function withDefaults(e) {
+  if (!e) return e;
+  if (e.includes === OLD_INCLUDES) e.includes = DEFAULT_EDITION.includes;
+  if (e.highlights === undefined) e.highlights = DEFAULT_EDITION.highlights;
+  if (!e.theme) e.theme = DEFAULT_EDITION.theme;
+  return e;
+}
+
 function publicEdition(e) {
   if (!e) return null;
+  withDefaults(e);
   const out = {};
   for (const [k, v] of Object.entries(e)) if (!PRIVATE_FIELDS.includes(k) && k !== 'createdAt' && k !== 'updatedAt') out[k] = v;
   out.startsAt = startDate(e).toISOString();
@@ -382,6 +394,7 @@ function checkAdmin(req) {
 function adminEdition(e) {
   const now = Date.now();
   const groups = e.groups.map((g) => ({ ...g, eff: effStatus(g, now) }));
+  withDefaults(e);
   return { ...e, groups, state: publicState(e, now), counts: counts(e, now), startsAt: startDate(e).toISOString() };
 }
 
@@ -416,6 +429,8 @@ async function adminSaveEdition(req) {
     mapsUrl: /^https:\/\//.test(String(b.mapsUrl || '')) ? String(b.mapsUrl).slice(0, 500) : '',
     tagline: clean(b.tagline, 120),
     includes: clean(b.includes, 200),
+    highlights: clean(b.highlights, 120),
+    theme: b.theme === 'negro' ? 'negro' : 'claro',
     prices: { adult: int(b.priceAdult, 75000, 0, 2000000), child: int(b.priceChild, 35000, 0, 2000000) },
     closeAt: b.closeAt ? new Date(`${clean(b.closeAt, 16)}:59${TZ_OFFSET}`).toISOString() : null,
     maxGroup: int(b.maxGroup, 10, 1, 20),

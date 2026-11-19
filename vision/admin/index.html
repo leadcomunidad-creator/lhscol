@@ -247,7 +247,9 @@ label.f input:focus,label.f select:focus{border-color:var(--azul)}
           <label class="f">Dirección (opcional)<input id="eAddr" maxlength="160"></label>
           <label class="f" style="grid-column:1/-1">Enlace de Google Maps (opcional)<input id="eMaps" type="url" maxlength="500"></label>
           <label class="f" style="grid-column:1/-1">Lema<input id="eTag" maxlength="120"></label>
+          <label class="f" style="grid-column:1/-1">La noche (línea destacada)<input id="eHigh" maxlength="120" placeholder="Music · Mensaje · Tema 2027"></label>
           <label class="f" style="grid-column:1/-1">Qué incluye<input id="eIncl" maxlength="200"></label>
+          <label class="f">Diseño del formulario<select id="eTheme"><option value="claro">Blanco y azul</option><option value="negro">Negro y dorado</option></select></label>
           <label class="f">Adulto (COP)<input type="number" id="eAdult" min="0" step="1000" required></label>
           <label class="f">Niño (COP)<input type="number" id="eChild" min="0" step="1000" required></label>
           <label class="f">Cierre de inscripciones<input type="datetime-local" id="eClose"></label>
@@ -659,7 +661,7 @@ label.f input:focus,label.f select:focus{border-color:var(--azul)}
   function renderEv(){
     if (document.activeElement && $('evForm').contains(document.activeElement)) return;
     var close = E.closeAt ? new Date(new Date(E.closeAt).getTime() - 5*3600000).toISOString().slice(0,16) : '';
-    var map = {eDate:E.date, eTime:E.time, eEnd:E.endTime, eVenue:E.venue, eCity:E.city, eAddr:E.address, eMaps:E.mapsUrl, eTag:E.tagline, eIncl:E.includes, eAdult:E.prices.adult, eChild:E.prices.child,
+    var map = {eDate:E.date, eTime:E.time, eEnd:E.endTime, eVenue:E.venue, eCity:E.city, eAddr:E.address, eMaps:E.mapsUrl, eTag:E.tagline, eIncl:E.includes, eHigh:E.highlights, eTheme:E.theme, eAdult:E.prices.adult, eChild:E.prices.child,
       eClose:close, eMax:E.maxGroup, eCap:E.capacity, eHold:E.holdMinutes, eCorr:E.correctionHours, eStatus:E.status, ePay:E.paymentUrl};
     Object.keys(map).forEach(function(k){ $(k).value = map[k] == null ? '' : map[k]; });
     if (E.hasQr) { $('qrPrev').src = API + '/qr?v=' + Date.now(); $('qrPrev').classList.remove('hidden'); }
@@ -667,7 +669,7 @@ label.f input:focus,label.f select:focus{border-color:var(--azul)}
   $('evForm').addEventListener('submit', function(e){
     e.preventDefault(); var m = $('evMsg');
     var b = {date:$('eDate').value, time:$('eTime').value, endTime:$('eEnd').value, venue:$('eVenue').value, city:$('eCity').value, address:$('eAddr').value, mapsUrl:$('eMaps').value,
-      tagline:$('eTag').value, includes:$('eIncl').value, priceAdult:$('eAdult').value, priceChild:$('eChild').value, closeAt:$('eClose').value, maxGroup:$('eMax').value,
+      tagline:$('eTag').value, includes:$('eIncl').value, highlights:$('eHigh').value, theme:$('eTheme').value, priceAdult:$('eAdult').value, priceChild:$('eChild').value, closeAt:$('eClose').value, maxGroup:$('eMax').value,
       capacity:$('eCap').value, holdMinutes:$('eHold').value, correctionHours:$('eCorr').value, status:$('eStatus').value, paymentUrl:$('ePay').value};
     api('/admin/edition', {method:'POST', body:b}).then(function(r){
       m.className = 'msg show ' + (r.ok ? 'good' : 'bad'); m.textContent = r.ok ? 'Guardado. El formulario ya muestra estos datos.' : r.message;

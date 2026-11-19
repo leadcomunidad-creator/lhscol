@@ -47,6 +47,7 @@ body{background:var(--azul);color:var(--azul);font:400 16px/1.5 'DM Sans',system
 .msg{color:#fff;text-align:center;max-width:340px}
 .msg h1{font:italic 400 28px 'Playfair Display',serif;margin-bottom:8px}
 .msg a{color:#fff}
+body.negro{background:#0A0A0A}body.negro .t{background:#141414;color:#EDE9DE;box-shadow:0 0 0 1px rgba(200,178,115,.35)}body.negro .name,body.negro .code,body.negro .lema{color:#C8B273}body.negro .k,body.negro .small{color:#bdbab0}body.negro .top{border-bottom-color:rgba(200,178,115,.4)}body.negro .top::before,body.negro .top::after{background:#0A0A0A}body.negro .st{background:#1d1d1d;color:#E0D3A9}body.negro .acts a,body.negro .acts button{background:transparent;color:#C8B273;border-color:rgba(200,178,115,.4)}body.negro .qr svg{background:#fff;border-radius:8px}
 @media print{body{background:#fff}.t{box-shadow:none;border:1px solid var(--g2)}.acts{display:none}.top::before,.top::after{display:none}}
 </style>
 </head>
@@ -78,6 +79,7 @@ body{background:var(--azul);color:var(--azul);font:400 16px/1.5 'DM Sans',system
   fetch('/api/vision/t/' + encodeURIComponent(t)).then(function(r){ return r.json(); }).then(function(b){
     if (!b.ok) { $('msg').innerHTML = '<h1>Boleta no encontrada</h1><p>' + (b.message || '') + '</p><p style="margin-top:12px"><a href="https://wa.me/573043229348">Escríbenos por WhatsApp</a></p>'; return; }
     var E = b.edition, o = {timeZone:'America/Bogota'};
+    if ((new URLSearchParams(location.search).get('tema') || E.theme) === 'negro') { document.body.classList.add('negro'); document.querySelector('.wm').src = '/assets/vision/wordmark-dorado.png'; }
     $('kind').textContent = b.type === 'child' ? 'Niño · ' + b.age + ' años' : 'Adulto';
     $('name').textContent = b.name;
     $('date').textContent = cap(new Date(E.startsAt).toLocaleDateString('es-CO', Object.assign({weekday:'long', day:'numeric', month:'long'}, o)));

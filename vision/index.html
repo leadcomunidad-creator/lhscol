@@ -131,9 +131,26 @@ footer a{color:var(--soft)}
 .tk small{display:block;font-size:15px;color:var(--texto);margin-bottom:.9rem}
 .tk b{font:italic 400 1.9rem/1 'Playfair Display',serif;color:var(--azul)}
 .hero .note{margin:1rem 0 1.4rem}
+.hero .cta{position:static;background:none;padding-top:.4rem}
+.night{margin:1.3rem 0 0;border-top:1px solid rgba(14,25,88,.28);border-bottom:1px solid rgba(14,25,88,.28);padding:1rem 0;text-align:center}
+.night .k{font:500 12px/1 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--texto)}
+.night .hl{font:italic 400 1.6rem/1.25 'Playfair Display',serif;color:var(--azul);margin:.5rem 0 .4rem}
+.night .inc{font-size:15.5px;color:var(--azul)}
+/* Variante negro y dorado */
+body.negro{--fondo:#0A0A0A;--g1:#151515;--g2:#2a2a2a;--g3:#8d8a80;--azul:#C8B273;--soft:#E0D3A9;--texto:#bdbab0;--err:#f0a99b;--ok:#8fd3a8;color-scheme:dark;color:#EDE9DE}
+body.negro{background:radial-gradient(120% 55% at 88% 0,rgba(200,178,115,.12),transparent 60%),#0A0A0A;background-attachment:fixed}
+body.negro .btn{color:#0A0A0A}body.negro .btn.ghost{color:var(--azul);border-color:rgba(200,178,115,.4)}body.negro .btn.wa{color:#fff}
+body.negro .lead,body.negro .venue,body.negro .seal,body.negro ul.ppl li,body.negro .night .inc,body.negro .date div span:not(:first-child),body.negro label,body.negro .chk{color:#EDE9DE}
+body.negro .tix,body.negro .box{background:linear-gradient(160deg,#161616,#0d0d0d);border-color:rgba(200,178,115,.3)}
+body.negro .seal,body.negro .night{border-color:rgba(200,178,115,.3)}body.negro .tk+.tk{border-left-color:rgba(200,178,115,.4)}
+body.negro input:not([type=checkbox]):not([type=file]),body.negro select{color:#fff}
+body.negro .chk input::after{border-color:#0A0A0A}
+body.negro ul.ppl li a{color:#0A0A0A}
+body.negro .badge{background:#1d1d1d}
+
 .cta{position:sticky;bottom:0;padding:1.2rem 0 calc(.6rem + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--fondo) 30%)}
-.hero>.lema,.hero>.date,.hero>.venue,.hero>.lead,.hero>.seal,.hero>.tix,.hero>.note,.hero>.cta{opacity:0;animation:fade .9s ease forwards}
-.hero>.lema{animation-delay:.9s}.hero>.date{animation-delay:1.05s}.hero>.venue{animation-delay:1.15s}.hero>.lead{animation-delay:1.25s}.hero>.seal{animation-delay:1.4s}.hero>.tix{animation-delay:1.5s}.hero>.note{animation-delay:1.6s}.hero>.cta{animation-delay:1.7s}
+.hero>.lema,.hero>.date,.hero>.venue,.hero>.lead,.hero>.night,.hero>.seal,.hero>.tix,.hero>.note,.hero>.cta{opacity:0;animation:fade .9s ease forwards}
+.hero>.lema{animation-delay:.9s}.hero>.date{animation-delay:1.05s}.hero>.venue{animation-delay:1.15s}.hero>.lead{animation-delay:1.25s}.hero>.night{animation-delay:1.32s}.hero>.seal{animation-delay:1.4s}.hero>.tix{animation-delay:1.5s}.hero>.note{animation-delay:1.6s}.hero>.cta{animation-delay:1.7s}
 @keyframes fade{to{opacity:1}}
 @keyframes bump{40%{transform:scale(1.18)}}
 .bump{display:inline-block;animation:bump .3s ease}
@@ -152,9 +169,10 @@ footer a{color:var(--soft)}
   <p class="lema" id="lema"><span>Celebramos lo vivido.</span><span>Descubrimos lo que viene.</span></p>
   <div class="date"><b id="hDay">19</b><div><span id="hWd">Sábado</span><span id="hMo">diciembre de 2026</span><span id="hTime">6:00 a 9:00 p. m.</span></div></div>
   <p class="venue"><span id="hVenue">Auditorio Fundación Batuta, Manizales, Caldas</span><a id="hMap" class="hidden" href="#" target="_blank" rel="noopener">Ver mapa</a></p>
-  <p class="lead">Estás invitado a una noche para vivir juntos el cierre de la temporada. <span id="hIncl">Incluye alimentación y un concierto de nuestro grupo musical.</span></p>
+  <p class="lead">Estás invitado a vivir juntos el cierre de la temporada.</p>
+  <div class="night"><p class="k">Una noche especial</p><p class="hl" id="hHigh">Music · Mensaje · Tema 2027</p><p class="inc" id="hIncl">Incluye comida y dos bebidas por persona.</p></div>
   <div class="seal"><span class="sb" aria-hidden="true"></span><p>El nombre de la nueva temporada se revela esa noche.</p></div>
-  <div class="tix"><div class="tk"><span>Adulto</span><small>12 años en adelante</small><b id="pA">$75.000</b></div><div class="tk"><span>Niño</span><small id="kidAges">De 2 a 11 años</small><b id="pN">$35.000</b></div></div>
+  <div class="tix"><div class="tk"><span>Adulto</span><small id="adAges">Desde 12 años</small><b id="pA">$75.000</b></div><div class="tk"><span>Niño</span><small id="kidAges">De 2 a 11 años</small><b id="pN">$35.000</b></div></div>
   <p class="note" id="hNote">Los menores de 2 años no pagan, pero no se registran ni incluyen alimentación. Cada persona tiene su propia boleta.</p>
   <div class="cta"><button class="btn" id="goReg" data-go="2" disabled>Cargando…</button><p class="msg" id="m1" role="alert"></p></div>
 </section>
@@ -229,6 +247,14 @@ footer a{color:var(--soft)}
   var $ = function(s){ return document.querySelector(s); }, $$ = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
   var E = null, state = null, mesas = [], noMesa = 'Aún no asiste a una Mesa';
   var st = {a:1, n:0, file:null}, built = '', grp = null, gToken = null, startedAt = Date.now(), timerT = null;
+  var qs = new URLSearchParams(location.search);
+  function setTheme(t){
+    var dark = t === 'negro';
+    document.body.classList.toggle('negro', dark);
+    document.querySelector('.wm').src = '/assets/vision/wordmark' + (dark ? '-dorado' : '') + '.png';
+    document.querySelector('header img').src = '/assets/vision/logo-lhscol-' + (dark ? 'dorado' : 'azul') + '.png';
+    document.querySelector('meta[name=theme-color]').content = dark ? '#0A0A0A' : '#ffffff';
+  }
   var store = {
     get: function(k){ try { return JSON.parse(localStorage.getItem('vision.'+k)); } catch(e){ return null; } },
     set: function(k,v){ try { localStorage.setItem('vision.'+k, JSON.stringify(v)); } catch(e){} }
@@ -267,6 +293,9 @@ footer a{color:var(--soft)}
     $('#hVenue').textContent = E.venue + (E.city ? ', ' + E.city : '');
     if (E.mapsUrl) { $('#hMap').href = E.mapsUrl; $('#hMap').classList.remove('hidden'); }
     if (E.includes) $('#hIncl').textContent = E.includes;
+    if (E.highlights) $('#hHigh').textContent = E.highlights;
+    $('#adAges').textContent = 'Desde ' + (E.childAgeMax + 1) + ' años';
+    setTheme(qs.get('tema') || E.theme);
     if (E.tagline) { var parts = E.tagline.replace(/\.\s+/g, '.\n').split('\n'); $('#lema').innerHTML = parts.map(function(p){ return '<span>' + esc(p) + '</span>'; }).join(''); }
     $('#pA').textContent = money(E.prices.adult); $('#pN').textContent = money(E.prices.child);
     var ages = 'De ' + E.childAgeMin + ' a ' + E.childAgeMax + ' años';
@@ -456,7 +485,6 @@ footer a{color:var(--soft)}
   }
 
   // ── Arranque
-  var qs = new URLSearchParams(location.search);
   api('/event').then(function(r){
     if (!r.ok || !r.edition) { $('#goReg').textContent = 'Intenta de nuevo más tarde'; return; }
     E = r.edition; state = r.state; mesas = r.mesas || []; if (r.noMesa) noMesa = r.noMesa;
