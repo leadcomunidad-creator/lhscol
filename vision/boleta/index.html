@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tu boleta · Visión 2027</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A0A0A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LHSCOL">
+<meta property="og:locale" content="es_CO">
+<meta property="og:title" content="Tu boleta · Visión 2027">
+<meta property="og:description" content="Preséntala en la entrada, en el celular o impresa.">
+<meta property="og:image" content="https://lhscolweb.netlify.app/assets/vision/og-vision.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="/assets/vision/logo-lhscol-azul.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Jost:wght@400;500&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--azul:#0e1958;--soft:#3a4170;--texto:#4b5278;--g1:#F3F4F9;--g2:#D9DCEB}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--azul);color:var(--azul);font:400 16px/1.5 'DM Sans',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.t{width:100%;max-width:380px;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);opacity:0;transform:translateY(14px);transition:all .6s cubic-bezier(.2,.8,.2,1)}
+.t.in{opacity:1;transform:none}
+.top{padding:22px 22px 16px;border-bottom:2px dashed var(--g2);position:relative}
+.top::before,.top::after{content:'';position:absolute;bottom:-13px;width:24px;height:24px;border-radius:50%;background:var(--azul)}
+.top::before{left:-12px}.top::after{right:-12px}
+.wm{display:block;width:100%;height:auto}
+.lema{font:500 11.5px/1.6 'Jost',sans-serif;letter-spacing:.17em;text-transform:uppercase;text-align:center;margin-top:10px}
+.mid{padding:22px}
+.k{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--texto)}
+.name{font:italic 400 30px/1.1 'Playfair Display',serif;margin:2px 0 14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-bottom:16px}
+.grid b{display:block;font-weight:600;font-size:15px}
+.qr{display:flex;justify-content:center;padding:10px 0 4px}
+.qr svg{width:210px;height:210px}
+.code{text-align:center;font:600 20px/1 'Jost',sans-serif;letter-spacing:.16em;margin:8px 0 2px}
+.small{text-align:center;font-size:13.5px;color:var(--texto)}
+.st{display:block;text-align:center;font-size:12.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:9px;background:var(--g1)}
+.st.bad{background:#fde8e6;color:#b3261e}
+.st.ok{background:#e4f3ea;color:#1d7a46}
+.acts{display:flex;gap:8px;padding:0 22px 22px}
+.acts a,.acts button{flex:1;text-align:center;font:600 14px 'DM Sans',sans-serif;border:1px solid rgba(14,25,88,.35);background:#fff;color:var(--azul);border-radius:6px;padding:11px;text-decoration:none;cursor:pointer}
+.msg{color:#fff;text-align:center;max-width:340px}
+.msg h1{font:italic 400 28px 'Playfair Display',serif;margin-bottom:8px}
+.msg a{color:#fff}
+body.negro{background:#0A0A0A}body.negro .t{background:#141414;color:#EDE9DE;box-shadow:0 0 0 1px rgba(200,178,115,.35)}body.negro .name,body.negro .code,body.negro .lema{color:#C8B273}body.negro .k,body.negro .small{color:#bdbab0}body.negro .top{border-bottom-color:rgba(200,178,115,.4)}body.negro .top::before,body.negro .top::after{background:#0A0A0A}body.negro .st{background:#1d1d1d;color:#E0D3A9}body.negro .acts a,body.negro .acts button{background:transparent;color:#C8B273;border-color:rgba(200,178,115,.4)}body.negro .qr svg{background:#fff;border-radius:8px}
+@media print{body{background:#fff}.t{box-shadow:none;border:1px solid var(--g2)}.acts{display:none}.top::before,.top::after{display:none}}
+</style>
+</head>
+<body>
+<div class="msg" id="msg">Cargando tu boleta…</div>
+<article class="t" id="t" hidden>
+  <div class="top"><img class="wm" src="/assets/vision/wordmark.png" alt="Visión 2027" width="1000" height="232"><p class="lema" id="lema">Celebramos lo vivido. Descubrimos lo que viene.</p></div>
+  <div class="mid">
+    <p class="k" id="kind">Adulto</p>
+    <p class="name" id="name"></p>
+    <div class="grid">
+      <div><span class="k">Fecha</span><b id="date"></b></div>
+      <div><span class="k">Hora</span><b id="time"></b></div>
+      <div style="grid-column:1/-1"><span class="k">Lugar</span><b id="venue"></b></div>
+    </div>
+    <div class="qr" id="qr" aria-label="Código QR de la boleta"></div>
+    <p class="code" id="code"></p>
+    <p class="small">Una boleta por persona. Preséntala en la entrada.</p>
+  </div>
+  <span class="st" id="st"></span>
+  <div class="acts" style="padding-top:16px"><button type="button" id="share">Compartir</button><button type="button" onclick="window.print()">Imprimir</button></div>
+</article>
+<script src="/assets/vision/qrcode.js"></script>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var t = new URLSearchParams(location.search).get('t') || '';
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  fetch('/api/vision/t/' + encodeURIComponent(t)).then(function(r){ return r.json(); }).then(function(b){
+    if (!b.ok) { $('msg').innerHTML = '<h1>Boleta no encontrada</h1><p>' + (b.message || '') + '</p><p style="margin-top:12px"><a href="https://wa.me/573043229348">Escríbenos por WhatsApp</a></p>'; return; }
+    var E = b.edition, o = {timeZone:'America/Bogota'};
+    if ((new URLSearchParams(location.search).get('tema') || E.theme) === 'negro') { document.body.classList.add('negro'); document.querySelector('.wm').src = '/assets/vision/wordmark-dorado.png'; }
+    $('kind').textContent = b.type === 'child' ? 'Niño · ' + b.age + ' años' : 'Adulto';
+    $('name').textContent = b.name;
+    $('date').textContent = cap(new Date(E.startsAt).toLocaleDateString('es-CO', Object.assign({weekday:'long', day:'numeric', month:'long'}, o)));
+    $('time').textContent = new Date(E.startsAt).toLocaleTimeString('es-CO', Object.assign({hour:'numeric', minute:'2-digit'}, o));
+    $('venue').textContent = E.venue + (E.city ? ', ' + E.city : '');
+    if (E.tagline) $('lema').textContent = E.tagline;
+    $('code').textContent = b.code;
+    var q = qrcode(0, 'M'); q.addData(location.origin + '/vision/boleta/?t=' + t); q.make();
+    $('qr').innerHTML = q.createSvgTag({cellSize: 6, margin: 2, scalable: true});
+    var st = $('st');
+    st.className = 'st ' + (!b.valid ? 'bad' : b.attended ? 'ok' : '');
+    st.textContent = !b.valid ? 'Boleta no válida · escríbenos' : b.attended ? '✓ Ya ingresó' : 'Boleta válida';
+    $('msg').hidden = true; $('t').hidden = false; requestAnimationFrame(function(){ $('t').classList.add('in'); });
+    $('share').addEventListener('click', function(){
+      var data = {title: 'Boleta Visión 2027 · ' + b.name, text: 'Boleta de ' + b.name + ' para Visión 2027', url: location.href};
+      if (navigator.share) navigator.share(data).catch(function(){});
+      else location.href = 'https://wa.me/?text=' + encodeURIComponent(data.text + ': ' + location.href);
+    });
+  }).catch(function(){ $('msg').textContent = 'Sin conexión. Intenta de nuevo.'; });
+})();
+</script>
+</body>
+</html>
