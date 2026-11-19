@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel · Visión 2027</title>
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" type="image/png" href="/assets/vision/logo-lhscol-azul.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--azul:#0e1958;--soft:#3a4170;--tx:#4b5278;--g0:#fff;--g1:#F3F4F9;--g2:#E3E6F0;--g3:#C9CDE0;--ok:#1d7a46;--okbg:#e4f3ea;--warn:#8a6100;--warnbg:#fdf3dc;--bad:#b3261e;--badbg:#fde8e6;--wa:#1DA851}
+body{background:var(--g1);color:var(--azul);font-family:'DM Sans',system-ui,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--g2)}
+.hbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0}
+.hbar img.wm{height:26px;width:auto;display:block}
+.hbar small{display:block;font-size:12.5px;color:var(--tx);margin-top:4px}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:10px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;background:var(--g0);border:1px solid var(--g3);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;color:var(--soft)}
+.tab[aria-selected=true]{background:var(--azul);color:#fff;border-color:var(--azul)}
+.tab .n{display:inline-block;min-width:20px;margin-left:6px;padding:0 6px;border-radius:99px;background:var(--bad);color:#fff;font-size:12px}
+.panel{padding:16px 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:14px}
+.stat{background:var(--g0);border:1px solid var(--g2);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--tx)}
+.bar{height:6px;background:var(--g2);border-radius:99px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--azul)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.search{flex:1 1 220px;background:var(--g0);border:1px solid var(--g3);border-radius:10px;padding:11px 12px;font-size:16px;outline:none}
+.search:focus{border-color:var(--azul)}
+.chip{background:var(--g0);border:1px solid var(--g3);border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;color:var(--soft)}
+.chip[aria-pressed=true]{border-color:var(--azul);background:var(--azul);color:#fff}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{background:var(--g0);border:1px solid var(--g2);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center}
+.item .who{flex:1;min-width:0}
+.item .who b{font-weight:600}
+.meta{font-size:13px;color:var(--tx)}
+.tags{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:6px;vertical-align:middle}
+.tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--g1);color:var(--soft);white-space:nowrap}
+.tag.ok{background:var(--okbg);color:var(--ok)}
+.tag.warn{background:var(--warnbg);color:var(--warn)}
+.tag.bad{background:var(--badbg);color:var(--bad)}
+.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.b{color:var(--azul);border:1px solid var(--g3);background:var(--g0);border-radius:9px;padding:8px 11px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.b:hover{border-color:var(--soft)}
+.b.wa{background:var(--wa);border-color:var(--wa);color:#fff}
+.b.wa.done{background:var(--g0);color:var(--ok);border-color:#9fd3b4}
+.b.red{color:var(--bad)}
+.b.pri{background:var(--azul);border-color:var(--azul);color:#fff}
+.b.okb{background:var(--ok);border-color:var(--ok);color:#fff}
+.b[disabled]{opacity:.5;cursor:wait}
+.toggle{min-width:96px;justify-content:center;padding:12px;font-size:14px}
+.toggle[aria-pressed=true]{background:var(--ok);border-color:var(--ok);color:#fff}
+.card{background:var(--g0);border:1px solid var(--g2);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:4px}
+.card p.note{font-size:13.5px;color:var(--tx);margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--tx)}
+label.f input,label.f select,label.f textarea{background:var(--g0);border:1px solid var(--g3);border-radius:9px;padding:11px;font-size:16px;color:var(--azul);outline:none}
+label.f input:focus,label.f select:focus{border-color:var(--azul)}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.empty{color:var(--tx);text-align:center;padding:30px 0}
+.login{max-width:380px;margin:12vh auto 0;padding:0 16px}
+.login img{width:100%;max-width:300px;height:auto;margin-bottom:12px}
+.login p{color:var(--tx);margin-bottom:20px}
+.login input{width:100%;background:var(--g0);border:1px solid var(--g3);border-radius:10px;padding:14px;font-size:17px;margin-bottom:10px;outline:none}
+.login button{width:100%;background:var(--azul);color:#fff;border:0;border-radius:10px;padding:15px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.msg{display:none;margin-top:10px;padding:10px 12px;border-radius:9px;font-size:14px}
+.msg.show{display:block}
+.msg.bad{background:var(--badbg);color:var(--bad)}
+.msg.good{background:var(--okbg);color:var(--ok)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--azul);color:#fff;padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:40;opacity:0;transition:opacity .25s;pointer-events:none;max-width:92vw;text-align:center}
+.toast.show{opacity:1}
+.hidden{display:none !important}
+/* Pagos */
+.pay{background:var(--g0);border:1px solid var(--g2);border-radius:14px;padding:14px;display:grid;grid-template-columns:200px 1fr;gap:16px}
+.pay .pv{background:var(--g1);border-radius:10px;min-height:200px;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:zoom-in}
+.pay .pv img{width:100%;height:auto;display:block}
+.pay h3{font-size:17px}
+.pay .amt{font:italic 400 28px 'Playfair Display',serif;margin:2px 0 6px}
+.pay ul{list-style:none;font-size:14px;margin:6px 0 10px;color:var(--soft)}
+.pay .warn{background:var(--warnbg);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:13.5px;margin-bottom:8px}
+.pay .ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pay .ctrl input{width:140px;border:1px solid var(--g3);border-radius:9px;padding:9px 10px;font-size:15px}
+.viewer{position:fixed;inset:0;background:rgba(14,25,88,.92);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px}
+.viewer img,.viewer iframe{max-width:100%;max-height:100%;background:#fff;border-radius:8px}
+.viewer iframe{width:min(900px,100%);height:100%}
+.viewer button{position:absolute;top:12px;right:12px}
+/* Puerta */
+.big{font:italic 400 44px/1 'Playfair Display',serif}
+.scan{display:grid;grid-template-columns:1fr;gap:10px}
+.cam{position:relative;background:#000;border-radius:12px;overflow:hidden;aspect-ratio:4/3;max-height:340px}
+.cam video{width:100%;height:100%;object-fit:cover}
+.cam .frame{position:absolute;inset:18%;border:3px solid rgba(255,255,255,.8);border-radius:12px}
+.flash{border-radius:12px;padding:16px;font-size:18px;font-weight:700;text-align:center}
+.flash.ok{background:var(--okbg);color:var(--ok)}
+.flash.warn{background:var(--warnbg);color:var(--warn)}
+.flash.bad{background:var(--badbg);color:var(--bad)}
+.flash small{display:block;font-weight:500;font-size:14px;margin-top:4px}
+/* Informe */
+.chart{background:var(--g0);border:1px solid var(--g2);border-radius:14px;padding:16px;margin-bottom:14px}
+.chart h2{font-family:'Playfair Display',serif;font-size:19px;margin-bottom:2px}
+.chart .sub{font-size:13px;color:var(--tx);margin-bottom:12px}
+.chart svg{display:block;max-width:100%;height:auto}
+.chart svg text{fill:var(--tx);font-size:12px;font-family:'DM Sans',sans-serif}
+.chart svg text.v{fill:var(--azul);font-weight:600}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.lcard{background:var(--g1);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.lcard h3{font-size:15px}
+.lcard h3 small{font-weight:500;color:var(--tx);font-size:13px;margin-left:6px}
+.lcard ul{list-style:none;font-size:14px;line-height:1.6}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+.tbl th,.tbl td{padding:8px 10px;border-top:1px solid var(--g2);text-align:right}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl th{color:var(--tx);font-weight:600;font-size:12px}
+@media(max-width:640px){
+  .item{flex-direction:column;align-items:stretch}
+  .acts{justify-content:flex-start}
+  .door .item{flex-direction:row;align-items:center}
+  .pay{grid-template-columns:1fr}
+  .pay .pv{min-height:160px;max-height:260px}
+}
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+  <img src="/assets/vision/wordmark.png" alt="Visión 2027" width="1000" height="232">
+  <p>Panel del equipo. Escribe la contraseña del panel.</p>
+  <form id="loginForm">
+    <input type="password" id="pw" autocomplete="current-password" placeholder="Contraseña" required>
+    <button type="submit">Entrar</button>
+  </form>
+  <div class="msg bad" id="loginMsg"></div>
+</div>
+
+<div id="appRoot" class="hidden">
+<header>
+  <div class="wrap">
+    <div class="hbar">
+      <div><img class="wm" src="/assets/vision/wordmark.png" alt="Visión 2027" width="112" height="26"><small id="hEv">—</small></div>
+      <div style="display:flex;gap:6px">
+        <a class="b" href="/vision/" target="_blank" rel="noopener">Ver formulario</a>
+        <button class="b" id="logout" type="button">Salir</button>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="pay" aria-selected="true">Pagos<span class="n hidden" id="nPay"></span></button>
+      <button class="tab" role="tab" data-tab="ins" aria-selected="false">Inscritos</button>
+      <button class="tab" role="tab" data-tab="door" aria-selected="false">Puerta</button>
+      <button class="tab" role="tab" data-tab="inf" aria-selected="false">Informe</button>
+      <button class="tab" role="tab" data-tab="ev" aria-selected="false">Evento</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- PAGOS -->
+  <section class="panel" id="t-pay">
+    <div class="stats" id="payStats"></div>
+    <div class="list" id="payList"></div>
+    <div class="card hidden" id="sendCard" style="margin-top:16px">
+      <h2>Boletas por enviar</h2>
+      <p class="note">Pagos aprobados a los que todavía no se les ha enviado el mensaje con las boletas. “Enviar boletas” abre WhatsApp con el mensaje listo; después toca “Ya lo envié”.</p>
+      <div class="list" id="sendList"></div>
+    </div>
+  </section>
+
+  <!-- INSCRITOS -->
+  <section class="panel hidden" id="t-ins">
+    <div class="stats" id="stats"></div>
+    <div class="toolbar"><input class="search" id="q" type="search" placeholder="Buscar por nombre, número o código de boleta"></div>
+    <div class="toolbar" id="filters">
+      <button class="chip" data-f="aprobado" aria-pressed="true">Aprobados</button>
+      <button class="chip" data-f="revision" aria-pressed="false">En revisión</button>
+      <button class="chip" data-f="reservado" aria-pressed="false">Sin comprobante</button>
+      <button class="chip" data-f="corregir" aria-pressed="false">Por corregir</button>
+      <button class="chip" data-f="vencido" aria-pressed="false">Vencidos</button>
+      <button class="chip" data-f="cancelado" aria-pressed="false">Anulados</button>
+      <button class="chip" data-f="sinenviar" aria-pressed="false">Boletas sin enviar</button>
+      <button class="chip" data-f="todos" aria-pressed="false">Todos</button>
+      <span style="flex:1"></span>
+      <button class="b" id="csv" type="button">Descargar Excel (CSV)</button>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <!-- PUERTA -->
+  <section class="panel hidden door" id="t-door">
+    <div class="stats" id="doorStats"></div>
+    <div class="card">
+      <h2>Escanear boleta</h2>
+      <p class="note">Apunta la cámara al código QR de la boleta, o escribe el código (VIS27-…). Cada boleta entra una sola vez.</p>
+      <div class="scan">
+        <div class="cam hidden" id="cam"><video id="video" playsinline muted></video><div class="frame"></div></div>
+        <div class="row-btns" style="margin:0"><button class="b pri" type="button" id="camBtn">Abrir cámara</button>
+          <form id="codeForm" style="display:flex;gap:8px;flex:1 1 260px"><input class="search" id="code" placeholder="VIS27-XXXX-XXXX" autocapitalize="characters" autocomplete="off"><button class="b" type="submit">Registrar</button></form></div>
+        <div class="flash hidden" id="flash"></div>
+      </div>
+    </div>
+    <div class="toolbar"><input class="search" id="dq" type="search" placeholder="Buscar por nombre (sin boleta a mano)"></div>
+    <div class="list" id="doorList"></div>
+    <div class="card" style="margin-top:16px">
+      <h2>Llegó alguien sin inscripción</h2>
+      <p class="note">Si hay cupo y paga en la puerta, inscríbelo aquí: queda aprobado, con boleta y llegada marcada.</p>
+      <form id="addForm" class="grid">
+        <label class="f">Adultos (uno por línea: Nombre Apellido)<textarea id="aAdults" rows="3" required></textarea></label>
+        <label class="f">Niños (uno por línea: Nombre Apellido, edad)<textarea id="aKids" rows="3" placeholder="Sara Gómez, 7"></textarea></label>
+        <label class="f">WhatsApp del responsable<input id="aPhone" type="tel" inputmode="tel" required maxlength="20"></label>
+        <label class="f">Cómo pagó<select id="aMethod"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="wompi">Wompi</option><option value="cortesia">Cortesía</option></select></label>
+        <label class="f">Valor recibido (vacío = precio completo)<input id="aAmount" type="number" min="0" step="1000"></label>
+        <div class="row-btns" style="align-self:end;margin:0"><button class="b pri" type="submit">Inscribir · llegó y pagó</button></div>
+      </form>
+      <div class="msg" id="addMsg"></div>
+    </div>
+  </section>
+
+  <!-- INFORME -->
+  <section class="panel hidden" id="t-inf">
+    <div class="stats" id="infStats"></div>
+    <div class="chart"><h2>Personas inscritas por día</h2><p class="sub">Personas de grupos con pago aprobado o en revisión, según el día en que se inscribieron.</p><div id="infDay"></div></div>
+    <div class="chart"><h2>Por Mesa</h2><p class="sub">Personas con pago aprobado según la Mesa del responsable.</p><div id="infMesa"></div></div>
+    <div class="card">
+      <h2>Para los líderes</h2>
+      <p class="note">Quiénes de cada Mesa van a Visión (pago aprobado). Solo nombres, sin teléfonos ni valores.</p>
+      <div class="lgrid" id="infLeaders"></div>
+    </div>
+  </section>
+
+  <!-- EVENTO -->
+  <section class="panel hidden" id="t-ev">
+    <div class="card">
+      <h2>Datos de la edición</h2>
+      <p class="note">El formulario público (<b>lhscolweb.netlify.app/vision</b>) toma estos datos al instante. El aforo, el enlace de pago y las reglas internas no se muestran en ninguna página pública.</p>
+      <form id="evForm">
+        <div class="grid">
+          <label class="f">Fecha<input type="date" id="eDate" required></label>
+          <label class="f">Hora de inicio<input type="time" id="eTime" required></label>
+          <label class="f">Hora de cierre<input type="time" id="eEnd"></label>
+          <label class="f">Lugar<input id="eVenue" maxlength="80" required></label>
+          <label class="f">Ciudad<input id="eCity" maxlength="80"></label>
+          <label class="f">Dirección (opcional)<input id="eAddr" maxlength="160"></label>
+          <label class="f" style="grid-column:1/-1">Enlace de Google Maps (opcional)<input id="eMaps" type="url" maxlength="500"></label>
+          <label class="f" style="grid-column:1/-1">Lema<input id="eTag" maxlength="120"></label>
+          <label class="f" style="grid-column:1/-1">Qué incluye<input id="eIncl" maxlength="200"></label>
+          <label class="f">Adulto (COP)<input type="number" id="eAdult" min="0" step="1000" required></label>
+          <label class="f">Niño (COP)<input type="number" id="eChild" min="0" step="1000" required></label>
+          <label class="f">Cierre de inscripciones<input type="datetime-local" id="eClose"></label>
+          <label class="f">Máximo por inscripción<input type="number" id="eMax" min="1" max="20"></label>
+          <label class="f">Aforo (privado)<input type="number" id="eCap" min="1" max="5000" required></label>
+          <label class="f">Minutos para pagar (reserva)<input type="number" id="eHold" min="10" max="1440"></label>
+          <label class="f">Horas para corregir un rechazo<input type="number" id="eCorr" min="1" max="240"></label>
+          <label class="f">Estado<select id="eStatus"><option value="open">Abiertas</option><option value="closed">Cerradas manualmente</option></select></label>
+          <label class="f" style="grid-column:1/-1">Enlace de pago (Wompi)<input id="ePay" type="url" maxlength="500"></label>
+        </div>
+        <div class="row-btns"><button class="b pri" type="submit">Guardar cambios</button></div>
+        <div class="msg" id="evMsg"></div>
+      </form>
+    </div>
+    <div class="card">
+      <h2>QR de pago</h2>
+      <p class="note">Imagen del QR bancario que se muestra en el paso de pago. Se guarda aparte, no en el código de la web.</p>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><img id="qrPrev" alt="" style="width:140px;height:auto;border:1px solid var(--g2);border-radius:8px" class="hidden">
+        <label class="b"><input type="file" id="qrFile" accept="image/png,image/jpeg" style="display:none">Subir imagen del QR</label></div>
+      <div class="msg" id="qrMsg"></div>
+    </div>
+  </section>
+</main>
+</div>
+<div class="viewer hidden" id="viewer"><button class="b" type="button" id="vClose">Cerrar</button><div id="vBody" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var API = '/api/vision', SITE = 'https://lhscolweb.netlify.app';
+  var $ = function(id){ return document.getElementById(id); };
+  var key = null; try { key = sessionStorage.getItem('vision.admin'); } catch(e){}
+  var data = null, E = null, filter = 'aprobado', proofUrls = {};
+  var who = ''; try { who = localStorage.getItem('vision.who') || ''; } catch(e){}
+
+  function api(path, opts){
+    opts = opts || {};
+    var h = {'x-admin-key': key || ''}, body;
+    if (opts.raw) { body = opts.raw; h['content-type'] = opts.raw.type || 'application/octet-stream'; }
+    else if (opts.body) { body = JSON.stringify(opts.body); h['content-type'] = 'application/json'; }
+    return fetch(API + path, {method: opts.method || 'GET', headers: h, body: body})
+      .then(function(r){ return r.json().then(function(j){ j.code = r.status; return j; }); })
+      .catch(function(){ return {ok:false, message:'Sin conexión.'}; });
+  }
+  function toast(t){ var el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(function(){ el.classList.remove('show'); }, 2600); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function money(n){ return '$' + Number(n||0).toLocaleString('es-CO'); }
+  function phoneFmt(p){ return p.indexOf('57') === 0 && p.length === 12 ? p.slice(2,5)+' '+p.slice(5,8)+' '+p.slice(8) : '+' + p; }
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  function first(n){ return (n||'').split(' ')[0]; }
+  function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+  function fDate(){ return cap(new Date(E.startsAt).toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',timeZone:'America/Bogota'})); }
+  function fTime(){ return new Date(E.startsAt).toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit',timeZone:'America/Bogota'}); }
+  function ago(iso){ var m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 60 ? 'hace ' + m + ' min' : m < 1440 ? 'hace ' + Math.round(m/60) + ' h' : 'hace ' + Math.round(m/1440) + ' días'; }
+  function isToday(){ return E && new Date().toLocaleDateString('en-CA',{timeZone:'America/Bogota'}) === E.date; }
+  function people(g){ var a = 0, n = 0; g.attendees.forEach(function(x){ x.type === 'child' ? n++ : a++; }); return a + (a === 1 ? ' adulto' : ' adultos') + (n ? ' y ' + n + (n === 1 ? ' niño' : ' niños') : ''); }
+  var LABEL = {reservado:'Sin comprobante', revision:'En revisión', aprobado:'Aprobado', rechazado:'Rechazado', incompleto:'Incompleto', vencido:'Vencido', cancelado:'Anulado'};
+  var TAGC = {reservado:'', revision:'warn', aprobado:'ok', rechazado:'bad', incompleto:'bad', vencido:'bad', cancelado:'bad'};
+
+  // ── Mensajes de WhatsApp (sin emojis: WhatsApp para Windows los daña por enlace wa.me)
+  function wa(phone, text){ return 'https://wa.me/' + phone + '?text=' + encodeURIComponent(text); }
+  function gLink(g){ return SITE + '/vision/?g=' + g.token; }
+  function msgTickets(g){
+    var t = 'Hola ' + first(g.responsible) + ', tu pago para *Visión 2027* fue aprobado. Ya tienes tus boletas:\n\n';
+    g.attendees.forEach(function(a){ t += '*' + a.firstName + ' ' + a.lastName + ':* ' + SITE + '/vision/boleta/?t=' + a.ticket.token + '\n'; });
+    return t + '\nTodas juntas: ' + gLink(g) + '\n\nNos vemos el ' + fDate().toLowerCase() + ' a las ' + fTime() + ' en ' + E.venue + '. Cada persona presenta su boleta en la entrada.';
+  }
+  function msgPay(g){
+    return 'Hola ' + first(g.responsible) + ', vimos tu inscripción para *Visión 2027* (' + people(g) + ', ' + money(g.expected) + '), pero aún no recibimos el comprobante de pago.\n\nPuedes pagar y adjuntarlo aquí:\n' + gLink(g) + '\n\nSi tienes alguna duda, respóndenos por aquí.';
+  }
+  function msgFix(g){
+    return 'Hola ' + first(g.responsible) + ', revisamos tu pago para *Visión 2027* y necesitamos que lo corrijas: ' + (g.review && g.review.reason || '') + '.\n\nAdjunta el comprobante correcto aquí:\n' + gLink(g);
+  }
+  function msgRemind(g){
+    return 'Hola ' + first(g.responsible) + ', te esperamos en *Visión 2027* el ' + fDate().toLowerCase() + ' a las ' + fTime() + ' en ' + E.venue + (E.city ? ', ' + E.city : '') + '.\n\nAquí están las boletas de tu grupo (' + people(g) + '):\n' + gLink(g) + '\n\nCada persona presenta la suya en la entrada.';
+  }
+  function msgHoy(g){
+    return '¡Hola ' + first(g.responsible) + '! *Hoy es Visión 2027.* Te esperamos a las ' + fTime() + ' en ' + E.venue + '.\n\nTen a mano las boletas de tu grupo:\n' + gLink(g) + '\n\n¡Nos vemos esta noche!';
+  }
+
+  // ── Login
+  function enter(){
+    api('/admin/overview').then(function(r){
+      if (!r.ok) {
+        try { sessionStorage.removeItem('vision.admin'); } catch(e){}
+        $('login').classList.remove('hidden'); $('appRoot').classList.add('hidden');
+        if (key) { $('loginMsg').textContent = r.message || 'No se pudo entrar.'; $('loginMsg').classList.add('show'); }
+        return;
+      }
+      try { sessionStorage.setItem('vision.admin', key); } catch(e){}
+      $('login').classList.add('hidden'); $('appRoot').classList.remove('hidden');
+      set(r);
+      if (!who) { who = (prompt('¿Quién revisa en este celular? (tu nombre, para el historial)') || '').trim().slice(0,40); try { localStorage.setItem('vision.who', who); } catch(e){} }
+    });
+  }
+  $('loginForm').addEventListener('submit', function(e){ e.preventDefault(); key = $('pw').value; enter(); });
+  $('logout').addEventListener('click', function(){ try { sessionStorage.removeItem('vision.admin'); } catch(e){} location.reload(); });
+  if (key) enter();
+
+  function set(r){ data = r; E = r.edition; render(); }
+  function reload(){ return api('/admin/overview').then(function(r){ if (!r.ok) return toast(r.message); set(r); }); }
+  setInterval(function(){ if (!document.hidden && data && !$('t-ev').contains(document.activeElement) && !document.querySelector('.pay input:focus') && !$('t-door').contains(document.activeElement)) reload(); }, 30000);
+
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(x){ x.setAttribute('aria-selected', x === t); });
+      ['pay','ins','door','inf','ev'].forEach(function(n){ $('t-' + n).classList.toggle('hidden', n !== t.dataset.tab); });
+      if (t.dataset.tab !== 'door') stopCam();
+      render();
+    });
+  });
+  document.querySelectorAll('#filters .chip').forEach(function(c){
+    c.addEventListener('click', function(){ filter = c.dataset.f; document.querySelectorAll('#filters .chip').forEach(function(x){ x.setAttribute('aria-pressed', x === c); }); renderList(); });
+  });
+  $('q').addEventListener('input', renderList);
+  $('dq').addEventListener('input', renderDoor);
+
+  function render(){
+    if (!E) return;
+    var c = E.counts;
+    $('hEv').textContent = fDate() + ' · ' + fTime() + ' · ' + E.venue + (E.state === 'closed' ? ' · inscripciones cerradas' : E.state === 'full' ? ' · aforo completo' : '');
+    var rev = E.groups.filter(function(g){ return g.eff === 'revision'; }).length;
+    $('nPay').textContent = rev; $('nPay').classList.toggle('hidden', !rev);
+    var pct = Math.min(100, Math.round(c.ocupados / E.capacity * 100));
+    $('stats').innerHTML = $('payStats').innerHTML =
+      '<div class="stat"><b>' + c.confirmados + '</b><span>Personas con pago aprobado</span></div>' +
+      '<div class="stat"><b>' + (c.revision||0) + '</b><span>Personas en revisión · ' + money(c.esperado) + '</span></div>' +
+      '<div class="stat"><b>' + (c.reservado||0) + '</b><span>Reservadas sin comprobante</span></div>' +
+      '<div class="stat"><b>' + money(c.recaudo) + '</b><span>Recaudo aprobado</span></div>' +
+      '<div class="stat"><b>' + c.ocupados + ' / ' + E.capacity + '</b><span>Aforo ocupado (privado)</span><div class="bar"><i style="width:' + pct + '%"></i></div></div>';
+    $('doorStats').innerHTML =
+      '<div class="stat"><b>' + c.llegaron + '</b><span>Llegaron</span></div>' +
+      '<div class="stat"><b>' + c.confirmados + '</b><span>Boletas válidas</span></div>' +
+      '<div class="stat"><b>' + c.adultos + ' · ' + c.ninos + '</b><span>Adultos · niños</span></div>';
+    var tab = document.querySelector('.tab[aria-selected=true]').dataset.tab;
+    if (tab === 'pay') renderPay();
+    if (tab === 'ins') renderList();
+    if (tab === 'door') renderDoor();
+    if (tab === 'inf') renderInf();
+    if (tab === 'ev') renderEv();
+  }
+
+  // ── Pagos
+  function loadProof(g, n, el){
+    var k = g.id + '/' + n;
+    var put = function(u, type){ el.innerHTML = type === 'application/pdf' ? '<span class="b">Ver PDF</span>' : '<img alt="Comprobante" src="' + u + '">'; el.dataset.url = u; el.dataset.type = type; };
+    if (proofUrls[k]) return put(proofUrls[k].u, proofUrls[k].t);
+    el.textContent = 'Cargando comprobante…';
+    fetch(API + '/admin/proof/' + k, {headers: {'x-admin-key': key}}).then(function(r){ if (!r.ok) throw 0; return r.blob(); }).then(function(b){
+      proofUrls[k] = {u: URL.createObjectURL(b), t: b.type}; put(proofUrls[k].u, b.type);
+    }).catch(function(){ el.textContent = 'No se pudo cargar el comprobante.'; });
+  }
+  function renderPay(){
+    var q = E.groups.filter(function(g){ return g.eff === 'revision'; }).sort(function(a,b){ return (a.proofs[a.proofs.length-1].at).localeCompare(b.proofs[b.proofs.length-1].at); });
+    if (!q.length) $('payList').innerHTML = '<div class="empty">No hay comprobantes por revisar.</div>';
+    else $('payList').innerHTML = q.map(function(g){
+      var p = g.proofs[g.proofs.length - 1], w = '';
+      if (p.duplicate) w += '<div class="warn">Este comprobante es idéntico a uno de otra inscripción. Revísalo antes de aprobar.</div>';
+      if (g.possibleDuplicate) w += '<div class="warn">Posible inscripción repetida: mismo WhatsApp y mismo nombre que otra activa.</div>';
+      if (g.needsAttention) w += '<div class="warn">Llegó después de vencer la reserva y no había cupo. Al aprobar te pedirá confirmar si se pasa del aforo.</div>';
+      if (g.proofs.length > 1) w += '<div class="warn">Comprobante número ' + g.proofs.length + ' (hubo uno anterior rechazado o incompleto).</div>';
+      return '<div class="pay" data-g="' + g.id + '"><div class="pv" data-proof="' + g.id + '/' + p.n + '"></div><div>' +
+        '<h3>' + esc(g.responsible) + ' <span class="meta">· ' + phoneFmt(g.phone) + '</span></h3>' +
+        '<div class="amt">' + money(g.expected) + '</div><div class="meta">' + people(g) + ' · enviado ' + ago(p.at) + '</div>' +
+        '<ul>' + g.attendees.map(function(a){ return '<li>' + esc(a.firstName + ' ' + a.lastName) + (a.type === 'child' ? ' · niño, ' + a.age : '') + '</li>'; }).join('') + '</ul>' + w +
+        '<div class="ctrl"><label class="meta">Recibido <input type="number" step="1000" min="0" value="' + g.expected + '" data-amt></label>' +
+        '<button class="b okb" type="button" data-act="approve">Aprobar</button>' +
+        '<button class="b" type="button" data-act="incomplete">Incompleto</button>' +
+        '<button class="b red" type="button" data-act="reject">Rechazar</button></div></div></div>';
+    }).join('');
+    document.querySelectorAll('#payList .pv').forEach(function(el){
+      var g = E.groups.find(function(x){ return x.id === el.dataset.proof.split('/')[0]; });
+      loadProof(g, +el.dataset.proof.split('/')[1], el);
+    });
+    var send = E.groups.filter(function(g){ return g.eff === 'aprobado' && !g.sentAt; });
+    $('sendCard').classList.toggle('hidden', !send.length);
+    $('sendList').innerHTML = send.map(sendItem).join('');
+  }
+  function sendItem(g){
+    return '<div class="item" data-g="' + g.id + '"><div class="who"><b>' + esc(g.responsible) + '</b><div class="meta">' + people(g) + ' · ' + phoneFmt(g.phone) + '</div></div><div class="acts">' +
+      '<a class="b wa" href="' + esc(wa(g.phone, msgTickets(g))) + '" target="_blank" rel="noopener" data-act="opensend">Enviar boletas</a>' +
+      '<button class="b" type="button" data-act="sent">Ya lo envié</button></div></div>';
+  }
+  function findG(el){ var w = el.closest('[data-g]'); return w && E.groups.find(function(g){ return g.id === w.dataset.g; }); }
+  function groupAction(g, action, extra){
+    var body = Object.assign({groupId: g.id, action: action, by: who}, extra || {});
+    return api('/admin/group', {method:'POST', body: body}).then(function(r){
+      if (!r.ok && r.error === 'amount' && confirm(r.message + '\n\n¿Aprobar de todas formas con ese monto?')) return groupAction(g, action, Object.assign({}, extra, {allowLess:true}));
+      if (!r.ok && r.error === 'capacity' && confirm(r.message)) return groupAction(g, action, Object.assign({}, extra, {overCapacity:true}));
+      if (!r.ok) { toast(r.message); return null; }
+      return reload().then(function(){ return r.group; });
+    });
+  }
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-act]'); if (!t) return;
+    var g = findG(t), act = t.dataset.act;
+    if (act === 'approve') {
+      var amt = t.closest('.pay').querySelector('[data-amt]').value;
+      t.disabled = true;
+      groupAction(g, 'approve', {amount: amt}).then(function(ng){
+        t.disabled = false; if (!ng) return;
+        toast('Aprobado. Boletas emitidas para ' + ng.attendees.length + ' personas.');
+        if (confirm('Pago aprobado. ¿Abrir WhatsApp para enviarle las boletas a ' + first(ng.responsible) + '?')) { window.open(wa(ng.phone, msgTickets(ng)), '_blank'); }
+      });
+    }
+    if (act === 'reject' || act === 'incomplete') {
+      var reason = prompt(act === 'reject' ? 'Motivo del rechazo (lo verá la persona):' : '¿Qué falta? Por ejemplo: "Recibimos $150.000 de $220.000; faltan $70.000"');
+      if (!reason) return;
+      groupAction(g, act, {reason: reason}).then(function(ng){
+        if (!ng) return;
+        if (confirm('Listo. ¿Abrir WhatsApp para avisarle a ' + first(ng.responsible) + ' qué debe corregir?')) window.open(wa(ng.phone, msgFix(ng)), '_blank');
+      });
+    }
+    if (act === 'opensend' || act === 'remind' || act === 'hoy') {
+      var flag = act === 'opensend' ? null : act === 'remind' ? 'remindedAt' : 'hoyAt';
+      if (flag) setTimeout(function(){ var b = {groupId: g.id}; b[flag] = true; api('/admin/flags', {method:'POST', body: b}).then(reload); }, 300);
+    }
+    if (act === 'sent') api('/admin/flags', {method:'POST', body:{groupId: g.id, sentAt: true}}).then(function(r){ if (!r.ok) return toast(r.message); toast('Marcado como enviado.'); reload(); });
+    if (act === 'cancel') { var why = prompt('¿Por qué se anula esta inscripción? (privado)'); if (why === null) return; groupAction(g, 'cancel', {reason: why}).then(function(x){ if (x) toast('Inscripción anulada. Sus boletas ya no son válidas.'); }); }
+    if (act === 'reopen') groupAction(g, 'reopen').then(function(x){ if (x) toast('Inscripción reabierta.'); });
+    if (act === 'detail') { var d = t.closest('.item').querySelector('.detail'); d.classList.toggle('hidden'); }
+    if (act === 'proof') { var pv = document.createElement('div'); loadProofView(g, +t.dataset.n); }
+    if (act === 'arrive') checkin({groupId: g.id, attendeeId: t.dataset.a, value: t.getAttribute('aria-pressed') !== 'true'}, true);
+  });
+  function loadProofView(g, n){
+    var holder = document.createElement('div');
+    loadProof(g, n, holder);
+    var iv = setInterval(function(){ if (holder.dataset.url) { clearInterval(iv); openViewer(holder.dataset.url, holder.dataset.type); } }, 100);
+    setTimeout(function(){ clearInterval(iv); }, 15000);
+  }
+  function openViewer(u, type){
+    $('vBody').innerHTML = type === 'application/pdf' ? '<iframe src="' + u + '" title="Comprobante"></iframe>' : '<img src="' + u + '" alt="Comprobante">';
+    $('viewer').classList.remove('hidden');
+  }
+  $('payList').addEventListener('click', function(e){ var pv = e.target.closest('.pv'); if (pv && pv.dataset.url) openViewer(pv.dataset.url, pv.dataset.type); });
+  $('vClose').addEventListener('click', function(){ $('viewer').classList.add('hidden'); $('vBody').innerHTML = ''; });
+
+  // ── Inscritos
+  function matchG(g, q){
+    q = norm(q).trim(); if (!q) return true;
+    var d = q.replace(/[\s+()-]/g, '');
+    if (/^\d{3,}$/.test(d)) return g.phone.indexOf(d) >= 0;
+    return norm(g.responsible + ' ' + g.attendees.map(function(a){ return a.firstName + ' ' + a.lastName + ' ' + (a.ticket ? a.ticket.code : ''); }).join(' ') + ' ' + (g.mesa||'')).indexOf(q) >= 0;
+  }
+  function renderList(){
+    var q = $('q').value;
+    var rows = E.groups.filter(function(g){
+      if (!matchG(g, q)) return false;
+      if (filter === 'todos') return true;
+      if (filter === 'corregir') return g.eff === 'rechazado' || g.eff === 'incompleto';
+      if (filter === 'sinenviar') return g.eff === 'aprobado' && !g.sentAt;
+      return g.eff === filter;
+    }).sort(function(a,b){ return b.createdAt.localeCompare(a.createdAt); });
+    if (!rows.length) { $('list').innerHTML = '<div class="empty">No hay inscripciones en esta lista.</div>'; return; }
+    var today = isToday();
+    $('list').innerHTML = rows.map(function(g){
+      var a = '', s = g.eff, tags = '<span class="tag ' + TAGC[s] + '">' + LABEL[s] + '</span>';
+      if (s === 'aprobado' && !g.sentAt) tags += '<span class="tag warn">Boletas sin enviar</span>';
+      if (g.possibleDuplicate) tags += '<span class="tag warn">Posible repetida</span>';
+      if (g.source !== 'formulario') tags += '<span class="tag">' + (g.source === 'puerta' ? 'Inscrito en la puerta' : 'Agregado por el equipo') + '</span>';
+      if (s === 'aprobado') {
+        a += '<a class="b wa' + (g.sentAt ? ' done' : '') + '" data-act="opensend" href="' + esc(wa(g.phone, msgTickets(g))) + '" target="_blank" rel="noopener">' + (g.sentAt ? 'Boletas ✓' : 'Enviar boletas') + '</a>';
+        if (!g.sentAt) a += '<button class="b" type="button" data-act="sent">Ya lo envié</button>';
+        a += today ? '<a class="b wa' + (g.hoyAt ? ' done' : '') + '" data-act="hoy" href="' + esc(wa(g.phone, msgHoy(g))) + '" target="_blank" rel="noopener">' + (g.hoyAt ? 'Es hoy ✓' : 'Es hoy') + '</a>'
+                   : '<a class="b wa' + (g.remindedAt ? ' done' : '') + '" data-act="remind" href="' + esc(wa(g.phone, msgRemind(g))) + '" target="_blank" rel="noopener">' + (g.remindedAt ? 'Recordado ✓' : 'Recordar') + '</a>';
+      } else if (s === 'reservado' || s === 'vencido') {
+        a += '<a class="b wa" href="' + esc(wa(g.phone, msgPay(g))) + '" target="_blank" rel="noopener">Pedir comprobante</a>';
+      } else if (s === 'rechazado' || s === 'incompleto') {
+        a += '<a class="b wa" href="' + esc(wa(g.phone, msgFix(g))) + '" target="_blank" rel="noopener">Avisar qué corregir</a>';
+      }
+      a += '<button class="b" type="button" data-act="detail">Detalle</button>';
+      if (s === 'cancelado' || s === 'vencido') a += '<button class="b" type="button" data-act="reopen">Reabrir</button>';
+      else a += '<button class="b red" type="button" data-act="cancel">Anular</button>';
+      var det = '<div class="detail hidden meta" style="margin-top:8px;line-height:1.7">' +
+        g.attendees.map(function(x){ return esc(x.firstName + ' ' + x.lastName) + (x.type === 'child' ? ' (niño, ' + x.age + ')' : '') + (x.ticket ? ' · ' + x.ticket.code : '') + (x.attended ? ' · llegó' : ''); }).join('<br>') +
+        '<br>Valor esperado ' + money(g.expected) + (g.approvedAmount != null ? ' · recibido ' + money(g.approvedAmount) : '') + (g.payMethod ? ' · ' + esc(g.payMethod) : '') +
+        (g.mesa ? '<br>Mesa: ' + esc(g.mesa) : '') +
+        (g.review ? '<br>Última revisión: ' + esc(g.review.by || '') + ' · ' + new Date(g.review.at).toLocaleString('es-CO',{timeZone:'America/Bogota'}) + (g.review.reason ? ' · ' + esc(g.review.reason) : '') : '') +
+        (g.proofs.length ? '<br>Comprobantes: ' + g.proofs.map(function(p){ return '<button class="b" type="button" data-act="proof" data-n="' + p.n + '">Ver ' + p.n + '</button>'; }).join(' ') : '') +
+        '<br>Enlace: <a href="' + esc(gLink(g)) + '" target="_blank" rel="noopener">' + esc(gLink(g)) + '</a></div>';
+      return '<div class="item" data-g="' + g.id + '" style="flex-wrap:wrap"><div class="who"><b>' + esc(g.responsible) + '</b><span class="tags">' + tags + '</span>' +
+        '<div class="meta">' + people(g) + ' · ' + money(g.expected) + ' · ' + phoneFmt(g.phone) + ' · ' + new Date(g.createdAt).toLocaleDateString('es-CO',{day:'numeric',month:'short',timeZone:'America/Bogota'}) + '</div>' + det + '</div>' +
+        '<div class="acts">' + a + '</div></div>';
+    }).join('');
+  }
+  $('csv').addEventListener('click', function(){
+    var safe = function(v){ v = String(v==null?'':v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; };
+    var rows = [['Responsable','WhatsApp','Estado','Persona','Tipo','Edad','Código de boleta','Llegó','Valor esperado','Valor recibido','Mesa','Inscripción']];
+    E.groups.forEach(function(g){ g.attendees.forEach(function(a){
+      rows.push([g.responsible, '+' + g.phone, LABEL[g.eff], a.firstName + ' ' + a.lastName, a.type === 'child' ? 'Niño' : 'Adulto', a.age || '', a.ticket ? a.ticket.code : '', a.attended ? 'Sí' : '', g.expected, g.approvedAmount == null ? '' : g.approvedAmount, g.mesa || '', new Date(g.createdAt).toLocaleString('es-CO',{timeZone:'America/Bogota'})]);
+    }); });
+    var csv = '﻿' + rows.map(function(r){ return r.map(safe).join(','); }).join('\r\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'})); a.download = 'vision-' + E.id + '-inscritos.csv'; a.click();
+  });
+
+  // ── Puerta
+  var flashT = null;
+  function flash(kind, title, sub){
+    var f = $('flash'); f.className = 'flash ' + kind; f.innerHTML = esc(title) + (sub ? '<small>' + esc(sub) + '</small>' : '');
+    clearTimeout(flashT); flashT = setTimeout(function(){ f.classList.add('hidden'); }, 6000);
+    if (navigator.vibrate) navigator.vibrate(kind === 'ok' ? 80 : [60, 60, 60]);
+  }
+  function checkin(body, fromList){
+    return api('/admin/checkin', {method:'POST', body: body}).then(function(r){
+      if (!r.ok) { flash('bad', r.code === 404 ? 'Boleta no encontrada' : 'No puede entrar', r.message); return; }
+      var a = r.attendee, grp = 'Grupo de ' + r.group.responsible + ': ' + r.group.arrived + ' de ' + r.group.size + ' han llegado';
+      if (body.value === false) flash('warn', 'Llegada desmarcada', a.name);
+      else if (r.already) flash('warn', 'Ya había ingresado: ' + a.name, 'Entró a las ' + new Date(a.attendedAt).toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit',timeZone:'America/Bogota'}) + '. ' + grp);
+      else flash('ok', 'Bienvenido: ' + a.name, (a.type === 'child' ? 'Niño, ' + a.age + ' años. ' : 'Adulto. ') + grp);
+      reload();
+    });
+  }
+  $('codeForm').addEventListener('submit', function(e){ e.preventDefault(); var v = $('code').value.trim(); if (!v) return; checkin({code: v}); $('code').value = ''; });
+  function renderDoor(){
+    var q = $('dq').value.trim();
+    if (q.length < 2) { $('doorList').innerHTML = '<div class="empty">Escribe al menos 2 letras para buscar.</div>'; return; }
+    var out = [];
+    E.groups.forEach(function(g){ if (g.eff !== 'aprobado') return; g.attendees.forEach(function(a){
+      if (norm(a.firstName + ' ' + a.lastName + ' ' + g.responsible + ' ' + (a.ticket ? a.ticket.code : '')).indexOf(norm(q)) >= 0) out.push({g:g, a:a});
+    }); });
+    var pend = E.groups.filter(function(g){ return g.eff !== 'aprobado' && g.eff !== 'cancelado' && g.attendees.some(function(a){ return norm(a.firstName + ' ' + a.lastName).indexOf(norm(q)) >= 0; }); });
+    var h = out.slice(0, 40).map(function(x){
+      return '<div class="item" data-g="' + x.g.id + '"><div class="who"><b>' + esc(x.a.firstName + ' ' + x.a.lastName) + '</b><div class="meta">' + (x.a.type === 'child' ? 'Niño, ' + x.a.age + ' · ' : '') + 'Grupo de ' + esc(x.g.responsible) + '</div></div>' +
+        '<div class="acts"><button class="b toggle" type="button" data-act="arrive" data-a="' + x.a.id + '" aria-pressed="' + !!x.a.attended + '">' + (x.a.attended ? 'Llegó ✓' : 'Llegó') + '</button></div></div>';
+    }).join('');
+    h += pend.map(function(g){ return '<div class="item"><div class="who"><b>' + esc(g.responsible) + '</b><span class="tags"><span class="tag ' + TAGC[g.eff] + '">' + LABEL[g.eff] + '</span></span><div class="meta">Su pago no está aprobado. Revísalo en Pagos o inscríbelo abajo si paga aquí.</div></div></div>'; }).join('');
+    $('doorList').innerHTML = h || '<div class="empty">No aparece. Si pagó en la puerta, inscríbelo abajo.</div>';
+  }
+  // Cámara: BarcodeDetector si existe; si no, jsQR (se carga solo cuando se necesita)
+  var stream = null, detector = null, scanning = false, lastCode = '', lastAt = 0, canvas = document.createElement('canvas');
+  function loadJsQR(){ return window.jsQR ? Promise.resolve() : new Promise(function(res, rej){ var s = document.createElement('script'); s.src = '/assets/vision/jsqr.min.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+  function stopCam(){ scanning = false; if (stream) stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; $('cam').classList.add('hidden'); $('camBtn').textContent = 'Abrir cámara'; }
+  $('camBtn').addEventListener('click', function(){
+    if (stream) return stopCam();
+    var ready = ('BarcodeDetector' in window) ? BarcodeDetector.getSupportedFormats().then(function(f){ if (f.indexOf('qr_code') >= 0) detector = new BarcodeDetector({formats:['qr_code']}); else return loadJsQR(); }).catch(loadJsQR) : loadJsQR();
+    ready.then(function(){ return navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false}); }).then(function(s){
+      stream = s; var v = $('video'); v.srcObject = s; v.play(); $('cam').classList.remove('hidden'); $('camBtn').textContent = 'Cerrar cámara'; scanning = true; loop();
+    }).catch(function(){ toast('No se pudo abrir la cámara. Revisa el permiso o escribe el código.'); });
+  });
+  function found(text){
+    if (!text) return;
+    if (text === lastCode && Date.now() - lastAt < 4000) return;
+    lastCode = text; lastAt = Date.now(); checkin({code: text});
+  }
+  function loop(){
+    if (!scanning) return;
+    var v = $('video');
+    if (v.readyState >= 2) {
+      if (detector) detector.detect(v).then(function(c){ if (c[0]) found(c[0].rawValue); }).catch(function(){});
+      else if (window.jsQR) {
+        var w = 480, h = Math.round(v.videoHeight / v.videoWidth * w) || 360;
+        canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d', {willReadFrequently:true}); ctx.drawImage(v, 0, 0, w, h);
+        var c = jsQR(ctx.getImageData(0, 0, w, h).data, w, h, {inversionAttempts:'dontInvert'}); if (c) found(c.data);
+      }
+    }
+    setTimeout(function(){ requestAnimationFrame(loop); }, 180);
+  }
+  function lines(txt){ return txt.split('\n').map(function(l){ return l.trim(); }).filter(Boolean); }
+  $('addForm').addEventListener('submit', function(e){
+    e.preventDefault(); var m = $('addMsg');
+    var adults = lines($('aAdults').value).map(function(l){ var p = l.split(' '); return {firstName: p.shift(), lastName: p.join(' ')}; });
+    var kids = lines($('aKids').value).map(function(l){ var mm = l.match(/^(.*?)[,\s]+(\d{1,2})\s*(años)?$/i) || [l, l, '']; var p = mm[1].trim().split(' '); return {firstName: p.shift(), lastName: p.join(' '), age: +mm[2]}; });
+    api('/admin/add', {method:'POST', body:{adults: adults, children: kids, phone: $('aPhone').value, payMethod: $('aMethod').value, amount: $('aAmount').value, atDoor: true, by: who}}).then(function(r){
+      m.className = 'msg show ' + (r.ok ? 'good' : 'bad');
+      m.textContent = r.ok ? 'Listo: ' + r.group.attendees.length + ' personas inscritas y con llegada marcada. Recibido ' + money(r.group.approvedAmount) + '.' : r.message;
+      if (r.ok) { $('addForm').reset(); reload(); }
+    });
+  });
+
+  // ── Informe
+  function bars(items, color){
+    if (!items.length) return '<div class="empty">Todavía no hay datos.</div>';
+    var max = Math.max.apply(null, items.map(function(i){ return i[1]; })) || 1, rowH = 28, lw = 150, w = 640;
+    var h = items.length * rowH + 4, s = '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img">';
+    items.forEach(function(it, i){
+      var y = i * rowH, bw = Math.max(2, (w - lw - 50) * it[1] / max);
+      s += '<text x="' + (lw - 8) + '" y="' + (y + 18) + '" text-anchor="end">' + esc(it[0]) + '</text><rect x="' + lw + '" y="' + (y + 5) + '" width="' + bw + '" height="18" rx="4" fill="' + color + '"/><text class="v" x="' + (lw + bw + 6) + '" y="' + (y + 18) + '">' + it[1] + '</text>';
+    });
+    return s + '</svg>';
+  }
+  function renderInf(){
+    var c = E.counts;
+    $('infStats').innerHTML =
+      '<div class="stat"><b>' + c.confirmados + '</b><span>Personas confirmadas</span></div>' +
+      '<div class="stat"><b>' + c.adultos + '</b><span>Adultos</span></div>' +
+      '<div class="stat"><b>' + c.ninos + '</b><span>Niños</span></div>' +
+      '<div class="stat"><b>' + c.grupos + '</b><span>Grupos (pagos aprobados)</span></div>' +
+      '<div class="stat"><b>' + money(c.recaudo) + '</b><span>Recaudo aprobado</span></div>' +
+      '<div class="stat"><b>' + money(c.esperado) + '</b><span>En revisión</span></div>' +
+      (c.llegaron ? '<div class="stat"><b>' + c.llegaron + '</b><span>Llegaron</span></div>' : '');
+    var byDay = {};
+    E.groups.forEach(function(g){ if (g.eff !== 'aprobado' && g.eff !== 'revision') return; var d = new Date(g.createdAt).toLocaleDateString('en-CA',{timeZone:'America/Bogota'}); byDay[d] = (byDay[d] || 0) + g.attendees.length; });
+    $('infDay').innerHTML = bars(Object.keys(byDay).sort().map(function(d){ return [new Date(d + 'T12:00:00-05:00').toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'}), byDay[d]]; }), '#0e1958');
+    var byMesa = {}, names = {};
+    E.groups.forEach(function(g){ if (g.eff !== 'aprobado') return; var k = g.mesa || 'Sin Mesa indicada'; if (k === data.noMesa) k = 'Aún no asiste a una Mesa';
+      byMesa[k] = (byMesa[k] || 0) + g.attendees.length; (names[k] = names[k] || []).push.apply(names[k], g.attendees.map(function(a){ return a.firstName + ' ' + a.lastName + (a.type === 'child' ? ' (niño)' : ''); })); });
+    var keys = Object.keys(byMesa).sort(function(a,b){ return byMesa[b] - byMesa[a]; });
+    $('infMesa').innerHTML = bars(keys.map(function(k){ return [k, byMesa[k]]; }), '#3a4170');
+    $('infLeaders').innerHTML = keys.length ? keys.map(function(k){
+      var list = names[k].sort(function(a,b){ return a.localeCompare(b,'es'); });
+      var txt = '*Visión 2027 · ' + k + '*\n' + list.map(function(n){ return '- ' + n; }).join('\n');
+      return '<div class="lcard"><h3>' + esc(k) + '<small>' + list.length + '</small></h3><ul>' + list.map(function(n){ return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>' +
+        '<div class="acts"><a class="b wa" href="https://wa.me/?text=' + encodeURIComponent(txt) + '" target="_blank" rel="noopener">Enviar por WhatsApp</a><button class="b" type="button" data-copy="' + esc(txt) + '">Copiar</button></div></div>';
+    }).join('') : '<div class="empty">Aún no hay pagos aprobados.</div>';
+  }
+  $('infLeaders').addEventListener('click', function(e){ var b = e.target.closest('[data-copy]'); if (!b) return; navigator.clipboard.writeText(b.dataset.copy).then(function(){ toast('Lista copiada.'); }); });
+
+  // ── Evento
+  function renderEv(){
+    if (document.activeElement && $('evForm').contains(document.activeElement)) return;
+    var close = E.closeAt ? new Date(new Date(E.closeAt).getTime() - 5*3600000).toISOString().slice(0,16) : '';
+    var map = {eDate:E.date, eTime:E.time, eEnd:E.endTime, eVenue:E.venue, eCity:E.city, eAddr:E.address, eMaps:E.mapsUrl, eTag:E.tagline, eIncl:E.includes, eAdult:E.prices.adult, eChild:E.prices.child,
+      eClose:close, eMax:E.maxGroup, eCap:E.capacity, eHold:E.holdMinutes, eCorr:E.correctionHours, eStatus:E.status, ePay:E.paymentUrl};
+    Object.keys(map).forEach(function(k){ $(k).value = map[k] == null ? '' : map[k]; });
+    if (E.hasQr) { $('qrPrev').src = API + '/qr?v=' + Date.now(); $('qrPrev').classList.remove('hidden'); }
+  }
+  $('evForm').addEventListener('submit', function(e){
+    e.preventDefault(); var m = $('evMsg');
+    var b = {date:$('eDate').value, time:$('eTime').value, endTime:$('eEnd').value, venue:$('eVenue').value, city:$('eCity').value, address:$('eAddr').value, mapsUrl:$('eMaps').value,
+      tagline:$('eTag').value, includes:$('eIncl').value, priceAdult:$('eAdult').value, priceChild:$('eChild').value, closeAt:$('eClose').value, maxGroup:$('eMax').value,
+      capacity:$('eCap').value, holdMinutes:$('eHold').value, correctionHours:$('eCorr').value, status:$('eStatus').value, paymentUrl:$('ePay').value};
+    api('/admin/edition', {method:'POST', body:b}).then(function(r){
+      m.className = 'msg show ' + (r.ok ? 'good' : 'bad'); m.textContent = r.ok ? 'Guardado. El formulario ya muestra estos datos.' : r.message;
+      if (r.ok) { document.activeElement.blur(); reload(); }
+    });
+  });
+  $('qrFile').addEventListener('change', function(){
+    var f = this.files[0], m = $('qrMsg'); if (!f) return;
+    api('/admin/qr', {method:'POST', raw: f}).then(function(r){
+      m.className = 'msg show ' + (r.ok ? 'good' : 'bad'); m.textContent = r.ok ? 'QR guardado. Ya aparece en el paso de pago.' : r.message;
+      if (r.ok) reload();
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -18,3 +18,17 @@
 
 /assets/mesa/*
   Cache-Control: public, max-age=86400
+
+/vision/admin/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache
+
+/vision/boleta/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache
+
+/vision/*
+  Cache-Control: no-cache
+
+/assets/vision/*
+  Cache-Control: public, max-age=86400
