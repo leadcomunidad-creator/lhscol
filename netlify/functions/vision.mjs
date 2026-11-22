@@ -48,10 +48,10 @@ const DEFAULT_EDITION = {
   mapsUrl: '',
   tagline: 'Celebramos lo vivido. Descubrimos lo que viene.',
   includes: 'Incluye comida y dos bebidas por persona.',
-  highlights: 'Music · Mensaje · Tema 2027',
+  highlights: 'Music · Mensaje · Temporada 2027',
   refundText: 'Al pagar, tu cupo queda reservado para ti. No hacemos devoluciones de dinero, salvo casos de fuerza mayor (por ejemplo, un accidente o una calamidad). Si no puedes asistir, escríbenos por WhatsApp.',
   theme: 'negro', // 'negro' (negro y dorado, aprobado el 19-11-2026) o 'claro' (blanco y azul)
-  prices: { adult: 75000, child: 35000 },
+  prices: { adult: 75000, child: 40000 },
   childAgeMin: 2,
   childAgeMax: 11,
   closeAt: '2026-12-15T23:59:59-05:00', // inscripciones del 15 de noviembre al 15 de diciembre
@@ -76,7 +76,7 @@ const DEFAULT_EQUIPO = {
     { t: '18:45', title: 'Celebramos lo vivido', who: 'Media', note: 'Video y testimonios del año.' },
     { t: '19:05', title: 'Comida y bebidas', who: 'Comida y bebidas', note: 'Una comida y dos bebidas por persona.' },
     { t: '19:45', title: 'Mensaje', who: 'Coordinación', note: '' },
-    { t: '20:15', title: 'Revelación del tema 2027', who: 'Media', note: 'Momento central de la noche.' },
+    { t: '20:15', title: 'Revelación de la Temporada 2027', who: 'Media', note: 'Momento central de la noche.' },
     { t: '20:30', title: 'Music y cierre', who: 'Music', note: '' },
     { t: '21:00', title: 'Despedida', who: 'Todos', note: 'Salida ordenada; el equipo recoge.' },
   ],
@@ -99,6 +99,13 @@ function migrate(e) {
     if (e.closeAt && Date.parse(e.closeAt) === Date.parse('2026-12-05T23:59:59-05:00')) e.closeAt = DEFAULT_EDITION.closeAt;
     if (e.includes === OLD_INCLUDES) e.includes = DEFAULT_EDITION.includes;
     e.rev = 2;
+  }
+  if ((e.rev || 0) < 3) {
+    // 21-11-2026: niño pasa a $40.000 y "Tema 2027" a "Temporada 2027". Los grupos ya inscritos conservan su total.
+    if (e.prices && Number(e.prices.child) === 35000) e.prices.child = 40000;
+    if (typeof e.highlights === 'string') e.highlights = e.highlights.replace(/Tema 2027/g, 'Temporada 2027');
+    for (const it of (e.equipo && e.equipo.plan) || []) if (it && typeof it.title === 'string') it.title = it.title.replace(/del tema 2027/gi, 'de la Temporada 2027');
+    e.rev = 3;
   }
   if (e.highlights === undefined) e.highlights = DEFAULT_EDITION.highlights;
   if (e.refundText === undefined) e.refundText = DEFAULT_EDITION.refundText;
@@ -469,7 +476,7 @@ async function adminSaveEdition(req) {
     highlights: clean(b.highlights, 120),
     refundText: clean(b.refundText, 400),
     theme: b.theme === 'negro' ? 'negro' : 'claro',
-    prices: { adult: int(b.priceAdult, 75000, 0, 2000000), child: int(b.priceChild, 35000, 0, 2000000) },
+    prices: { adult: int(b.priceAdult, 75000, 0, 2000000), child: int(b.priceChild, 40000, 0, 2000000) },
     closeAt: b.closeAt ? new Date(`${clean(b.closeAt, 16)}:59${TZ_OFFSET}`).toISOString() : null,
     maxGroup: int(b.maxGroup, 10, 1, 20),
     status: b.status === 'closed' ? 'closed' : 'open',
