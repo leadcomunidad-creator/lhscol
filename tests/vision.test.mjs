@@ -49,7 +49,7 @@ test('crea la edición con los datos confirmados y sin cifras privadas', async (
   assert.equal(r.state, 'open');
   assert.equal(r.edition.date, '2026-12-19');
   assert.equal(r.edition.prices.adult, 75000);
-  assert.equal(r.edition.prices.child, 35000);
+  assert.equal(r.edition.prices.child, 40000);
   assert.equal(Date.parse(r.edition.closeAt), Date.parse('2026-12-15T23:59:59-05:00'));
   assert.match(r.edition.refundText, /fuerza mayor/);
   for (const k of ['waitlist', 'equipo']) assert.ok(!(k in r.edition), k);
@@ -67,7 +67,7 @@ let g1;
 test('2 adultos y 2 niños: total calculado en el servidor = $220.000 y nombres con mayúscula', async () => {
   const r = await fam(1, { adults: [{ firstName: 'adulto', lastName: 'uno' }, { firstName: 'ADULTO', lastName: 'DOS' }] });
   assert.equal(r.ok, true, r.message);
-  assert.equal(r.expected, 2 * 75000 + 2 * 35000);
+  assert.equal(r.expected, 2 * 75000 + 2 * 40000);
   assert.ok(r.paymentUrl.startsWith('https://'));
   g1 = r.token;
   const v = await call('/g/' + g1);
@@ -105,7 +105,7 @@ test('aprobar emite 4 boletas, suma el recaudo una sola vez y el panel ve el com
   assert.equal(a.ok, true, a.message);
   await call('/admin/group', { method: 'POST', headers: K, body: { groupId: g.id, action: 'approve' } }); // doble toque
   const o2 = await call('/admin/overview', { headers: K });
-  assert.equal(o2.edition.counts.recaudo, 220000);
+  assert.equal(o2.edition.counts.recaudo, 230000);
   assert.equal(o2.edition.counts.confirmados, 4);
   const v = await call('/g/' + g1);
   assert.equal(v.status, 'aprobado');
@@ -156,7 +156,7 @@ test('aforo: 40 familias de 4 al mismo tiempo con aforo 60 → nunca se pasa', a
   const o = await call('/admin/overview', { headers: K });
   const e = o.edition;
   const before = e.counts.ocupados;
-  await call('/admin/edition', { method: 'POST', headers: K, body: { date: e.date, time: e.time, endTime: e.endTime, venue: e.venue, city: e.city, priceAdult: 75000, priceChild: 35000, closeAt: '2026-12-05T23:59', capacity: 60, paymentUrl: e.paymentUrl } });
+  await call('/admin/edition', { method: 'POST', headers: K, body: { date: e.date, time: e.time, endTime: e.endTime, venue: e.venue, city: e.city, priceAdult: 75000, priceChild: 40000, closeAt: '2026-12-05T23:59', capacity: 60, paymentUrl: e.paymentUrl } });
   const rs = await Promise.all(Array.from({ length: 40 }, (_, i) => fam(100 + i)));
   const okN = rs.filter((r) => r.ok).length;
   assert.equal(okN, Math.floor((60 - before) / 4));
@@ -217,4 +217,20 @@ test('una edición guardada con el cierre viejo (5 de diciembre) pasa al 15 de d
   const r = await call('/event');
   assert.equal(Date.parse(r.edition.closeAt), Date.parse('2026-12-15T23:59:59-05:00'));
   assert.match(r.edition.refundText, /devoluciones/);
+});
+
+test('migración del 21-11: niño a $40.000 y "Temporada 2027" sin tocar los totales ya inscritos', async () => {
+  const key = [...data.keys()].find((k) => k.startsWith('v:edition/'));
+  const e = JSON.parse(data.get(key).s);
+  const before = e.groups.map((g) => g.expected);
+  e.rev = 2; e.prices.child = 35000; e.highlights = 'Music · Mensaje · Tema 2027';
+  if (e.equipo && Array.isArray(e.equipo.plan)) e.equipo.plan.push({ t: '20:15', title: 'Revelación del tema 2027' });
+  data.set(key, { s: JSON.stringify(e) });
+  const r = await call('/event');
+  assert.equal(r.edition.prices.child, 40000);
+  assert.equal(r.edition.highlights, 'Music · Mensaje · Temporada 2027');
+  const eq = await call('/equipo');
+  assert.ok(!JSON.stringify(eq).includes('tema 2027'));
+  const o = await call('/admin/overview', { headers: K });
+  assert.deepEqual(o.edition.groups ? o.edition.groups.map((g) => g.expected) : before, before);
 });
