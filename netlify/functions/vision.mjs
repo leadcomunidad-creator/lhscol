@@ -130,6 +130,23 @@ function assignColors(e) {
   }
 }
 
+// 27-11-2026: personas que faltaban en los equipos. Solo agrega; respeta lo editado en el panel.
+function addMissingTeam(q) {
+  if (!q || !Array.isArray(q.roles)) return;
+  const all = () => plain(q.roles.map((r) => r.people).join(' '));
+  const media = q.roles.find((r) => plain(r.name) === 'media');
+  if (media && !all().includes('camilo y camila')) {
+    const before = String(media.people || '').replace(/\s+y\s+/g, ', ').replace(/por definir/i, '').trim();
+    media.people = [before, 'Camilo y Camila'].filter(Boolean).join(', ');
+  }
+  const insert = (after, role) => {
+    const i = q.roles.findIndex((r) => plain(r.name) === after);
+    q.roles.splice(i < 0 ? q.roles.length : i + 1, 0, role);
+  };
+  if (!all().includes('yuli')) insert('coordinacion', { name: 'Administración', people: 'Carlos y Yuli', tasks: ['Revisar pagos y cuentas', 'Inscribir a quien paga en la puerta'] });
+  if (!all().includes('natalia')) insert('comida y bebidas', { name: 'Coffee · Granizados', people: 'Johnatan y Natalia', tasks: ['Entregar los granizados', 'Marcar cada entrega en Escanear → Granizado'] });
+}
+
 // Ediciones guardadas antes de un cambio de reglas se ponen al día al leerlas.
 const OLD_INCLUDES = 'Incluye alimentación y un concierto de nuestro grupo musical.';
 function migrate(e) {
@@ -151,6 +168,7 @@ function migrate(e) {
   if (!e.theme) e.theme = DEFAULT_EDITION.theme;
   if (!Array.isArray(e.waitlist)) e.waitlist = [];
   if (!e.equipo) e.equipo = structuredClone(DEFAULT_EQUIPO);
+  if ((e.rev || 0) < 4) { addMissingTeam(e.equipo); e.rev = 4; }
   assignColors(e);
   return e;
 }

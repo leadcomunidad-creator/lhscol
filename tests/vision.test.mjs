@@ -369,6 +369,24 @@ test('caja: privada, valida valores, edita, quita sin destruir y guarda arqueos'
   for (const path of ['/event', '/equipo']) assert.ok(!/caja|arqueo|Bowls/.test(JSON.stringify(await call(path))), path);
 });
 
+test('equipo del 27-11: agrega a quienes faltaban una sola vez y respeta lo editado después', async () => {
+  const key = 'v:edition/2027';
+  const raw = JSON.parse(data.get(key).s);
+  raw.rev = 3;
+  raw.equipo = { plan: raw.equipo.plan, roles: [
+    { name: 'Coordinación', people: 'Juan y Lili', tasks: [] }, { name: 'Media', people: 'War y Danna', tasks: ['Fotos y reels'] },
+    { name: 'Comida y bebidas', people: 'Por definir', tasks: [] }, { name: 'Kids', people: 'Por definir', tasks: [] }] };
+  data.set(key, { s: JSON.stringify(raw) });
+  const q = await call('/equipo');
+  assert.deepEqual(q.roles.map((r) => r.name), ['Coordinación', 'Administración', 'Media', 'Comida y bebidas', 'Coffee · Granizados', 'Kids']);
+  assert.equal(q.roles.find((r) => r.name === 'Media').people, 'War, Danna, Camilo y Camila');
+  assert.equal(q.roles.find((r) => r.name === 'Administración').people, 'Carlos y Yuli');
+  assert.equal(q.roles.find((r) => r.name === 'Coffee · Granizados').people, 'Johnatan y Natalia');
+  // Si después se quita a alguien en el panel, no vuelve a aparecer.
+  await call('/admin/equipo', { method: 'POST', headers: K, body: { roles: [{ name: 'Media', people: 'War', tasks: [] }] } });
+  assert.deepEqual((await call('/equipo')).roles.map((r) => r.people), ['War']);
+});
+
 test('el nombre de la temporada no aparece en la API ni en las páginas', async () => {
   const { readFileSync, readdirSync } = await import('node:fs');
   const files = ['netlify/functions/vision.mjs', ...readdirSync('vision', { recursive: true }).filter((f) => f.endsWith('.html')).map((f) => 'vision/' + f)];
