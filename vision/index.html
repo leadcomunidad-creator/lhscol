@@ -492,7 +492,7 @@ body.negro .badge{background:#1d1d1d}
     badge.className = 'badge ' + (ok ? 'ok' : (s === 'cancelado' || s === 'vencido' || s === 'rechazado' || s === 'incompleto') ? 'bad' : '');
     badge.textContent = {reservado:'Pendiente de pago', revision:'Pago en validación', aprobado:'Pago aprobado', cancelado:'Anulada', vencido:'Reserva vencida', rechazado:'Comprobante rechazado', incompleto:'Pago incompleto'}[s] || '';
     $('#list').innerHTML = g.attendees.map(function(a){
-      return '<li><div>' + esc(a.name) + '<span> · ' + (a.type === 'child' ? 'Niño, ' + a.age + ' años' : 'Adulto') + '</span></div>' + (a.ticket ? '<a href="/vision/boleta/?t=' + encodeURIComponent(a.ticket) + '">Boleta</a>' : '') + '</li>';
+      return '<li><div>' + esc(a.name) + '<span> · ' + (a.type === 'child' ? 'Niño, ' + a.age + ' años' : 'Adulto') + '</span>' + (a.color ? '<span style="display:block"><i style="display:inline-block;width:.75em;height:.75em;border-radius:50%;margin-right:.35em;background:' + esc(a.color.hex) + '"></i>Color ' + esc(a.color.name) + '</span>' : '') + '</div>' + (a.ticket ? '<a href="/vision/boleta/?t=' + encodeURIComponent(a.ticket) + '">Boleta</a>' : '') + '</li>';
     }).join('');
     var btns = $('#sBtns'), payAgain = $('#payAgain');
     if (!payAgain) { payAgain = document.createElement('button'); payAgain.id = 'payAgain'; payAgain.type = 'button'; payAgain.className = 'btn'; payAgain.style.marginBottom = '.6rem'; payAgain.addEventListener('click', function(){ showPay(grp); }); btns.prepend(payAgain); }

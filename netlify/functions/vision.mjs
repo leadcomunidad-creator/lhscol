@@ -91,6 +91,35 @@ const DEFAULT_EQUIPO = {
   ],
 };
 
+// Color de vestuario sugerido: uno por persona, repartido por igual. Se guarda en la boleta y no cambia.
+// El orden de la lista no se debe alterar: en la boleta se guarda la clave.
+const COLORS = [
+  { key: 'coral', name: 'Coral', hex: '#ff7f57' },
+  { key: 'mostaza', name: 'Mostaza', hex: '#e6b24c' },
+  { key: 'verde', name: 'Verde', hex: '#a3cc72' },
+  { key: 'turquesa', name: 'Turquesa', hex: '#6cc0c4' },
+  { key: 'lila', name: 'Lila', hex: '#97a4e6' },
+];
+const colorOf = (a) => COLORS.find((c) => c.key === a.ticket?.color) || null;
+
+// A cada boleta sin color le da el menos usado entre las vigentes, en orden de emisión.
+function assignColors(e) {
+  const used = new Map(COLORS.map((c) => [c.key, 0]));
+  const pending = [];
+  for (const g of e.groups) {
+    for (const a of g.attendees) {
+      if (!a.ticket) continue;
+      if (!used.has(a.ticket.color)) pending.push(a.ticket);
+      else if (g.status !== 'cancelado') used.set(a.ticket.color, used.get(a.ticket.color) + 1);
+    }
+  }
+  pending.sort((x, y) => String(x.issuedAt).localeCompare(String(y.issuedAt)));
+  for (const t of pending) {
+    t.color = COLORS.reduce((best, c) => (used.get(c.key) < used.get(best.key) ? c : best)).key;
+    used.set(t.color, used.get(t.color) + 1);
+  }
+}
+
 // Ediciones guardadas antes de un cambio de reglas se ponen al día al leerlas.
 const OLD_INCLUDES = 'Incluye alimentación y un concierto de nuestro grupo musical.';
 function migrate(e) {
@@ -112,6 +141,7 @@ function migrate(e) {
   if (!e.theme) e.theme = DEFAULT_EDITION.theme;
   if (!Array.isArray(e.waitlist)) e.waitlist = [];
   if (!e.equipo) e.equipo = structuredClone(DEFAULT_EQUIPO);
+  assignColors(e);
   return e;
 }
 
@@ -352,7 +382,7 @@ function groupPublic(e, g) {
     holdUntil: g.holdUntil,
     hasProof: g.proofs.length > 0,
     reason: ['rechazado', 'incompleto'].includes(g.status) ? g.review?.reason || '' : '',
-    attendees: g.attendees.map((a) => ({ name: a.firstName + ' ' + a.lastName, type: a.type, age: a.age, ...(st === 'aprobado' && a.ticket ? { ticket: a.ticket.token, code: a.ticket.code } : {}) })),
+    attendees: g.attendees.map((a) => ({ name: a.firstName + ' ' + a.lastName, type: a.type, age: a.age, ...(st === 'aprobado' && a.ticket ? { ticket: a.ticket.token, code: a.ticket.code, color: colorOf(a) } : {}) })),
     paymentUrl: st === 'aprobado' ? '' : e.paymentUrl || '',
     hasQr: !!e.hasQr,
     edition: publicEdition(e),
@@ -416,7 +446,7 @@ async function ticketView(t) {
   const a = g?.attendees.find((x) => x.id === ref.attendeeId);
   if (!a || !a.ticket || a.ticket.token !== clean(t, 40)) throw new HttpError(404, 'not_found', 'Esta boleta no existe o fue anulada.');
   const valid = effStatus(g) === 'aprobado';
-  return json({ ok: true, valid, name: a.firstName + ' ' + a.lastName, type: a.type, age: a.age, code: a.ticket.code, attended: !!a.attended, group: g.responsible, edition: publicEdition(e) });
+  return json({ ok: true, valid, name: a.firstName + ' ' + a.lastName, type: a.type, age: a.age, code: a.ticket.code, color: colorOf(a), attended: !!a.attended, group: g.responsible, edition: publicEdition(e) });
 }
 
 async function getQr() {
@@ -514,6 +544,7 @@ function issueTickets(e, g) {
     a.ticket = { code, token: token(16), issuedAt: nowIso() };
     issued.push(a);
   }
+  assignColors(e);
   return issued;
 }
 
@@ -574,7 +605,9 @@ async function adminFlags(req) {
   const g = await mutate(editionKey(idx.currentId), (e) => {
     const g = e?.groups.find((x) => x.id === gid);
     if (!g) throw new HttpError(404, 'not_found', 'Inscripción no encontrada.');
-    for (const k of ['sentAt', 'remindedAt', 'hoyAt', 'rejectSentAt', 'payAskedAt']) if (k in b) g[k] = b[k] ? nowIso() : null;
+    for (const k of ['sentAt', 'remindedAt', 'hoyAt', 'rejectSentAt', 'payAskedAt', 'colorAt']) if (k in b) g[k] = b[k] ? nowIso() : null;
+    // El mensaje de las boletas ya dice el color: no hace falta avisarlo aparte.
+    if (b.sentAt) g.colorAt = g.sentAt;
     return { value: e, result: g };
   });
   return json({ ok: true, group: { ...g, eff: effStatus(g) } });
@@ -624,9 +657,9 @@ async function adminAdd(req) {
       createdAt: nowIso(), source: b.atDoor ? 'puerta' : 'equipo',
       review: { by: clean(b.by, 40) || 'equipo', at: nowIso(), action: 'approve' },
     };
+    e.groups.push(g);
     const issued = issueTickets(e, g);
     if (b.atDoor) for (const a of g.attendees) { a.attended = true; a.attendedAt = nowIso(); }
-    e.groups.push(g);
     return { value: e, result: { g, issued } };
   });
   await store().setJSON(tokenKey(res.g.token), { type: 'group', editionId: idx.currentId, groupId: res.g.id });
