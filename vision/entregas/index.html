@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ingreso y entregas · Visión 2027</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" type="image/png" href="/assets/vision/logo-lhscol-azul.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,400&display=swap" rel="stylesheet">
+<style>
+:root{--oro:#C8B273;--tx:#A9A69C;--linea:#3a3a3a;color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0A0A0A;color:#EDE9DE;font:400 16px/1.45 'DM Sans',system-ui,sans-serif;padding:16px 14px 40px;-webkit-font-smoothing:antialiased}
+.wrap{width:100%;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.hidden{display:none !important}
+.wm{display:block;width:190px;max-width:70%;height:auto;margin:4px auto 0}
+h1{font:italic 400 28px/1.15 'Playfair Display',serif;color:var(--oro);text-align:center}
+p.note{color:var(--tx);font-size:14px;text-align:center}
+label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--tx)}
+input{width:100%;background:#141414;color:#fff;border:1px solid var(--linea);border-radius:10px;padding:13px;font-size:17px;outline:none}
+input:focus{border-color:var(--oro)}
+button{font:700 15px 'DM Sans',sans-serif;border:1px solid var(--linea);background:#141414;color:var(--oro);border-radius:10px;padding:13px 14px;cursor:pointer}
+button.pri{background:var(--oro);border-color:var(--oro);color:#0A0A0A}
+button[disabled]{opacity:.5}
+.stations{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.stations button{font-size:13.5px;line-height:1.2;padding:12px 4px;color:#EDE9DE}
+.stations button[aria-pressed=true]{background:var(--oro);border-color:var(--oro);color:#0A0A0A}
+.msg{color:#ff9d93;text-align:center;font-size:14px}
+.cam{position:relative;background:#000;border-radius:12px;overflow:hidden;aspect-ratio:4/3}
+.cam video{width:100%;height:100%;object-fit:cover}
+.cam i{position:absolute;inset:18%;border:3px solid rgba(255,255,255,.8);border-radius:12px}
+.row{display:flex;gap:8px}
+.row input{flex:1;min-width:0}
+.result{border-radius:14px;padding:18px 14px;text-align:center}
+.result b{display:block;font-size:26px;line-height:1.2}
+.result span{display:block;font-size:18px;font-weight:600;margin-top:4px}
+.result small{display:block;font-size:14px;margin-top:6px}
+.result em{display:inline-block;font-style:normal;font-weight:700;font-size:22px;letter-spacing:.06em;border:3px solid currentColor;border-radius:10px;padding:6px 14px;margin-top:10px}
+.result.ok{background:#6FCF97;color:#06210f}
+.result.warn{background:#E0C778;color:#1d1602}
+.result.bad{background:#d9382b;color:#fff}
+.group{background:#141414;border:1px solid #262626;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.group h2{font-size:13px;font-weight:600;color:var(--tx)}
+.p{display:flex;align-items:center;gap:10px;border-top:1px solid #262626;padding-top:8px}
+.p div{flex:1;min-width:0}
+.p b{font-weight:600}
+.p small{display:block;color:var(--tx);font-size:13px}
+.p small.kid{color:#E0C778;font-weight:700}
+.p button{min-width:108px}
+.p button.done{background:#173a26;border-color:#2f6b45;color:#8fd3a8}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--tx)}
+.link{background:none;border:0;padding:6px 0;color:var(--tx);text-decoration:underline;font-weight:500;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="wm" src="/assets/vision/wordmark-dorado.png" alt="Visión 2027" width="1000" height="232">
+
+  <form class="wrap hidden" id="login">
+    <h1>Ingreso y entregas</h1>
+    <p class="note">Para voluntarios. Pide la clave a quien coordina.</p>
+    <label>Clave de voluntarios<input type="password" id="key" autocomplete="current-password" required maxlength="60"></label>
+    <label>Tu nombre<input id="who" required maxlength="40" autocomplete="given-name"></label>
+    <button class="pri" type="submit">Entrar</button>
+    <div class="msg" id="loginMsg" role="alert"></div>
+  </form>
+
+  <div class="wrap hidden" id="app">
+    <div class="top"><span id="hello"></span><button class="link" type="button" id="out">Salir</button></div>
+    <div class="stations" id="stations" role="group" aria-label="Escoge tu punto">
+      <button type="button" data-s="ingreso">Ingreso</button>
+      <button type="button" data-s="comida">Comida y bebida</button>
+      <button type="button" data-s="granizado">Granizado</button>
+    </div>
+    <p class="note" id="pick">Escoge tu punto para empezar.</p>
+    <div class="wrap hidden" id="work">
+      <div class="cam hidden" id="cam"><video id="video" playsinline muted></video><i></i></div>
+      <button class="pri" type="button" id="camBtn">Abrir cámara</button>
+      <div id="result" aria-live="assertive"></div>
+      <div id="groups" class="wrap"></div>
+      <form class="row" id="codeForm"><input id="code" placeholder="VIS27-XXXX-XXXX" autocapitalize="characters" autocomplete="off" aria-label="Código de la boleta"><button type="submit">Registrar</button></form>
+      <input id="q" type="search" placeholder="Sin boleta: buscar por nombre" aria-label="Buscar por nombre" maxlength="60">
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var API = '/api/vision/staff';
+  var $ = function(id){ return document.getElementById(id); };
+  var NAMES = {ingreso:'Ingreso', comida:'Comida y bebida', granizado:'Granizado'};
+  var VERB = {ingreso:['Registrar','Ingresó ✓'], comida:['Entregar','Entregado ✓'], granizado:['Entregar','Entregado ✓']};
+  var key = '', who = '', station = '', shown = [], searching = false, busy = false;
+  try { key = sessionStorage.getItem('vision.staff') || ''; who = localStorage.getItem('vision.who') || ''; station = sessionStorage.getItem('vision.station') || ''; } catch(e){}
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function hour(iso){ return iso ? new Date(iso).toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit',timeZone:'America/Bogota'}) : ''; }
+  function api(path, body){
+    var h = {'x-staff-key': encodeURIComponent(key)};
+    if (body) h['content-type'] = 'application/json';
+    return fetch(API + path, {method: body ? 'POST' : 'GET', headers: h, body: body ? JSON.stringify(body) : undefined})
+      .then(function(r){ return r.json().then(function(j){ j.code = r.status; return j; }); })
+      .catch(function(){ return {ok:false, code:0, message:'Sin conexión. No quedó registrado: intenta de nuevo.'}; })
+      .then(function(j){ if (j.code === 401 && !$('app').classList.contains('hidden')) leave('La clave cambió. Pide la nueva a quien coordina.'); return j; });
+  }
+
+  // ── Entrada
+  function leave(msg){
+    key = ''; try { sessionStorage.removeItem('vision.staff'); } catch(e){}
+    stopCam(); $('app').classList.add('hidden'); $('login').classList.remove('hidden'); $('loginMsg').textContent = msg || '';
+  }
+  function enter(){
+    return api('/check').then(function(r){
+      if (!r.ok) return leave(r.message);
+      try { sessionStorage.setItem('vision.staff', key); localStorage.setItem('vision.who', who); } catch(e){}
+      $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('hello').textContent = 'Hola, ' + who; setStation(station);
+    });
+  }
+  $('who').value = who;
+  $('login').addEventListener('submit', function(e){ e.preventDefault(); key = $('key').value.trim(); who = $('who').value.trim(); $('key').value = ''; $('loginMsg').textContent = ''; enter(); });
+  $('out').addEventListener('click', function(){ leave(); });
+
+  function setStation(s){
+    station = NAMES[s] ? s : '';
+    try { sessionStorage.setItem('vision.station', station); } catch(e){}
+    document.querySelectorAll('#stations button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.s === station); });
+    $('work').classList.toggle('hidden', !station); $('pick').classList.toggle('hidden', !!station);
+    clearAll();
+  }
+  $('stations').addEventListener('click', function(e){ var b = e.target.closest('[data-s]'); if (b) setStation(b.dataset.s); });
+  function clearAll(){ shown = []; searching = false; $('result').innerHTML = ''; $('groups').innerHTML = ''; $('q').value = ''; }
+
+  // ── Resultado y grupo
+  function menu(p){ return station === 'comida' ? '<em>' + (p.type === 'child' ? 'MENÚ NIÑO' : 'MENÚ ADULTO') + '</em>' : ''; }
+  function result(kind, title, line, extra){
+    $('result').innerHTML = '<div class="result ' + kind + '"><b>' + esc(title) + '</b>' + (line ? '<span>' + esc(line) + '</span>' : '') + (extra || '') + '</div>';
+    if (navigator.vibrate) navigator.vibrate(kind === 'ok' ? 80 : [60, 60, 60]);
+    $('result').scrollIntoView({block:'nearest', behavior:'smooth'});
+  }
+  function person(g, p){
+    var on = p.served[station];
+    var kind = p.type === 'child' ? '<small class="kid">Niño · ' + esc(p.age) + ' años' + (station === 'comida' ? ' · menú niño' : '') + '</small>' : '<small>Adulto</small>';
+    var btn = !g.valid && !on ? '' : '<button type="button" class="' + (on ? 'done' : 'pri') + '" data-g="' + g.id + '" data-p="' + p.id + '">' + VERB[station][on ? 1 : 0] + '</button>';
+    return '<div class="p"><div><b>' + esc(p.name) + '</b>' + kind + (on && p.at[station] ? '<small>a las ' + hour(p.at[station]) + '</small>' : '') + '</div>' + btn + '</div>';
+  }
+  function renderGroups(){
+    $('groups').innerHTML = shown.map(function(g){
+      var pend = g.valid ? g.attendees.filter(function(p){ return !p.served[station]; }) : [];
+      return '<section class="group"><h2>Grupo de ' + esc(g.responsible) + (g.valid ? '' : ' · PAGO NO APROBADO') + '</h2>' +
+        g.attendees.map(function(p){ return person(g, p); }).join('') +
+        (pend.length > 1 ? '<button type="button" data-g="' + g.id + '" data-all>' + VERB[station][0] + ' a los ' + pend.length + ' que faltan (solo si están aquí)</button>' : '') + '</section>';
+    }).join('') || (searching ? '<p class="note">No aparece. Envía a la persona a la mesa de inscripción.</p>' : '');
+  }
+  function scan(code){
+    if (busy) return;
+    busy = true; $('q').value = ''; searching = false;
+    var st = station;
+    api('/scan', {code: code, station: st, by: who}).then(function(r){
+      busy = false;
+      if (st !== station) return;
+      if (!r.ok) { shown = []; renderGroups(); return result('bad', r.code === 404 ? 'Boleta no encontrada' : 'No quedó registrado', r.message); }
+      var g = r.group, p = g.attendees.find(function(x){ return x.id === r.personId; });
+      shown = [g]; renderGroups();
+      if (r.result === 'ok') result('ok', p.name, station === 'ingreso' ? 'Bienvenido · ingreso registrado' : 'Entregar: ' + NAMES[station].toLowerCase(), menu(p));
+      else if (r.result === 'already') result('bad', p.name, station === 'ingreso' ? 'Ya había ingresado' : 'Ya se le entregó', '<small>a las ' + hour(p.at[station]) + '</small>');
+      else result('bad', p.name, 'Boleta no válida', '<small>El pago no está aprobado. Avisa a quien coordina.</small>');
+    });
+  }
+  $('groups').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-g]'); if (!b || busy) return;
+    var g = shown.find(function(x){ return x.id === b.dataset.g; }); if (!g) return;
+    var all = b.hasAttribute('data-all');
+    var p = all ? null : g.attendees.find(function(x){ return x.id === b.dataset.p; });
+    var value = all || !p.served[station];
+    if (!value && !confirm('¿Desmarcar a ' + p.name + ' en ' + NAMES[station] + '?')) return;
+    var ids = all ? g.attendees.filter(function(x){ return !x.served[station]; }).map(function(x){ return x.id; }) : [p.id];
+    var st = station;
+    busy = true; b.disabled = true;
+    api('/mark', {groupId: g.id, ids: ids, station: st, value: value, by: who}).then(function(r){
+      busy = false; b.disabled = false;
+      if (st !== station) return;
+      if (!r.ok) return result('bad', 'No quedó registrado', r.message);
+      shown = shown.map(function(x){ return x.id === r.group.id ? r.group : x; }); renderGroups();
+      var done = r.group.attendees.filter(function(x){ return r.changed.indexOf(x.id) >= 0; });
+      var kids = done.filter(function(x){ return x.type === 'child'; }).length;
+      var count = station === 'comida' && value ? '<em>' + [done.length - kids ? (done.length - kids) + ' ADULTO' : '', kids ? kids + ' NIÑO' : ''].filter(Boolean).join(' · ') + '</em>' : '';
+      if (!done.length) result('warn', 'Ya estaba registrado', 'Otro punto lo marcó antes. No entregues de nuevo.');
+      else if (!value) result('warn', 'Desmarcado', done[0].name);
+      else if (done.length === 1) result('ok', done[0].name, station === 'ingreso' ? 'Ingreso registrado' : 'Entregar: ' + NAMES[station].toLowerCase(), menu(done[0]));
+      else result('ok', done.length + ' personas', station === 'ingreso' ? 'Ingreso registrado' : 'Entregar: ' + NAMES[station].toLowerCase(), count);
+    });
+  });
+  $('codeForm').addEventListener('submit', function(e){ e.preventDefault(); var v = $('code').value.trim(); if (!v) return; $('code').value = ''; scan(v); });
+  var qT = null;
+  $('q').addEventListener('input', function(){
+    clearTimeout(qT);
+    qT = setTimeout(function(){
+      var q = $('q').value.trim();
+      $('result').innerHTML = '';
+      if (q.length < 3) { shown = []; searching = false; return renderGroups(); }
+      api('/search', {q: q}).then(function(r){
+        if (q !== $('q').value.trim()) return;
+        if (!r.ok) return result('bad', 'No se pudo buscar', r.message);
+        shown = r.groups; searching = true; renderGroups();
+        if (r.more) $('groups').insertAdjacentHTML('beforeend', '<p class="note">Hay más resultados: escribe el nombre completo.</p>');
+      });
+    }, 400);
+  });
+
+  // ── Cámara: BarcodeDetector si existe; si no, jsQR (se carga solo cuando se necesita)
+  var stream = null, detector = null, scanning = false, lastCode = '', lastAt = 0, canvas = document.createElement('canvas');
+  function loadJsQR(){ return window.jsQR ? Promise.resolve() : new Promise(function(res, rej){ var s = document.createElement('script'); s.src = '/assets/vision/jsqr.min.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+  function stopCam(){ scanning = false; if (stream) stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; $('cam').classList.add('hidden'); $('camBtn').textContent = 'Abrir cámara'; }
+  $('camBtn').addEventListener('click', function(){
+    if (stream) return stopCam();
+    var ready = ('BarcodeDetector' in window) ? BarcodeDetector.getSupportedFormats().then(function(f){ if (f.indexOf('qr_code') >= 0) detector = new BarcodeDetector({formats:['qr_code']}); else return loadJsQR(); }).catch(loadJsQR) : loadJsQR();
+    ready.then(function(){ return navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false}); }).then(function(s){
+      stream = s; var v = $('video'); v.srcObject = s; v.play(); $('cam').classList.remove('hidden'); $('camBtn').textContent = 'Cerrar cámara'; scanning = true; loop();
+    }).catch(function(){ result('warn', 'No se pudo abrir la cámara', 'Revisa el permiso o escribe el código.'); });
+  });
+  function found(text){
+    if (!text || busy) return;
+    // La misma boleta frente a la cámara no se vuelve a leer hasta retirarla unos segundos.
+    var same = text === lastCode && Date.now() - lastAt < 4000;
+    lastCode = text; lastAt = Date.now();
+    if (!same) scan(text);
+  }
+  function loop(){
+    if (!scanning) return;
+    var v = $('video');
+    if (v.readyState >= 2) {
+      if (detector) detector.detect(v).then(function(c){ if (c[0]) found(c[0].rawValue); }).catch(function(){});
+      else if (window.jsQR) {
+        var w = 480, h = Math.round(v.videoHeight / v.videoWidth * w) || 360;
+        canvas.width = w; canvas.height = h; var ctx = canvas.getContext('2d', {willReadFrequently:true}); ctx.drawImage(v, 0, 0, w, h);
+        var c = jsQR(ctx.getImageData(0, 0, w, h).data, w, h, {inversionAttempts:'dontInvert'}); if (c) found(c.data);
+      }
+    }
+    setTimeout(function(){ requestAnimationFrame(loop); }, 180);
+  }
+
+  if (key && who) enter(); else leave();
+})();
+</script>
+</body>
+</html>

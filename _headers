@@ -23,6 +23,10 @@
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-cache
 
+/vision/entregas/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache
+
 /vision/boleta/*
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-cache
