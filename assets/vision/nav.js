@@ -5,10 +5,10 @@
   var set = function(k, v){ try { v ? sessionStorage.setItem(k, v) : sessionStorage.removeItem(k); } catch(e){} };
   var role = function(){ return get('vision.admin') ? 'admin' : get('vision.staff') ? 'staff' : ''; };
   var path = location.pathname;
-  var here = path.indexOf('/vision/admin') === 0 ? 'admin' : path.indexOf('/vision/entregas') === 0 ? 'scan' : path.indexOf('/vision/equipo') === 0 ? 'night' : 'signup';
+  var here = path.indexOf('/vision/admin') === 0 ? 'admin' : path.indexOf('/vision/entregas') === 0 ? 'scan' : 'night';
 
   var css = document.createElement('style');
-  css.textContent = '#out,#logout{display:none !important}body.vteam{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px)) !important}body.vteam .bar{bottom:calc(70px + env(safe-area-inset-bottom,0px)) !important}.vnav[hidden]{display:none}.vteamlink{display:block;width:100%;margin:10px 0 0;background:none;border:1px solid rgba(200,178,115,.55);border-radius:6px;padding:14px;color:#C8B273;font:700 15px "DM Sans",system-ui,sans-serif;cursor:pointer}.vteamlink[hidden]{display:none}.toast{bottom:calc(88px + env(safe-area-inset-bottom,0px)) !important}' +
+  css.textContent = '#out,#logout{display:none !important}body{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px)) !important}.toast{bottom:calc(88px + env(safe-area-inset-bottom,0px)) !important}' +
     '.vnav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;gap:2px;padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(10,10,10,.96);border-top:1px solid #2c2c2c}' +
     '.vnav a,.vnav button{flex:1 1 auto;max-width:170px;text-align:center;white-space:nowrap;font:700 12.5px "DM Sans",system-ui,sans-serif;color:#A9A69C;background:none;border:0;border-radius:12px;padding:13px 6px;text-decoration:none;cursor:pointer}' +
     '.vnav a[aria-current=page]{background:#C8B273;color:#0A0A0A}.vnav .in{color:#C8B273;border:1px solid rgba(200,178,115,.5)}' +
@@ -22,23 +22,11 @@
   var nav = document.createElement('nav');
   nav.className = 'vnav'; nav.setAttribute('aria-label', 'Secciones del equipo');
   document.body.appendChild(nav);
-  // En la inscripción, quien no es del equipo solo ve un enlace discreto al final.
-  var entry = null;
-  if (here === 'signup') {
-    entry = document.createElement('button'); entry.type = 'button'; entry.className = 'vteamlink'; entry.textContent = 'Equipo';
-    var cta = document.querySelector('.hero .cta');
-    if (cta) cta.appendChild(entry); else (document.querySelector('main') || document.body).appendChild(entry);
-    entry.addEventListener('click', function(){ location.href = '/vision/equipo/'; });
-  }
-
   function link(href, label, id){ return '<a href="' + href + '"' + (here === id ? ' aria-current="page"' : '') + '>' + label + '</a>'; }
   var drawn = null;
   function draw(){
     var r = role(); if (r === drawn) return; drawn = r;
-    var quiet = here === 'signup' && !r;
-    nav.hidden = quiet; if (entry) entry.hidden = !!r;
-    document.body.classList.toggle('vteam', !quiet);
-    nav.innerHTML = link('/vision/', 'Inscripción', 'signup') + link('/vision/equipo/', 'La noche', 'night') + (r ? link('/vision/entregas/', 'Escanear', 'scan') : '') +
+    nav.innerHTML = link('/vision/', 'Inicio', 'home') + link('/vision/equipo/', 'La noche', 'night') + (r ? link('/vision/entregas/', 'Escanear', 'scan') : '') +
       (r === 'admin' ? link('/vision/admin/', 'Panel', 'admin') : '') +
       '<button type="button" class="' + (r ? '' : 'in') + '">' + (r ? 'Salir' : 'Entrar') + '</button>';
     document.querySelectorAll('[data-team]').forEach(function(el){ el.style.display = r ? '' : 'none'; });
@@ -49,7 +37,7 @@
     box.innerHTML = '<form><h2>Equipo Visión</h2><p>Escribe tu clave. La aplicación muestra lo que te corresponde.</p>' +
       '<label>Clave<input type="password" name="key" required maxlength="100" autocomplete="current-password"></label>' +
       '<label>Tu nombre<input name="who" required maxlength="40" autocomplete="given-name"></label>' +
-      '<div class="err" role="alert"></div><button type="submit">Entrar</button><button type="button">Cancelar</button></form>';
+      '<div class="err" role="alert"></div><button type="submit">Entrar</button><button type="button">Solo ver el minuto a minuto</button></form>';
     document.body.appendChild(box);
     var f = box.querySelector('form'), err = box.querySelector('.err');
     try { f.who.value = localStorage.getItem('vision.who') || ''; } catch(e){}
@@ -83,5 +71,10 @@
     set('vision.admin', ''); set('vision.staff', ''); location.href = '/vision/';
   });
   draw();
+  // Desde el botón "Equipo" de la portada se pide la clave de una vez; con sesión abierta, entra directo.
+  if (location.hash === '#entrar') {
+    history.replaceState(null, '', path);
+    if (!role()) ask(); else location.href = role() === 'admin' ? '/vision/admin/' : '/vision/entregas/';
+  }
   setInterval(draw, 1000); // las pantallas con su propio ingreso actualizan el menú
 })();
