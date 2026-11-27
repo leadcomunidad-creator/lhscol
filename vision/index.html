@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+/* Los enlaces personales ya enviados (/vision/?g=…) siguen llegando a su inscripción. */
+if (/[?&](g|tema)=/.test(location.search)) location.replace('/vision/inscripcion/' + location.search);
+document.documentElement.className = 'js';
+</script>
 <title>Visión 2027 · LHSCOL</title>
 <meta name="description" content="Visión 2027: la experiencia de fin de año de LHSCOL. Sábado 19 de diciembre, Auditorio Fundación Batuta, Manizales. Inscríbete aquí.">
 <meta name="theme-color" content="#0A0A0A">
@@ -21,523 +26,342 @@
 <meta property="og:image:alt" content="Visión 2027 · LHSCOL">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="/assets/vision/logo-lhscol-azul.png">
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/assets/pwa/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Jost:wght@400;500&family=Playfair+Display:ital,wght@0,400;1,400;1,900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,800&family=DM+Sans:wght@400;500;700&family=Jost:wght@500&family=Playfair+Display:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet">
 <style>
-:root{--fondo:#fff;--g1:#F3F4F9;--g2:#D9DCEB;--g3:#6a7096;--azul:#0e1958;--soft:#3a4170;--texto:#4b5278;--err:#b3261e;--ok:#1d7a46;color-scheme:light;box-sizing:border-box}
-*,*::before,*::after{box-sizing:inherit;margin:0}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{background:var(--fondo);color:var(--azul);font:400 16px/1.55 'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top,0px)}
-.app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
-header{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem}
-header a{display:block;line-height:0}
-header img{width:44px;height:44px}
-.prog{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
-.prog i{position:relative;overflow:hidden;height:3px;border-radius:2px;background:var(--g2)}
-.prog i::after{content:'';position:absolute;inset:0;background:var(--azul);transform:scaleX(0);transform-origin:left;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
-.prog i.on::after{transform:scaleX(1)}
-main{flex:1;padding:0 1.25rem 1.5rem}
-.step{display:none}
-.step.on{display:block;animation:in .45s ease}
-@keyframes in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
-h2{font:italic 400 2.5rem/1.05 'Playfair Display',serif;color:var(--azul);letter-spacing:-.01em;margin:.4rem 0 .5rem}
-.stp{font-size:15px;font-weight:600;color:var(--azul);margin-top:.4rem}
-p.lead{color:var(--azul);font-size:17px;margin-bottom:1.4rem;max-width:36ch}
-.hint,.note{display:block;font-size:15px;color:var(--texto)}
-.note{margin:.4rem 0 1.4rem;line-height:1.5}
-.btn{position:relative;overflow:hidden;display:block;width:100%;text-align:center;text-decoration:none;font:600 1rem 'DM Sans',sans-serif;letter-spacing:.02em;background:var(--azul);color:#fff;border:0;border-radius:4px;padding:1rem;cursor:pointer;transition:background .2s,transform .15s,box-shadow .2s}
-.btn::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.5) 50%,transparent 60%);transform:translateX(-120%);transition:transform .7s}
-.btn:not(:disabled):hover::after{transform:translateX(120%)}
-.btn:not(:disabled):hover{box-shadow:0 0 0 4px rgba(14,25,88,.14)}
-.btn:active{transform:scale(.985)}
-.btn:disabled{background:var(--g2);color:var(--g3);cursor:not-allowed}
-.btn.ghost{background:transparent;color:var(--azul);border:1px solid rgba(14,25,88,.35)}
-.btn.ghost::after{display:none}
-.btn.wa{background:#1DA851}
-.btn+.btn{margin-top:.6rem}
-.link{background:none;border:0;color:var(--soft);font:inherit;font-size:15px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:.6rem;display:block;margin:.4rem auto 0}
-:focus-visible{outline:2px solid var(--soft);outline-offset:3px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.1rem 0;border-bottom:1px solid var(--g2)}
-.row strong{display:block;color:var(--azul);font-weight:500}
-.ctr{display:flex;align-items:center;gap:.9rem}
-.ctr button{width:44px;height:44px;border-radius:50%;border:1px solid var(--azul);background:none;color:var(--azul);font-size:1.4rem;cursor:pointer;transition:background .2s}
-.ctr button:hover{background:rgba(14,25,88,.08)}
-.ctr output{min-width:1.6ch;text-align:center;font:italic 400 1.9rem 'Playfair Display',serif;color:var(--azul)}
-.bar{position:sticky;bottom:0;background:linear-gradient(transparent,var(--fondo) 28%);padding:1.4rem 0 calc(.5rem + env(safe-area-inset-bottom,0px));margin-top:1.4rem}
-.sum{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.8rem}
-.sum b{font:italic 400 1.9rem 'Playfair Display',serif;color:var(--azul)}
-fieldset{border:0;border-left:2px solid var(--azul);padding:.2rem 0 .4rem 1rem;margin:0 0 1.6rem;display:grid;gap:.9rem}
-legend{float:left;width:100%;font:italic 400 1.35rem 'Playfair Display',serif;color:var(--azul);margin-bottom:.9rem}
-legend+*{clear:both}
-label{display:grid;gap:.35rem;font-size:15px;color:var(--soft)}
-input:not([type=checkbox]):not([type=file]),select{width:100%;font:400 1rem 'DM Sans',sans-serif;background:var(--g1);color:var(--azul);border:1px solid var(--g2);border-radius:4px;padding:.85rem .9rem;transition:border-color .2s}
-input:focus,select:focus{border-color:var(--azul);outline:none;box-shadow:0 0 0 3px rgba(14,25,88,.14)}
-::placeholder{color:#8a8fae}
-[aria-invalid=true]{border-color:var(--err)!important}
-.chk{display:flex;gap:.7rem;align-items:flex-start;font-size:14.5px;color:var(--azul);margin:.9rem 0}
-.chk input{appearance:none;-webkit-appearance:none;width:22px;height:22px;flex:none;margin-top:2px;border:1px solid var(--azul);border-radius:3px;background:transparent;display:grid;place-content:center;transition:background .2s}
-.chk input::after{content:'';width:10px;height:6px;border:solid #fff;border-width:0 0 2px 2px;transform:rotate(-45deg) scale(0);transition:transform .15s;margin-top:-2px}
-.chk input:checked{background:var(--azul)}.chk input:checked::after{transform:rotate(-45deg) scale(1)}
-.msg{color:var(--err);font-size:15px;min-height:1.3em;margin-top:.5rem}
-.qr{background:#fff;border-radius:10px;padding:10px;margin:1rem 0 1.4rem;box-shadow:0 0 0 1px rgba(14,25,88,.45),0 14px 30px rgba(14,25,88,.12)}
-.qr img{display:block;width:100%;height:auto}
-.drop{position:relative;display:block;border:1px dashed var(--azul);border-radius:6px;padding:1.4rem 1rem;text-align:center;color:var(--soft);cursor:pointer;transition:background .2s}
-.drop:hover{background:rgba(14,25,88,.05)}
-.drop input{position:absolute;opacity:0;width:1px;height:1px}
-.drop:focus-within{outline:2px solid var(--soft);outline-offset:3px}
-.drop.has{border-style:solid;background:rgba(14,25,88,.07);color:var(--azul)}
-.big{font:italic 400 2.6rem/1 'Playfair Display',serif;color:var(--azul);margin:.2rem 0 1.2rem}
-ul.ppl{list-style:none;padding:0;margin:1.2rem 0 1.6rem}
-ul.ppl li{display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.7rem 0;border-bottom:1px solid var(--g2);color:var(--azul)}
-ul.ppl li span{color:var(--texto);font-size:15px}
-ul.ppl li a{flex:none;font-size:14px;font-weight:600;color:#fff;background:var(--azul);text-decoration:none;padding:.45rem .8rem;border-radius:4px}
-.ok{width:96px;height:96px;margin:1.4rem 0 .6rem}
-.ok circle{fill:none;stroke:var(--azul);stroke-opacity:.25;stroke-width:3}
-.ok path{fill:none;stroke:var(--azul);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:50;stroke-dashoffset:50;animation:draw .7s .25s ease forwards}
-@keyframes draw{to{stroke-dashoffset:0}}
-.badge{display:inline-block;font-size:12.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:.35rem .8rem;border-radius:99px;background:var(--g1);color:var(--soft);margin-top:1rem}
-.badge.ok{background:rgba(29,122,70,.1);color:var(--ok)}
-.badge.bad{background:rgba(179,38,30,.08);color:var(--err)}
-.box{border:1px solid rgba(14,25,88,.28);border-radius:6px;padding:1rem;margin:1rem 0;background:#F6F7FB}
-.box b{color:var(--azul)}
-.timer{font-weight:600}
-footer{padding:1.2rem 1.25rem calc(1.4rem + env(safe-area-inset-bottom,0px));font-size:14.5px;color:var(--texto);border-top:1px solid var(--g2);text-align:center}
-footer a{color:var(--soft)}
-/* Portada */
-.step.hero.on{display:block;position:relative;padding:1.8rem 1.2rem 1.2rem}
-.frame i{position:absolute;width:20px;height:20px;border:1px solid var(--azul);opacity:.55}
-.frame i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0}.frame i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0}
-.frame i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0}.frame i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0}
-.wm{display:block;width:100%;height:auto;margin:.2rem 0 0;clip-path:inset(100% 0 0 0);animation:rise 1.1s .1s cubic-bezier(.7,0,.2,1) forwards}
-@keyframes rise{to{clip-path:inset(0)}}
-.lema{font:500 clamp(.78rem,3.5vw,.92rem)/1.7 'Jost','DM Sans',sans-serif;letter-spacing:.17em;text-transform:uppercase;text-align:center;color:var(--azul);margin:1.1rem 0 1.6rem}
-.lema span{display:block;white-space:nowrap}
-.date{display:flex;align-items:center;gap:1.1rem}
-.date b{font:italic 400 clamp(4.6rem,24vw,6.2rem)/.8 'Playfair Display',serif;color:var(--azul)}
-.date div{border-left:1px solid var(--azul);padding-left:1.1rem;display:grid;gap:.15rem}
-.date div span:first-child{font-weight:600}
-.venue{margin-top:1.1rem;color:var(--azul);font-size:1.05rem}
-.venue a{color:var(--soft);font-size:14px;margin-left:.3rem}
-.hero .lead{margin:1rem 0 0}
-.seal{display:flex;align-items:center;gap:.9rem;border:1px solid rgba(14,25,88,.28);border-radius:4px;padding:.9rem 1rem;margin:1.3rem 0 0;font-size:15.5px;color:var(--azul)}
-.seal .sb{flex:none;width:44px;height:8px;border-radius:2px;background:var(--azul)}
-.seal p{margin:0}
-.tix{display:grid;grid-template-columns:1fr 1fr;border:1px solid rgba(14,25,88,.28);border-radius:6px;background:#F6F7FB;margin-top:1.2rem}
-.tk{padding:1rem 1rem 1.1rem}.tk+.tk{border-left:1px dashed rgba(14,25,88,.35)}
-.tk span{display:block;font:italic 400 1.3rem 'Playfair Display',serif;color:var(--azul)}
-.tk small{display:block;font-size:15px;color:var(--texto);margin-bottom:.9rem}
-.tk b{font:italic 400 1.9rem/1 'Playfair Display',serif;color:var(--azul)}
-.hero .note{margin:1rem 0 1.4rem}
-.hero .cta{position:static;background:none;padding-top:.4rem}
-.night{margin:1.3rem 0 0;border-top:1px solid rgba(14,25,88,.28);border-bottom:1px solid rgba(14,25,88,.28);padding:1rem 0;text-align:center}
-.night .k{font:500 12px/1 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--texto)}
-.night .hl{font:italic 400 1.6rem/1.25 'Playfair Display',serif;color:var(--azul);margin:.5rem 0 .4rem}
-.night .inc{font-size:15.5px;color:var(--azul)}
-/* Variante negro y dorado */
-body.negro{--fondo:#0A0A0A;--g1:#151515;--g2:#2a2a2a;--g3:#8d8a80;--azul:#C8B273;--soft:#E0D3A9;--texto:#bdbab0;--err:#f0a99b;--ok:#8fd3a8;color-scheme:dark;color:#EDE9DE}
-body.negro{background:radial-gradient(120% 55% at 88% 0,rgba(200,178,115,.12),transparent 60%),#0A0A0A;background-attachment:fixed}
-body.negro .btn{color:#0A0A0A}body.negro .btn.ghost{color:var(--azul);border-color:rgba(200,178,115,.4)}body.negro .btn.wa{color:#fff}
-body.negro .lead,body.negro .venue,body.negro .seal,body.negro ul.ppl li,body.negro .night .inc,body.negro .date div span:not(:first-child),body.negro label,body.negro .chk{color:#EDE9DE}
-body.negro .tix,body.negro .box{background:linear-gradient(160deg,#161616,#0d0d0d);border-color:rgba(200,178,115,.3)}
-body.negro .seal,body.negro .night{border-color:rgba(200,178,115,.3)}body.negro .tk+.tk{border-left-color:rgba(200,178,115,.4)}
-body.negro input:not([type=checkbox]):not([type=file]),body.negro select{color:#fff}
-body.negro .chk input::after{border-color:#0A0A0A}
-body.negro ul.ppl li a{color:#0A0A0A}
-body.negro .badge{background:#1d1d1d}
+:root{--oro:#C8B273;--soft:#E0D3A9;--crema:#F3EEE2;--negro:#0A0A0A;--g1:#141414;--g2:#242424;--tx:#B9B5AA}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:clip}
+body{background:var(--negro);color:var(--crema);font:400 17px/1.6 'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
+img{display:block;max-width:100%}
+a{color:inherit}
+a:focus-visible,summary:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.w{width:100%;max-width:1120px;margin:0 auto;padding:0 22px}
+.eyebrow{font:500 12px/1.4 'Jost',sans-serif;letter-spacing:.3em;text-transform:uppercase;color:var(--oro)}
+h2{font:italic 400 clamp(36px,7vw,66px)/1.04 'Playfair Display',serif;color:#fff;margin:12px 0 18px}
+h2 em{font-style:normal;display:block;font-family:'Archivo',sans-serif;font-stretch:125%;font-weight:800;text-transform:uppercase;color:var(--oro);letter-spacing:-.02em;font-size:.78em;line-height:1}
+.lead{font-size:clamp(18px,2.4vw,21px);color:var(--tx);max-width:620px}
+section{padding:clamp(70px,10vw,130px) 0 0}
+.btn{display:inline-block;border-radius:99px;padding:16px 30px;font-weight:700;font-size:16px;letter-spacing:.03em;text-decoration:none;transition:transform .2s,background .2s}
+.btn:hover{transform:translateY(-2px)}
+.pri{background:var(--oro);color:var(--negro)}
+.sec{border:1px solid rgba(200,178,115,.6);color:var(--oro)}
 
-.cta{position:sticky;bottom:0;padding:1.2rem 0 calc(.6rem + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--fondo) 30%)}
-.hero>.lema,.hero>.date,.hero>.venue,.hero>.lead,.hero>.night,.hero>.seal,.hero>.tix,.hero>.note,.hero>.cta{opacity:0;animation:fade .9s ease forwards}
-.hero>.lema{animation-delay:.9s}.hero>.date{animation-delay:1.05s}.hero>.venue{animation-delay:1.15s}.hero>.lead{animation-delay:1.25s}.hero>.night{animation-delay:1.32s}.hero>.seal{animation-delay:1.4s}.hero>.tix{animation-delay:1.5s}.hero>.note{animation-delay:1.6s}.hero>.cta{animation-delay:1.7s}
-@keyframes fade{to{opacity:1}}
-@keyframes bump{40%{transform:scale(1.18)}}
-.bump{display:inline-block;animation:bump .3s ease}
-.hidden{display:none!important}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.ok path{stroke-dashoffset:0}.wm{clip-path:none!important}.hero>*{opacity:1!important}}
+header{position:fixed;top:0;left:0;right:0;z-index:20;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+header.solid{background:rgba(10,10,10,.94);border-color:var(--g2)}
+header .w{display:flex;align-items:center;gap:14px;height:68px}
+header img{width:40px;height:40px}
+header nav{margin-left:auto;display:flex;align-items:center;gap:22px;font-size:14.5px;font-weight:500}
+header nav a{text-decoration:none}
+header nav a.l{display:none}
+header .btn{padding:10px 18px;font-size:14px}
+header .team{border:1px solid rgba(243,238,226,.35);border-radius:99px;padding:8px 15px;font-size:14px}
+@media(min-width:820px){header nav a.l{display:inline}}
+
+.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:flex-end;overflow:hidden}
+.hero .ph{position:absolute;inset:0;background:url(/assets/vision/hero-vision.jpg) 50% 40%/cover no-repeat;animation:zoom 16s ease-out both}
+@keyframes zoom{from{transform:scale(1.14)}to{transform:scale(1.02)}}
+.hero .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,.7) 0%,rgba(10,10,10,.15) 28%,rgba(10,10,10,.78) 62%,var(--negro) 98%)}
+.hero .w{position:relative;padding-bottom:44px;text-align:center}
+.hero h1 img{width:100%;max-width:760px;margin:0 auto;height:auto}
+.hero .lema{font:italic 400 clamp(22px,4.4vw,36px)/1.25 'Playfair Display',serif;color:#fff;margin-top:18px}
+.hero .meta{margin-top:12px;color:#d8d4ca;font-size:clamp(15px,2vw,18px)}
+.hero .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:26px}
+.count{display:flex;justify-content:center;gap:clamp(16px,4vw,38px);margin-top:28px}
+.count b{display:block;font:italic 400 clamp(34px,7vw,54px)/1 'Playfair Display',serif;color:var(--oro);font-variant-numeric:tabular-nums}
+.count span{font:500 11px/1.6 'Jost',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--tx)}
+
+.steps{display:grid;gap:14px;margin-top:34px;counter-reset:s}
+@media(min-width:760px){.steps{grid-template-columns:repeat(3,1fr)}}
+.steps li{list-style:none;background:var(--g1);border:1px solid var(--g2);border-radius:20px;padding:26px}
+.steps li::before{counter-increment:s;content:counter(s);display:block;font:800 56px/1 'Archivo',sans-serif;font-stretch:125%;color:var(--oro)}
+.steps h3{font:italic 600 25px/1.2 'Playfair Display',serif;color:#fff;margin:12px 0 6px}
+.steps p{color:var(--tx);font-size:15.5px}
+
+details{border-top:1px solid var(--g2)}
+details:last-of-type{border-bottom:1px solid var(--g2)}
+summary{list-style:none;cursor:pointer;position:relative;padding:22px 44px 22px 0;font-weight:700;font-size:18px;color:#fff}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';position:absolute;right:6px;top:15px;font:400 30px/1 'DM Sans',sans-serif;color:var(--oro);transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{padding:0 0 22px;color:var(--tx);max-width:720px}
+
+.final{position:relative;margin-top:clamp(80px,11vw,140px);padding:clamp(90px,14vw,170px) 0;text-align:center;overflow:hidden}
+.final .ph{position:absolute;inset:0;background:url(/assets/vision/sitio/a-grupo.jpg) 50% 50%/cover no-repeat;opacity:.35}
+.final .ov{position:absolute;inset:0;background:linear-gradient(180deg,var(--negro),transparent 35%,transparent 65%,var(--negro))}
+.final .w{position:relative}
+.final h2{margin-bottom:28px}
+
+footer{border-top:1px solid var(--g2);padding:40px 0 calc(46px + env(safe-area-inset-bottom,0px));text-align:center;font-size:14.5px;color:#8d8a80}
+footer .s{font:italic 400 22px/1.4 'Playfair Display',serif;color:var(--soft);margin-bottom:18px}
+footer nav{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 24px}
+footer a{color:var(--crema)}
+
+
+/* Cinta */
+.tape{position:relative;z-index:2;overflow:hidden;background:var(--oro);color:var(--negro);transform:rotate(-2deg) scale(1.04);margin:-18px 0 0;padding:14px 0}
+.tape div{display:flex;width:max-content;animation:run 26s linear infinite}
+.tape span{font:800 clamp(24px,5vw,46px)/1 'Archivo',sans-serif;font-stretch:125%;text-transform:uppercase;white-space:nowrap;padding-right:28px}
+.tape span i{font:italic 400 1em 'Playfair Display',serif;text-transform:none;padding:0 22px}
+@keyframes run{to{transform:translateX(-50%)}}
+
+/* Manifiesto que se enciende al bajar */
+.say{padding:clamp(110px,18vw,220px) 0 clamp(60px,10vw,120px)}
+.say p{font:800 clamp(34px,7.4vw,92px)/1.06 'Archivo',sans-serif;font-stretch:125%;text-transform:uppercase;letter-spacing:-.02em;color:#fff;margin-top:22px}
+.js .say p span{opacity:.13;transition:opacity .35s}
+.js .say p span.on{opacity:1}
+.say p span.g{color:var(--oro);font-family:'Playfair Display',serif;font-style:italic;font-weight:400;text-transform:none;font-stretch:normal;letter-spacing:0}
+
+/* Capítulos a pantalla completa, uno sobre otro */
+.chap{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:flex-end;overflow:hidden;background:var(--negro);border-top:1px solid rgba(200,178,115,.45)}
+.chap .im{position:absolute;inset:0;background-position:50% 40%;background-size:cover}
+.chap::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,.35),rgba(10,10,10,.1) 35%,rgba(10,10,10,.9) 88%)}
+.chap .w{position:relative;z-index:1;padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
+.chap .num{font:italic 400 clamp(22px,3vw,30px) 'Playfair Display',serif;color:var(--oro)}
+.chap h3{font:800 clamp(48px,11.6vw,150px)/.9 'Archivo',sans-serif;font-stretch:125%;text-transform:uppercase;letter-spacing:-.03em;color:#fff;margin:8px 0 14px}
+.chap p{font-size:clamp(18px,2.6vw,24px);max-width:560px;color:#ddd8cc}
+.chap.last h3{color:var(--oro);font-size:clamp(34px,10.2vw,160px)}
+.secret{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 20px}
+.secret b{display:block;width:min(560px,86vw);height:clamp(44px,8vw,84px);border-radius:8px;background:linear-gradient(100deg,#2a2415 20%,var(--oro) 40%,#fff3cf 50%,var(--oro) 60%,#2a2415 80%);background-size:260% 100%;animation:shine 3.4s linear infinite}
+@keyframes shine{from{background-position:120% 0}to{background-position:-60% 0}}
+.secret small{font:500 12px/1 'Jost',sans-serif;letter-spacing:.3em;text-transform:uppercase;color:var(--soft)}
+
+/* Tiras de fotos */
+.film{overflow:hidden;margin-top:44px}
+.film div{display:flex;gap:10px;width:max-content;animation:run 60s linear infinite}
+.film + .film{margin-top:10px}
+.film + .film div{animation-direction:reverse;animation-duration:70s}
+.film:hover div{animation-play-state:paused}
+.film img{height:clamp(210px,34vw,400px);width:auto;border-radius:14px}
+
+/* Colores */
+.colors{display:flex;height:clamp(340px,52vw,540px);margin-top:40px}
+.colors button{flex:1;border:0;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding:22px 0;color:#12110f;font:800 clamp(18px,3.4vw,40px)/1 'Archivo',sans-serif;font-stretch:125%;text-transform:uppercase;writing-mode:vertical-rl;transition:flex .5s cubic-bezier(.2,.8,.2,1)}
+.colors button[aria-pressed=true]{flex:3.4}
+@media (hover:hover){.colors button:hover{flex:3.4}}
+
+/* Pasos */
+.steps li{background:none;border:0;border-top:2px solid var(--oro);border-radius:0;padding:22px 0}
+.steps li::before{font-size:clamp(90px,13vw,160px);color:transparent;-webkit-text-stroke:2px var(--oro)}
+
+/* Fecha gigante */
+.when{text-align:center}
+.when .big{font:800 clamp(100px,27vw,360px)/.86 'Archivo',sans-serif;font-stretch:125%;letter-spacing:-.05em;color:var(--oro);white-space:nowrap}
+.when h3{font:italic 400 clamp(28px,5vw,52px)/1.2 'Playfair Display',serif;color:#fff;margin-top:18px}
+.when p{color:var(--tx);margin-top:8px}
+.when .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:28px}
+
+/* Botón fijo en el celular */
+.dock{position:fixed;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:19;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.6);transform:translateY(160%);transition:transform .35s}
+.dock.show{transform:none}.dock.show:hover{transform:translateY(-2px)}
+@media(min-width:820px){.dock{display:none}}
+@media (prefers-reduced-motion:reduce){.tape div,.film div,.secret b{animation:none}.film{overflow-x:auto}.chap{position:relative}.js .say p span{opacity:1}}
+
+.js .r{opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s ease}
+.js .r.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hero .ph{animation:none}.js .r{opacity:1;transform:none}}
 </style>
 </head>
-<body class="negro">
-<div class="app">
-<header><a href="/" aria-label="Ir a LHSCOL"><img src="/assets/vision/logo-lhscol-dorado.png" alt="LHSCOL Comunidad" width="44" height="44"></a><div class="prog" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></div></header>
-<main>
+<body>
 
-<section class="step on hero" data-s="1">
-  <div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-  <img class="wm" src="/assets/vision/wordmark-dorado.png" alt="Visión 2027" width="1000" height="232">
-  <p class="lema" id="lema"><span>Celebramos lo vivido.</span><span>Descubrimos lo que viene.</span></p>
-  <div class="date"><b id="hDay">19</b><div><span id="hWd">Sábado</span><span id="hMo">diciembre de 2026</span><span id="hTime">6:00 a 9:00 p. m.</span></div></div>
-  <p class="venue"><span id="hVenue">Auditorio Fundación Batuta, Manizales, Caldas</span><a id="hMap" class="hidden" href="#" target="_blank" rel="noopener">Ver mapa</a></p>
-  <p class="lead">Estás invitado a vivir juntos el cierre de la temporada.</p>
-  <div class="night"><p class="k">Una noche especial</p><p class="hl" id="hHigh">Music · Mensaje · Temporada 2027</p><p class="inc" id="hIncl">Incluye comida y dos bebidas por persona.</p></div>
-  <div class="seal"><span class="sb" aria-hidden="true"></span><p>El nombre de la nueva temporada se revela esa noche.</p></div>
-  <div class="tix"><div class="tk"><span>Adulto</span><small id="adAges">Desde 12 años</small><b id="pA">$75.000</b></div><div class="tk"><span>Niño</span><small id="kidAges">De 2 a 11 años</small><b id="pN">$40.000</b></div></div>
-  <p class="note" id="hNote">Los menores de 2 años no pagan, pero no se registran ni incluyen alimentación. Cada persona tiene su propia boleta.</p>
-  <div class="cta"><button class="btn" id="goReg" data-go="2" disabled>Cargando…</button><p class="msg" id="m1" role="alert"></p></div>
-</section>
-
-<section class="step" data-s="2">
-  <h2>¿Quiénes asisten?</h2>
-  <p class="lead">Inscribe a toda tu familia en un solo pago. Cada persona recibe su boleta.</p>
-  <div class="row"><div><strong>Adultos</strong><small class="hint" id="hA">12 años en adelante</small></div><div class="ctr"><button type="button" data-k="a" data-d="-1" aria-label="Quitar un adulto">−</button><output id="na">1</output><button type="button" data-k="a" data-d="1" aria-label="Agregar un adulto">+</button></div></div>
-  <div class="row"><div><strong>Niños</strong><small class="hint" id="hN">De 2 a 11 años</small></div><div class="ctr"><button type="button" data-k="n" data-d="-1" aria-label="Quitar un niño">−</button><output id="nn">0</output><button type="button" data-k="n" data-d="1" aria-label="Agregar un niño">+</button></div></div>
-  <p class="note" id="maxNote">Los bebés menores de 2 años no se registran. Máximo 10 personas por inscripción.</p>
-  <div class="bar"><div class="sum"><span id="det">1 adulto</span><b id="t2"></b></div><button class="btn" type="button" data-go="3">Continuar</button><button class="btn ghost" type="button" data-go="1">Volver</button></div>
-</section>
-
-<section class="step" data-s="3">
-  <h2>Datos de los asistentes</h2>
-  <p class="lead">Solo pedimos lo necesario. Los niños no necesitan WhatsApp propio.</p>
-  <form id="frm" novalidate>
-    <div id="people"></div>
-    <label id="mesaWrap" class="hidden" style="margin:-.6rem 0 1.4rem">¿A qué Mesa asistes?
-      <select id="mesa" name="mesa" required><option value="">Escoge una opción</option></select></label>
-    <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Sitio web<input type="text" id="website" tabindex="-1" autocomplete="off"></label></div>
-    <label class="chk"><input type="checkbox" id="c1"><span>Autorizo a LHSCOL a usar mis datos y los de las personas que inscribo solo para gestionar su asistencia a Visión 2027.</span></label>
-    <label class="chk" id="kidsConsent" hidden><input type="checkbox" id="c2"><span>Soy padre, madre o acudiente de los niños inscritos y autorizo el uso de sus datos para este fin.</span></label>
-    <p class="msg" id="m3" role="alert"></p>
-    <div class="bar"><div class="sum"><span>Total</span><b id="t3"></b></div><button class="btn" type="submit" id="send3">Ir al pago</button><button class="btn ghost" type="button" data-go="2">Volver</button></div>
-  </form>
-</section>
-
-<section class="step" data-s="4">
-  <span class="badge bad hidden" id="pBadge"></span>
-  <h2 id="pTitle">Pago</h2>
-  <div class="box hidden" id="pReason"></div>
-  <p>Total a pagar</p>
-  <div class="big" id="t4"></div>
-  <p class="note" id="pHold"></p>
-  <p class="note" id="refund" style="margin-top:-.8rem"></p>
-  <a class="btn" id="payLink" href="#" target="_blank" rel="noopener">Pagar con enlace de pago</a>
-  <div id="qrWrap" class="hidden"><p class="note" style="margin-top:1.4rem">O escanea este código QR desde tu app bancaria:</p>
-    <div class="qr"><img id="qrImg" alt="Código QR de pago de LHSCOL" loading="lazy"></div></div>
-  <h2 style="font-size:1.5rem;margin-top:1.6rem">Adjunta tu comprobante</h2>
-  <p class="hint" style="margin-bottom:.8rem">Una captura o foto del pago, en JPG, PNG o PDF de hasta 5 MB.</p>
-  <label class="drop"><input type="file" id="file" accept="image/jpeg,image/png,application/pdf"><span id="fname">Toca para elegir una foto o un PDF</span></label>
-  <p class="msg" id="fmsg" role="alert"></p>
-  <div class="bar"><button class="btn" id="sendProof" type="button" disabled>Enviar comprobante</button><button class="link" type="button" id="later">Pago después: guardar mi enlace</button></div>
-</section>
-
-<section class="step" data-s="5">
-  <svg class="ok" id="okIcon" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="35"/><path d="M24 39l10 10 19-21"/></svg>
-  <span class="badge" id="sBadge"></span>
-  <h2 id="sTitle">Solicitud recibida</h2>
-  <p class="lead" id="sText"></p>
-  <ul class="ppl" id="list"></ul>
-  <div id="sBtns">
-    <a class="btn wa" id="saveWa" href="#" target="_blank" rel="noopener">Guardar mi enlace en WhatsApp</a>
-    <a class="btn ghost" id="gcal" href="#" target="_blank" rel="noopener">Agregar a Google Calendar</a>
-    <button class="link" type="button" id="copyLink">Copiar mi enlace</button>
+<header id="top">
+  <div class="w">
+    <a href="/" aria-label="Ir a LHSCOL"><img src="/assets/vision/logo-lhscol-dorado.png" alt="LHSCOL Comunidad" width="40" height="40"></a>
+    <nav aria-label="Principal">
+      <a class="l" href="#noche">La noche</a>
+      <a class="l" href="#color">Tu color</a>
+      <a class="l" href="#lugar">Fecha y lugar</a>
+      <a class="l" href="#preguntas">Preguntas</a>
+      <a class="team" href="/vision/equipo/#entrar">Equipo</a>
+      <a class="btn pri js-reg" href="/vision/inscripcion/">Inscríbete</a>
+    </nav>
   </div>
-</section>
+</header>
 
-<section class="step" data-s="8">
-  <h2>Lista de espera</h2>
-  <p class="lead">Por ahora los cupos están completos. Déjanos tus datos y te escribimos por WhatsApp si se libera un cupo.</p>
-  <form id="wfrm" novalidate>
-    <fieldset><legend>Tus datos</legend>
-      <label>Nombre completo<input id="wName" autocomplete="name" maxlength="60"></label>
-      <label>WhatsApp<input id="wPhone" type="tel" inputmode="tel" placeholder="300 000 0000" autocomplete="tel" maxlength="20"></label>
-    </fieldset>
-    <div class="row"><div><strong>Adultos</strong></div><div class="ctr"><button type="button" data-w="a" data-d="-1" aria-label="Quitar un adulto">−</button><output id="wa">1</output><button type="button" data-w="a" data-d="1" aria-label="Agregar un adulto">+</button></div></div>
-    <div class="row"><div><strong>Niños</strong></div><div class="ctr"><button type="button" data-w="n" data-d="-1" aria-label="Quitar un niño">−</button><output id="wn">0</output><button type="button" data-w="n" data-d="1" aria-label="Agregar un niño">+</button></div></div>
-    <label class="chk"><input type="checkbox" id="wc"><span>Autorizo a LHSCOL a usar estos datos solo para avisarme si hay cupo en Visión 2027.</span></label>
-    <p class="msg" id="wm" role="alert"></p>
-    <div class="bar"><button class="btn" type="submit" id="wGo">Unirme a la lista de espera</button><button class="btn ghost" type="button" data-go="1">Volver</button></div>
-  </form>
-</section>
-
-<section class="step" data-s="9">
-  <h2 id="xTitle">Inscripciones cerradas</h2>
-  <p class="lead" id="xText">Gracias por tu interés. Escríbenos por WhatsApp si tienes alguna pregunta.</p>
-  <a class="btn wa" href="https://wa.me/573043229348" target="_blank" rel="noopener">Escribir por WhatsApp</a>
-  <button class="btn ghost" type="button" data-go="1">Volver al inicio</button>
-</section>
-
-</main>
-<footer>¿Dudas? <a href="https://wa.me/573043229348" target="_blank" rel="noopener">Escríbenos por WhatsApp</a><br>LHSCOL · Manizales</footer>
+<div class="hero">
+  <div class="ph"></div><div class="ov"></div>
+  <div class="w">
+    <h1><img src="/assets/vision/wordmark-dorado.png" alt="Visión 2027" width="1000" height="232"></h1>
+    <p class="lema">Celebramos lo vivido. Descubrimos lo que viene.</p>
+    <p class="meta" id="meta">Sábado 19 de diciembre · 6:00 p. m. · Auditorio Fundación Batuta, Manizales</p>
+    <div class="cta">
+      <a class="btn pri js-reg" href="/vision/inscripcion/">Quiero ir · Inscribirme</a>
+      <a class="btn sec" href="#noche">Ver la noche</a>
+    </div>
+    <div class="count" id="count" hidden>
+      <div><b id="cd">0</b><span>días</span></div><div><b id="ch">00</b><span>horas</span></div><div><b id="cm">00</b><span>min</span></div>
+    </div>
+  </div>
 </div>
+
+<div class="tape" aria-hidden="true"><div><span>Celebramos lo vivido<i>·</i>Descubrimos lo que viene<i>·</i></span><span>Celebramos lo vivido<i>·</i>Descubrimos lo que viene<i>·</i></span><span>Celebramos lo vivido<i>·</i>Descubrimos lo que viene<i>·</i></span><span>Celebramos lo vivido<i>·</i>Descubrimos lo que viene<i>·</i></span></div></div>
+
+<main>
+  <section class="say" aria-label="Un año se cierra y otro se abre. Vamos a vivirlo juntos.">
+    <div class="w">
+      <div class="eyebrow">La experiencia de fin de año de LHSCOL</div>
+      <p id="say" aria-hidden="true"><span>Un</span> <span>año</span> <span>se</span> <span>cierra</span> <span>y</span> <span>otro</span> <span>se</span> <span>abre.</span> <span>Vamos</span> <span>a</span> <span>vivirlo</span> <span class="g">juntos.</span></p>
+    </div>
+  </section>
+
+  <div id="noche">
+    <article class="chap"><div class="im" style="background-image:url(/assets/vision/sitio/music.jpg);background-position:68% 30%" role="img" aria-label="Las voces de LHSCOL cantando en vivo"></div><div class="w"><div class="num">Primero · @lhscolmusic</div><h3>Music</h3><p>La banda de la casa en vivo. Para cantar, saltar y celebrar lo que vivimos.</p></div></article>
+    <article class="chap"><div class="im" style="background-image:url(/assets/vision/sitio/mensaje.jpg);background-position:84% 40%" role="img" aria-label="El mensaje en una noche de LHSCOL"></div><div class="w"><div class="num">Después · para ti</div><h3>Mensaje</h3><p>Palabras directas y prácticas para cerrar este año y empezar el siguiente con dirección.</p></div></article>
+    <article class="chap last"><div class="im" style="background-image:url(/assets/vision/sitio/a-luces.jpg)" role="img" aria-label="Celebración con luces en el escenario"></div><div class="w"><div class="num">El momento central</div><h3>Temporada 2027</h3><div class="secret"><b aria-hidden="true"></b><small>Su nombre se revela esa noche</small></div><p>No lo vamos a contar antes. Hay que estar ahí.</p></div></article>
+  </div>
+
+  <section aria-label="Fotos">
+    <div class="w r">
+      <div class="eyebrow">Así se vive en casa</div>
+      <h2>Ven como <em>estás</em></h2>
+      <p class="lead">Si vienes solo, con tu familia o con amigos, aquí hay un lugar para ti.</p>
+    </div>
+    <div class="film" aria-hidden="true"><div><img src="/assets/vision/sitio/a-banda-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-grupo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-mano.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-familia.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-publico-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-selfie.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-abrazo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-guitarra.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-banda-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-grupo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-mano.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-familia.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-publico-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-selfie.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-abrazo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-guitarra.jpg" alt="" loading="lazy"></div></div>
+    <div class="film" aria-hidden="true"><div><img src="/assets/vision/sitio/c-grupo-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-adora.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-nina.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-grupo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-pareja.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-cafe.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-mirando.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-grupo-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-adora.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-nina.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-grupo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-pareja.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-cafe.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-mirando.jpg" alt="" loading="lazy"></div></div>
+    <div class="w"><p class="cap">Fotos del Aniversario #4 y de la experiencia campestre 2025.</p></div>
+  </section>
+
+  <section id="color">
+    <div class="w r">
+      <div class="eyebrow">Código de vestuario</div>
+      <h2>Ponle tu color a la <em>noche</em></h2>
+      <p class="lead">En tu boleta viene un color sugerido. Úsalo en una prenda o accesorio, en ese tono o parecido. Es opcional.</p>
+    </div>
+    <div class="colors r" aria-label="Colores sugeridos">
+      <button type="button" aria-pressed="true" style="background:#ff7f57">Coral</button><button type="button" aria-pressed="false" style="background:#e6b24c">Mostaza</button><button type="button" aria-pressed="false" style="background:#a3cc72">Verde</button><button type="button" aria-pressed="false" style="background:#6cc0c4">Turquesa</button><button type="button" aria-pressed="false" style="background:#97a4e6">Lila</button>
+    </div>
+  </section>
+
+  <section id="inscripcion">
+    <div class="w">
+      <div class="r">
+        <div class="eyebrow">Es fácil</div>
+        <h2>Aparta tu <em>lugar</em></h2>
+        <p class="lead" id="until">Inscripciones abiertas hasta el 15 de diciembre.</p>
+      </div>
+      <ol class="steps">
+        <li class="r"><h3>Inscribe a tu grupo</h3><p>Un solo registro para ti, tu familia o quienes vengan contigo. Cada persona tiene su boleta.</p></li>
+        <li class="r"><h3>Paga y adjunta</h3><p>Haz el pago y sube el comprobante en el mismo enlace. Ahí ves los valores y los medios de pago.</p></li>
+        <li class="r"><h3>Recibe tu boleta</h3><p>Cuando aprobemos el pago, te llega por WhatsApp con tu código y tu color. Muéstrala en la entrada.</p></li>
+      </ol>
+      <p class="r" style="margin-top:28px"><a class="btn pri js-reg" href="/vision/inscripcion/">Inscribirme</a></p>
+    </div>
+  </section>
+
+  <section id="lugar" class="when">
+    <div class="w r">
+      <div class="eyebrow">Fecha y lugar</div>
+      <div class="big"><span id="dnum">19</span>.<span id="dmon">12</span></div>
+      <h3 id="venue">Auditorio Fundación Batuta</h3>
+      <p id="when">Sábado · 6:00 a 9:00 p. m. · Manizales, Caldas</p>
+      <div class="cta">
+        <a class="btn sec" id="map" href="https://www.google.com/maps/search/?api=1&query=Auditorio+Fundaci%C3%B3n+Batuta+Manizales" target="_blank" rel="noopener">Cómo llegar</a>
+        <a class="btn sec" id="cal" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Visi%C3%B3n+2027&dates=20261219T230000Z/20261220T020000Z&location=Auditorio+Fundaci%C3%B3n+Batuta%2C+Manizales" target="_blank" rel="noopener">Agregar a mi calendario</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="preguntas">
+    <div class="w">
+      <div class="r">
+        <div class="eyebrow">Antes de venir</div>
+        <h2>Preguntas <em>frecuentes</em></h2>
+      </div>
+      <div class="r">
+        <details><summary>Nunca he ido a LHSCOL, ¿puedo ir?</summary><p>Claro. Esta noche es para toda persona que quiera vivirla, hayas venido antes o no. Ven como estás.</p></details>
+        <details><summary>¿Pueden ir niños?</summary><p>Sí. De 2 a 11 años se inscriben como niños y cada uno tiene su boleta. Los menores de 2 años no necesitan registro.</p></details>
+        <details><summary>¿Cuántas personas puedo inscribir?</summary><p>Hasta diez en un mismo registro, con al menos un adulto responsable.</p></details>
+        <details><summary>¿Cuándo queda confirmado mi cupo?</summary><p>Cuando aprobemos tu pago. En ese momento te enviamos las boletas por WhatsApp.</p></details>
+        <details><summary>Ya me inscribí y no he adjuntado el comprobante</summary><p>Abre el enlace de tu inscripción y súbelo ahí. Si no lo tienes, escríbenos por WhatsApp.</p></details>
+        <details><summary>¿Hay devoluciones?</summary><p>Solo por fuerza mayor, por ejemplo un accidente o una calamidad. Si no puedes asistir, escríbenos.</p></details>
+        <details><summary>¿Tengo que ir vestido de un color?</summary><p>No es obligatorio. Es una invitación: el color de tu boleta, o uno parecido, en una prenda o accesorio.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <div class="final">
+    <div class="ph"></div><div class="ov"></div>
+    <div class="w r">
+      <h2>Nos vemos el <em id="fday">19 de diciembre</em></h2>
+      <a class="btn pri js-reg" href="/vision/inscripcion/">Quiero ir · Inscribirme</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="w">
+    <p class="s">Un lugar donde puedes pertenecer, incluso antes de creer.</p>
+    <nav aria-label="Más">
+      <a href="https://wa.me/573043229348" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+      <a href="https://www.instagram.com/lhscol/" target="_blank" rel="noopener">@lhscol</a>
+      <a href="/">LHSCOL</a>
+      <a href="/vision/equipo/#entrar">Equipo</a>
+    </nav>
+  </div>
+</footer>
+<a class="btn pri dock js-reg" id="dock" href="/vision/inscripcion/">Quiero ir · Inscribirme</a>
+
 <script>
 (function(){
-  var API = '/api/vision', SITE = 'https://lhscolweb.netlify.app';
-  var $ = function(s){ return document.querySelector(s); }, $$ = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
-  var E = null, state = null, mesas = [], noMesa = 'Aún no asiste a una Mesa';
-  var st = {a:1, n:0, file:null}, built = '', grp = null, gToken = null, startedAt = Date.now(), timerT = null;
-  var qs = new URLSearchParams(location.search);
-  function setTheme(t){
-    var dark = t === 'negro';
-    document.body.classList.toggle('negro', dark);
-    document.querySelector('.wm').src = '/assets/vision/wordmark' + (dark ? '-dorado' : '') + '.png';
-    document.querySelector('header img').src = '/assets/vision/logo-lhscol-' + (dark ? 'dorado' : 'azul') + '.png';
-    document.querySelector('meta[name=theme-color]').content = dark ? '#0A0A0A' : '#ffffff';
-  }
-  var store = {
-    get: function(k){ try { return JSON.parse(localStorage.getItem('vision.'+k)); } catch(e){ return null; } },
-    set: function(k,v){ try { localStorage.setItem('vision.'+k, JSON.stringify(v)); } catch(e){} }
-  };
-  var cop = function(n){ return '$' + Number(n||0).toLocaleString('es-CO') + ' COP'; };
-  var money = function(n){ return '$' + Number(n||0).toLocaleString('es-CO'); };
-  var esc = function(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
-  var cap = function(s){ return s.charAt(0).toUpperCase() + s.slice(1); };
-  function hm(iso){ return new Date(iso).toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit',timeZone:'America/Bogota'}).replace(/\s?a\.\s?m\./,' a. m.').replace(/\s?p\.\s?m\./,' p. m.'); }
-  function api(path, opts){
-    opts = opts || {};
-    var init = {method: opts.method || 'GET'};
-    if (opts.raw) { init.body = opts.raw; init.headers = {'content-type': opts.raw.type || 'application/octet-stream'}; }
-    else if (opts.body) { init.body = JSON.stringify(opts.body); init.headers = {'content-type':'application/json'}; }
-    return fetch(API + path, init).then(function(r){ return r.json().catch(function(){ return {ok:false, message: r.status === 413 ? 'El archivo es muy pesado. Prueba con una captura.' : 'Respuesta inválida del servidor.'}; }); });
-  }
-  function link(t){ return SITE + '/vision/?g=' + t; }
-  function total(){ return st.a * E.prices.adult + st.n * E.prices.child; }
+  var $ = function(id){ return document.getElementById(id); };
+  var head = $('top');
+  function solid(){ head.classList.toggle('solid', scrollY > 40); }
+  addEventListener('scroll', solid, {passive:true}); solid();
+  var items = document.querySelectorAll('.r');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, {threshold:.08});
+    items.forEach(function(el){ io.observe(el); });
+  } else items.forEach(function(el){ el.classList.add('in'); });
 
-  function go(n){
-    $$('.step').forEach(function(e){ e.classList.toggle('on', +e.dataset.s === n); });
-    $$('.prog i').forEach(function(e,i){ e.classList.toggle('on', i < Math.min(n,5)); });
-    if (n === 3) buildForm();
-    window.scrollTo({top:0});
-  }
-  $$('[data-go]').forEach(function(b){ b.addEventListener('click', function(){ go(+b.dataset.go); }); });
-
-  // ── Portada con los datos de la edición
+  // El manifiesto se enciende palabra por palabra y la portada se mueve más despacio que la página
+  var say = [].slice.call(document.querySelectorAll('#say span')), hero = document.querySelector('.hero .ph'), dock = $('dock'), waiting = false;
+  var calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function paint(){
-    var d = new Date(E.startsAt);
-    var o = {timeZone:'America/Bogota'};
-    $('#hDay').textContent = d.toLocaleDateString('es-CO', Object.assign({day:'numeric'}, o));
-    $('#hWd').textContent = cap(d.toLocaleDateString('es-CO', Object.assign({weekday:'long'}, o)));
-    $('#hMo').textContent = d.toLocaleDateString('es-CO', Object.assign({month:'long'}, o)) + ' de ' + d.toLocaleDateString('es-CO', Object.assign({year:'numeric'}, o));
-    $('#hTime').textContent = hm(E.startsAt).replace(/ (a|p)\. m\./,'') + ' a ' + hm(E.endsAt);
-    $('#hVenue').textContent = E.venue + (E.city ? ', ' + E.city : '');
-    if (E.mapsUrl) { $('#hMap').href = E.mapsUrl; $('#hMap').classList.remove('hidden'); }
-    if (E.includes) $('#hIncl').textContent = E.includes;
-    if (E.highlights) $('#hHigh').textContent = E.highlights;
-    $('#adAges').textContent = 'Desde ' + (E.childAgeMax + 1) + ' años';
-    setTheme(qs.get('tema') || E.theme);
-    if (E.tagline) { var parts = E.tagline.replace(/\.\s+/g, '.\n').split('\n'); $('#lema').innerHTML = parts.map(function(p){ return '<span>' + esc(p) + '</span>'; }).join(''); }
-    $('#pA').textContent = money(E.prices.adult); $('#pN').textContent = money(E.prices.child);
-    var ages = 'De ' + E.childAgeMin + ' a ' + E.childAgeMax + ' años';
-    $('#kidAges').textContent = ages;
-    $('#hA').textContent = (E.childAgeMax + 1) + ' años en adelante, ' + money(E.prices.adult) + ' c/u';
-    $('#hN').textContent = ages + ', ' + money(E.prices.child) + ' c/u';
-    $('#maxNote').textContent = 'Los bebés menores de ' + E.childAgeMin + ' años no se registran. Máximo ' + E.maxGroup + ' personas por inscripción.';
-    if (E.closeAt) $('#hNote').textContent += ' Inscripciones abiertas hasta el ' + new Date(E.closeAt).toLocaleDateString('es-CO',{day:'numeric',month:'long',timeZone:'America/Bogota'}) + '.';
-    var b = $('#goReg');
-    b.disabled = state !== 'open' && state !== 'full';
-    b.textContent = state === 'open' ? 'Inscribirme' : state === 'full' ? 'Unirme a la lista de espera' : 'Inscripciones cerradas';
-    b.dataset.go = state === 'full' ? '8' : '2';
-    $('#m1').textContent = state === 'full' ? 'Por ahora los cupos están completos. Si se libera alguno, te avisamos.' : '';
-    $('#refund').textContent = E.refundText || '';
-    render2();
+    waiting = false;
+    var box = $('say').getBoundingClientRect(), done = (innerHeight * .88 - box.top) / (box.height + innerHeight * .25);
+    say.forEach(function(w, i){ w.classList.toggle('on', i < Math.ceil(done * say.length)); });
+    if (!calm && scrollY < innerHeight * 1.2) hero.style.translate = '0 ' + Math.round(scrollY * .25) + 'px';
+    dock.classList.toggle('show', scrollY > innerHeight * .8);
   }
-
-  // ── Paso 2: cuántos
-  function render2(){
-    var before = ['#na','#nn','#t2'].map(function(i){ return $(i).textContent; });
-    $('#na').textContent = st.a; $('#nn').textContent = st.n;
-    $('#det').textContent = st.a + (st.a === 1 ? ' adulto' : ' adultos') + (st.n ? ' y ' + st.n + (st.n === 1 ? ' niño' : ' niños') : '');
-    $('#t2').textContent = cop(total());
-    ['#na','#nn','#t2'].forEach(function(i,k){ var e = $(i); if (e.textContent !== before[k]) { e.classList.remove('bump'); void e.offsetWidth; e.classList.add('bump'); } });
-  }
-  $$('[data-k]').forEach(function(b){ b.addEventListener('click', function(){
-    var k = b.dataset.k, d = +b.dataset.d, v = st[k] + d;
-    if (v < (k === 'a' ? 1 : 0) || (d > 0 && st.a + st.n >= E.maxGroup)) return;
-    st[k] = v; render2();
-  }); });
-
-  // ── Paso 3: datos
-  function card(t, id, type){
-    var h = '<fieldset><legend>' + t + '</legend><label>Nombre<input name="' + id + 'n" autocomplete="' + (type === 'resp' ? 'given-name' : 'off') + '" maxlength="40" required></label><label>Apellido<input name="' + id + 'l" autocomplete="' + (type === 'resp' ? 'family-name' : 'off') + '" maxlength="40" required></label>';
-    if (type === 'resp') h += '<label>WhatsApp<input name="wa" type="tel" inputmode="tel" placeholder="300 000 0000" autocomplete="tel" maxlength="20" required></label><span class="hint">Aquí enviaremos las boletas de todo tu grupo.</span>';
-    if (type === 'kid') { h += '<label>Edad<select name="' + id + 'e" required><option value="">Elige la edad</option>'; for (var x = E.childAgeMin; x <= E.childAgeMax; x++) h += '<option value="' + x + '">' + x + ' años</option>'; h += '</select></label>'; }
-    return h + '</fieldset>';
-  }
-  function buildForm(){
-    $('#t3').textContent = cop(total());
-    var key = st.a + '-' + st.n; if (key === built) return; built = key;
-    var keep = {}; $$('#people input,#people select').forEach(function(f){ keep[f.name] = f.value; });
-    var h = '', i;
-    for (i = 1; i <= st.a; i++) h += card('Adulto ' + i + (i === 1 ? ' (responsable)' : ''), 'a' + i, i === 1 ? 'resp' : 'ad');
-    for (i = 1; i <= st.n; i++) h += card('Niño ' + i, 'n' + i, 'kid');
-    $('#people').innerHTML = h; $('#kidsConsent').hidden = !st.n;
-    $$('#people input,#people select').forEach(function(f){ if (keep[f.name]) f.value = keep[f.name]; });
-  }
-  function v(n){ var el = document.querySelector('[name="' + n + '"]'); return el ? el.value.trim() : ''; }
-  $('#frm').addEventListener('submit', function(e){
-    e.preventDefault(); var bad = 0;
-    $$('#frm input[required],#frm select[required]').forEach(function(f){
-      var val = f.value.trim(), ok = val.length >= (f.tagName === 'SELECT' ? 1 : 2);
-      if (ok && f.name === 'wa') { var d = val.replace(/\D/g,''); ok = /^(57)?3\d{9}$/.test(d) || (val.charAt(0) === '+' && d.length >= 8); }
-      f.setAttribute('aria-invalid', ok ? 'false' : 'true'); if (!ok) bad++;
-    });
-    var c1 = $('#c1').checked, c2 = !st.n || $('#c2').checked, m = $('#m3');
-    m.textContent = bad ? 'Revisa los campos marcados. El WhatsApp debe ser un celular de 10 dígitos (o con + y el indicativo).' : (!c1 || !c2) ? 'Marca las autorizaciones para continuar.' : '';
-    if (bad || !c1 || !c2) return;
-    var adults = [], children = [], i;
-    for (i = 1; i <= st.a; i++) adults.push({firstName: v('a'+i+'n'), lastName: v('a'+i+'l')});
-    for (i = 1; i <= st.n; i++) children.push({firstName: v('n'+i+'n'), lastName: v('n'+i+'l'), age: +v('n'+i+'e')});
-    var btn = $('#send3'); btn.disabled = true; btn.textContent = 'Reservando…';
-    api('/register', {method:'POST', body:{adults:adults, children:children, phone: v('wa'), mesa: $('#mesa').value, consent:true, guardian: !!st.n && $('#c2').checked, website: $('#website').value, startedAt: startedAt}}).then(function(r){
-      btn.disabled = false; btn.textContent = 'Ir al pago';
-      if (!r.ok && r.error === 'full') { state = 'full'; paint(); $('#wName').value = v('a1n') + ' ' + v('a1l'); $('#wPhone').value = v('wa'); ws.a = st.a; ws.n = st.n; renderW(); go(8); $('#wm').textContent = 'No alcanzan los cupos para tu grupo. Únete a la lista de espera y te avisamos.'; return; }
-      if (!r.ok) { m.textContent = r.message || 'No pudimos completar la inscripción.'; return; }
-      gToken = r.token; store.set('group', {edition: E.id, token: r.token});
-      history.replaceState(null, '', '/vision/?g=' + r.token);
-      loadGroup(r.token, true);
-    }).catch(function(){ btn.disabled = false; btn.textContent = 'Ir al pago'; m.textContent = 'Sin conexión. Revisa tu internet e intenta de nuevo.'; });
+  addEventListener('scroll', function(){ if (!waiting) { waiting = true; requestAnimationFrame(paint); } }, {passive:true}); paint();
+  document.querySelector('.colors').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    this.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-pressed', x === b); });
   });
 
-  // ── Lista de espera
-  var ws = {a:1, n:0};
-  function renderW(){ $('#wa').textContent = ws.a; $('#wn').textContent = ws.n; }
-  $$('[data-w]').forEach(function(b){ b.addEventListener('click', function(){
-    var k = b.dataset.w, val = ws[k] + (+b.dataset.d); if (val < (k === 'a' ? 1 : 0) || val > 10) return; ws[k] = val; renderW();
-  }); });
-  $('#wfrm').addEventListener('submit', function(e){
-    e.preventDefault(); var m = $('#wm'), btn = $('#wGo');
-    if ($('#wName').value.trim().length < 3) { m.textContent = 'Escribe tu nombre completo.'; return; }
-    if ($('#wPhone').value.replace(/\D/g,'').length < 10) { m.textContent = 'Escribe tu WhatsApp (10 dígitos).'; return; }
-    if (!$('#wc').checked) { m.textContent = 'Marca la autorización para continuar.'; return; }
-    btn.disabled = true;
-    api('/waitlist', {method:'POST', body:{name:$('#wName').value, phone:$('#wPhone').value, adults:ws.a, children:ws.n, consent:true, website:$('#website').value, startedAt:startedAt}}).then(function(r){
-      btn.disabled = false;
-      if (!r.ok && r.error === 'open') { state = 'open'; paint(); go(2); return; }
-      if (!r.ok) { m.textContent = r.message || 'No pudimos guardar tus datos.'; return; }
-      $('#xTitle').textContent = r.already ? 'Ya estás en la lista' : 'Quedaste en la lista de espera';
-      $('#xText').textContent = 'Si se libera un cupo, te escribimos por WhatsApp. Gracias por tu paciencia.';
-      go(9);
-    }).catch(function(){ btn.disabled = false; m.textContent = 'Sin conexión. Intenta de nuevo.'; });
-  });
+  var start = new Date('2026-12-19T18:00:00-05:00');
+  function tick(){
+    var left = start - new Date();
+    $('count').hidden = left <= 0;
+    if (left <= 0) return;
+    var m = Math.floor(left / 60000);
+    $('cd').textContent = Math.floor(m / 1440); $('ch').textContent = ('0' + Math.floor(m / 60) % 24).slice(-2); $('cm').textContent = ('0' + m % 60).slice(-2);
+  }
+  tick(); setInterval(tick, 30000);
 
-  // ── Paso 4: pago y comprobante
-  function showPay(g){
-    $('#t4').textContent = cop(g.expected);
-    $('#payLink').href = g.paymentUrl || '#'; $('#payLink').classList.toggle('hidden', !g.paymentUrl);
-    $('#qrWrap').classList.toggle('hidden', !g.hasQr);
-    if (g.hasQr && !$('#qrImg').src) $('#qrImg').src = API + '/qr';
-    var rej = g.status === 'rechazado' || g.status === 'incompleto';
-    $('#pBadge').classList.toggle('hidden', !rej && g.status !== 'vencido');
-    $('#pBadge').textContent = g.status === 'vencido' ? 'Reserva vencida' : g.status === 'incompleto' ? 'Pago incompleto' : 'Comprobante rechazado';
-    $('#pTitle').textContent = rej ? 'Corrige tu comprobante' : 'Pago';
-    $('#pReason').classList.toggle('hidden', !rej);
-    $('#pReason').innerHTML = rej ? '<b>Motivo:</b> ' + esc(g.reason) : '';
-    clearInterval(timerT);
-    var hold = $('#pHold');
-    if (g.holdUntil) {
-      var tick = function(){
-        var ms = Date.parse(g.holdUntil) - Date.now();
-        if (ms <= 0) { hold.innerHTML = 'Tu reserva venció, pero aún puedes enviar el comprobante: si hay cupo, lo validamos.'; clearInterval(timerT); return; }
-        var mins = Math.ceil(ms / 60000);
-        hold.innerHTML = 'Tu cupo queda reservado por <span class="timer">' + (mins >= 120 ? Math.round(mins/60) + ' horas' : mins + ' min') + '</span>. Paga y adjunta el comprobante antes de que se acabe el tiempo.';
-      };
-      tick(); timerT = setInterval(tick, 20000);
-    } else hold.textContent = g.status === 'vencido' ? 'Tu reserva venció, pero aún puedes enviar el comprobante: si hay cupo, lo validamos.' : '';
-    go(4);
-  }
-  function compress(f){
-    return new Promise(function(resolve){
-      if (f.type === 'application/pdf' || f.size < 1200000 || !window.createImageBitmap) return resolve(f);
-      createImageBitmap(f).then(function(img){
-        var s = Math.min(1, 1800 / Math.max(img.width, img.height)), c = document.createElement('canvas');
-        c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-        c.toBlob(function(b){ resolve(b && b.size < f.size ? b : f); }, 'image/jpeg', .85);
-      }).catch(function(){ resolve(f); });
-    });
-  }
-  $('#file').addEventListener('change', function(e){
-    var f = e.target.files[0], m = $('#fmsg'); st.file = null; m.textContent = '';
-    if (f) {
-      if (['image/jpeg','image/png','application/pdf'].indexOf(f.type) < 0) m.textContent = 'Solo se aceptan archivos JPG, PNG o PDF.';
-      else if (f.type === 'application/pdf' && f.size > 5*1024*1024) m.textContent = 'El PDF supera los 5 MB. Prueba con una captura.';
-      else st.file = f;
-    }
-    $('#fname').textContent = st.file ? st.file.name : 'Toca para elegir una foto o un PDF';
-    $('#sendProof').disabled = !st.file; $('.drop').classList.toggle('has', !!st.file);
-  });
-  $('#sendProof').addEventListener('click', function(){
-    var b = this, m = $('#fmsg'); b.disabled = true; b.textContent = 'Enviando…';
-    compress(st.file).then(function(blob){
-      if (blob.size > 5*1024*1024) throw {message:'El archivo supera los 5 MB. Prueba con una captura más liviana.'};
-      return api('/g/' + gToken + '/proof', {method:'POST', raw: blob});
-    }).then(function(r){
-      b.disabled = false; b.textContent = 'Enviar comprobante';
-      if (!r.ok) { m.textContent = r.message || 'No pudimos recibir el comprobante.'; return; }
-      st.file = null; $('#file').value = ''; $('.drop').classList.remove('has'); $('#fname').textContent = 'Toca para elegir una foto o un PDF';
-      showStatus(r);
-    }).catch(function(err){ b.disabled = false; b.textContent = 'Enviar comprobante'; m.textContent = (err && err.message) || 'Sin conexión. Intenta de nuevo.'; });
-  });
-  $('#later').addEventListener('click', function(){ showStatus(grp); });
-
-  // ── Paso 5: estado del grupo
-  function gcal(){
-    var f = function(d){ return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,''); };
-    return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent('Visión 2027 · LHSCOL') + '&dates=' + f(new Date(E.startsAt)) + '/' + f(new Date(E.endsAt)) +
-      '&location=' + encodeURIComponent(E.venue + (E.city ? ', ' + E.city : '')) + '&details=' + encodeURIComponent('Mi inscripción y mis boletas: ' + link(gToken)) + '&ctz=America/Bogota';
-  }
-  function showStatus(g){
-    grp = g;
-    var s = g.status, ok = s === 'aprobado';
-    var T = {
-      reservado: ['Falta tu pago', 'Tu cupo está reservado mientras pagas. Cuando tengas el comprobante, vuelve a este enlace y adjúntalo.'],
-      revision: ['Solicitud recibida', 'Tu cupo queda pendiente hasta que validemos el pago. Cuando lo aprobemos, te enviaremos las boletas por WhatsApp al ' + g.phoneHint + '.'],
-      aprobado: ['¡Te esperamos!', 'Tu pago fue aprobado. Estas son las boletas de tu grupo: cada persona presenta la suya en la entrada (en el celular o impresa).'],
-      cancelado: ['Inscripción anulada', 'Esta inscripción fue anulada. Si crees que es un error, escríbenos por WhatsApp.'],
-      vencido: ['Tu reserva venció', 'No recibimos el comprobante a tiempo. Puedes pagar ahora o, si ya pagaste, adjuntarlo: si hay cupo, lo validamos.'],
-      rechazado: ['Revisa tu comprobante', 'Motivo: ' + (g.reason || '') + '. Adjunta un comprobante nuevo.'],
-      incompleto: ['Pago incompleto', 'Motivo: ' + (g.reason || '') + '. Completa el pago y adjunta el comprobante.']
-    }[s] || ['Tu inscripción', ''];
-    $('#sTitle').textContent = T[0]; $('#sText').textContent = T[1];
-    $('#okIcon').style.display = (ok || s === 'revision') ? '' : 'none';
-    var badge = $('#sBadge');
-    badge.className = 'badge ' + (ok ? 'ok' : (s === 'cancelado' || s === 'vencido' || s === 'rechazado' || s === 'incompleto') ? 'bad' : '');
-    badge.textContent = {reservado:'Pendiente de pago', revision:'Pago en validación', aprobado:'Pago aprobado', cancelado:'Anulada', vencido:'Reserva vencida', rechazado:'Comprobante rechazado', incompleto:'Pago incompleto'}[s] || '';
-    $('#list').innerHTML = g.attendees.map(function(a){
-      return '<li><div>' + esc(a.name) + '<span> · ' + (a.type === 'child' ? 'Niño, ' + a.age + ' años' : 'Adulto') + '</span>' + (a.color ? '<span style="display:block"><i style="display:inline-block;width:.75em;height:.75em;border-radius:50%;margin-right:.35em;background:' + esc(a.color.hex) + '"></i>Color ' + esc(a.color.name) + '</span>' : '') + '</div>' + (a.ticket ? '<a href="/vision/boleta/?t=' + encodeURIComponent(a.ticket) + '">Boleta</a>' : '') + '</li>';
-    }).join('');
-    var btns = $('#sBtns'), payAgain = $('#payAgain');
-    if (!payAgain) { payAgain = document.createElement('button'); payAgain.id = 'payAgain'; payAgain.type = 'button'; payAgain.className = 'btn'; payAgain.style.marginBottom = '.6rem'; payAgain.addEventListener('click', function(){ showPay(grp); }); btns.prepend(payAgain); }
-    var needPay = ['reservado','vencido','rechazado','incompleto'].indexOf(s) >= 0;
-    payAgain.classList.toggle('hidden', !needPay);
-    payAgain.textContent = s === 'reservado' ? 'Pagar y adjuntar comprobante' : 'Adjuntar comprobante';
-    $('#saveWa').href = 'https://wa.me/?text=' + encodeURIComponent('Mi inscripción a Visión 2027 (LHSCOL). Aquí veo mi estado y mis boletas: ' + link(gToken));
-    $('#saveWa').classList.toggle('hidden', s === 'cancelado');
-    $('#gcal').href = gcal(); $('#gcal').classList.toggle('hidden', s === 'cancelado');
-    go(5);
-  }
-  $('#copyLink').addEventListener('click', function(){
-    var t = link(gToken), b = this;
-    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){ b.textContent = '¡Enlace copiado!'; setTimeout(function(){ b.textContent = 'Copiar mi enlace'; }, 2000); }).catch(function(){ prompt('Copia tu enlace:', t); });
-  });
-
-  function loadGroup(t, fresh){
-    gToken = t;
-    return api('/g/' + encodeURIComponent(t)).then(function(g){
-      if (!g.ok) { $('#xTitle').textContent = 'Enlace no encontrado'; $('#xText').textContent = g.message || ''; go(9); return; }
-      E = g.edition; paint();
-      if (fresh || (g.status === 'reservado' && !g.hasProof)) showPay(g); else showStatus(g);
-      grp = g;
-    });
-  }
-  function fillMesas(){
-    var sel = $('#mesa');
-    if (!mesas.length) { sel.required = false; return; }
-    mesas.forEach(function(m){ sel.add(new Option(m, m)); });
-    sel.add(new Option('Aún no asisto a una Mesa', noMesa));
-    $('#mesaWrap').classList.remove('hidden');
-  }
-
-  // ── Arranque
-  api('/event').then(function(r){
-    if (!r.ok || !r.edition) { $('#goReg').textContent = 'Intenta de nuevo más tarde'; return; }
-    E = r.edition; state = r.state; mesas = r.mesas || []; if (r.noMesa) noMesa = r.noMesa;
-    paint(); fillMesas();
-    var t = qs.get('g'), mine = store.get('group');
-    if (t) return loadGroup(t);
-    if (mine && mine.edition === E.id && qs.get('nuevo') === null) {
-      var a = document.createElement('a'); a.className = 'link'; a.href = '/vision/?g=' + mine.token; a.textContent = 'Ver mi inscripción';
-      $('.cta').appendChild(a);
-    }
-  }).catch(function(){ $('#goReg').textContent = 'Sin conexión'; });
+  // Fecha, lugar y estado salen del panel; lo escrito arriba es el respaldo sin conexión.
+  fetch('/api/vision/event', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(r){
+    if (!r.ok || !r.edition) return;
+    var E = r.edition, d = new Date(E.startsAt), end = new Date(E.endsAt);
+    var f = function(x, o){ return x.toLocaleString('es-CO', Object.assign({timeZone:'America/Bogota'}, o)); };
+    var cap = function(s){ return s.charAt(0).toUpperCase() + s.slice(1); };
+    var city = (E.city || '').split(',')[0], hm = {hour:'numeric', minute:'2-digit'};
+    var long = cap(f(d, {weekday:'long', day:'numeric', month:'long'}).replace(',', '')), short = f(d, {day:'numeric', month:'long'});
+    start = d; tick();
+    $('meta').textContent = long + ' · ' + f(d, hm) + ' · ' + E.venue + (city ? ', ' + city : '');
+    $('dnum').textContent = f(d, {day:'numeric'}); $('dmon').textContent = f(d, {month:'2-digit'});
+    $('venue').textContent = E.venue;
+    $('when').textContent = cap(f(d, {weekday:'long'})) + ' · ' + f(d, hm) + ' a ' + f(end, hm) + (E.city ? ' · ' + E.city : '');
+    $('fday').textContent = short;
+    var q = encodeURIComponent(E.venue + (city ? ', ' + city : ''));
+    $('map').href = E.mapsUrl || 'https://www.google.com/maps/search/?api=1&query=' + q;
+    var z = function(x){ return x.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); };
+    $('cal').href = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent('Visión 2027') + '&dates=' + z(d) + '/' + z(end) + '&location=' + q;
+    $('until').textContent = r.state === 'closed' ? 'Las inscripciones ya cerraron.' : r.state === 'full' ? 'El aforo está completo: puedes entrar a la lista de espera.' :
+      E.closeAt ? 'Inscripciones abiertas hasta el ' + f(new Date(E.closeAt), {day:'numeric', month:'long'}) + '.' : '';
+    if (r.state !== 'open') document.querySelectorAll('.js-reg').forEach(function(a){ a.textContent = r.state === 'full' ? 'Lista de espera' : 'Mi inscripción'; });
+  }).catch(function(){});
 })();
 </script>
 </body>

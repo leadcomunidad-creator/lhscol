@@ -227,6 +227,8 @@ test('voluntarios: clave propia, sin datos privados, y cada entrega una sola vez
   assert.equal((await call('/admin/staffkey', { method: 'POST', headers: K, body: { key: KEY } })).ok, true);
   assert.equal((await call('/staff/check', { headers: S('otra-clave') })).code, 401);
   assert.equal((await call('/staff/check', { headers: S(KEY) })).ok, true);
+  // Quien tiene la clave del panel también puede escanear.
+  assert.equal((await call('/staff/check', { headers: S('clave-de-prueba') })).ok, true);
   // La clave de voluntarios no abre el panel, y su huella no sale por ninguna parte.
   assert.equal((await call('/admin/overview', { headers: { 'x-admin-key': KEY } })).code, 401);
   const o = await call('/admin/overview', { headers: K });
@@ -365,6 +367,24 @@ test('caja: privada, valida valores, edita, quita sin destruir y guarda arqueos'
   assert.equal(q.caja.arqueos[0].expected, 525000);
   assert.equal((await call('/admin/overview', { headers: K })).edition.caja.arqueos.length, 1);
   for (const path of ['/event', '/equipo']) assert.ok(!/caja|arqueo|Bowls/.test(JSON.stringify(await call(path))), path);
+});
+
+test('equipo del 27-11: agrega a quienes faltaban una sola vez y respeta lo editado después', async () => {
+  const key = 'v:edition/2027';
+  const raw = JSON.parse(data.get(key).s);
+  raw.rev = 3;
+  raw.equipo = { plan: raw.equipo.plan, roles: [
+    { name: 'Coordinación', people: 'Juan y Lili', tasks: [] }, { name: 'Media', people: 'War y Danna', tasks: ['Fotos y reels'] },
+    { name: 'Comida y bebidas', people: 'Por definir', tasks: [] }, { name: 'Kids', people: 'Por definir', tasks: [] }] };
+  data.set(key, { s: JSON.stringify(raw) });
+  const q = await call('/equipo');
+  assert.deepEqual(q.roles.map((r) => r.name), ['Coordinación', 'Administración', 'Media', 'Comida y bebidas', 'Coffee · Granizados', 'Kids']);
+  assert.equal(q.roles.find((r) => r.name === 'Media').people, 'War, Danna, Camilo y Camila');
+  assert.equal(q.roles.find((r) => r.name === 'Administración').people, 'Carlos y Yuli');
+  assert.equal(q.roles.find((r) => r.name === 'Coffee · Granizados').people, 'Johnatan y Natalia');
+  // Si después se quita a alguien en el panel, no vuelve a aparecer.
+  await call('/admin/equipo', { method: 'POST', headers: K, body: { roles: [{ name: 'Media', people: 'War', tasks: [] }] } });
+  assert.deepEqual((await call('/equipo')).roles.map((r) => r.people), ['War']);
 });
 
 test('el nombre de la temporada no aparece en la API ni en las páginas', async () => {
