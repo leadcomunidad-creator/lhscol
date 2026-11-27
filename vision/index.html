@@ -32,8 +32,8 @@ document.documentElement.className = 'js';
 <style>
 :root{--oro:#C8B273;--soft:#E0D3A9;--crema:#F3EEE2;--negro:#0A0A0A;--g1:#141414;--g2:#242424;--tx:#B9B5AA}
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{background:var(--negro);color:var(--crema);font:400 17px/1.6 'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+html{scroll-behavior:smooth;overflow-x:clip}
+body{background:var(--negro);color:var(--crema);font:400 17px/1.6 'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
 img{display:block;max-width:100%}
 a{color:inherit}
 a:focus-visible,summary:focus-visible{outline:3px solid #fff;outline-offset:2px}
@@ -72,47 +72,12 @@ header .team{border:1px solid rgba(243,238,226,.35);border-radius:99px;padding:8
 .count b{display:block;font:italic 400 clamp(34px,7vw,54px)/1 'Playfair Display',serif;color:var(--oro);font-variant-numeric:tabular-nums}
 .count span{font:500 11px/1.6 'Jost',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--tx)}
 
-.intro{text-align:center}
-.intro p{font:italic 400 clamp(26px,4.6vw,44px)/1.35 'Playfair Display',serif;color:#fff;max-width:900px;margin:18px auto 0}
-.intro p strong{font-weight:400;color:var(--oro)}
-
-.acts{display:grid;gap:16px;margin-top:36px}
-@media(min-width:760px){.acts{grid-template-columns:repeat(3,1fr)}}
-.act{position:relative;min-height:440px;border-radius:22px;overflow:hidden;display:flex;align-items:flex-end;background:var(--g1)}
-.act img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 1.2s}
-.act:hover img{transform:scale(1.06)}
-.act::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 35%,rgba(10,10,10,.94) 92%)}
-.act div{position:relative;z-index:1;padding:26px}
-.act small{font:500 11px/1 'Jost',sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--oro)}
-.act h3{font:800 clamp(30px,4vw,38px)/1 'Archivo',sans-serif;font-stretch:125%;text-transform:uppercase;color:#fff;margin:8px 0}
-.act p{font-size:15.5px;color:#d8d4ca}
-
-.gal{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:170px;grid-auto-flow:dense;gap:8px;margin-top:36px}
-.gal img{width:100%;height:100%;object-fit:cover;border-radius:12px}
-.gal .wide{grid-column:span 2}
-.gal .tall{grid-row:span 2}
-@media(min-width:760px){.gal{grid-template-columns:repeat(4,1fr);grid-auto-rows:230px;gap:12px}}
-.cap{margin-top:14px;font-size:13.5px;color:#8d8a80}
-
-.colors{display:grid;grid-template-columns:repeat(5,1fr);margin-top:34px;border-radius:22px;overflow:hidden}
-.colors div{height:clamp(150px,28vw,280px);display:flex;align-items:flex-end;justify-content:center;padding:14px 2px;color:#12110f;font-weight:700;font-size:clamp(11px,2.2vw,17px);transition:flex .3s,filter .3s}
-.colors div:hover{filter:brightness(1.1)}
-
 .steps{display:grid;gap:14px;margin-top:34px;counter-reset:s}
 @media(min-width:760px){.steps{grid-template-columns:repeat(3,1fr)}}
 .steps li{list-style:none;background:var(--g1);border:1px solid var(--g2);border-radius:20px;padding:26px}
 .steps li::before{counter-increment:s;content:counter(s);display:block;font:800 56px/1 'Archivo',sans-serif;font-stretch:125%;color:var(--oro)}
 .steps h3{font:italic 600 25px/1.2 'Playfair Display',serif;color:#fff;margin:12px 0 6px}
 .steps p{color:var(--tx);font-size:15.5px}
-
-.place{display:grid;gap:26px;align-items:center;background:var(--g1);border:1px solid rgba(200,178,115,.35);border-radius:26px;padding:clamp(26px,5vw,54px)}
-@media(min-width:760px){.place{grid-template-columns:auto 1fr;gap:56px}}
-.day{text-align:center}
-.day b{display:block;font:italic 400 clamp(120px,20vw,190px)/1 'Playfair Display',serif;color:var(--oro);padding-bottom:14px}
-.day span{font:500 13px/1.8 'Jost',sans-serif;letter-spacing:.28em;text-transform:uppercase}
-.place h3{font:italic 400 clamp(26px,4vw,38px)/1.2 'Playfair Display',serif;color:#fff}
-.place p{color:var(--tx);margin-top:8px}
-.place .cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
 
 details{border-top:1px solid var(--g2)}
 details:last-of-type{border-bottom:1px solid var(--g2)}
@@ -132,6 +97,66 @@ footer{border-top:1px solid var(--g2);padding:40px 0 calc(46px + env(safe-area-i
 footer .s{font:italic 400 22px/1.4 'Playfair Display',serif;color:var(--soft);margin-bottom:18px}
 footer nav{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 24px}
 footer a{color:var(--crema)}
+
+
+/* Cinta */
+.tape{position:relative;z-index:2;overflow:hidden;background:var(--oro);color:var(--negro);transform:rotate(-2deg) scale(1.04);margin:-18px 0 0;padding:14px 0}
+.tape div{display:flex;width:max-content;animation:run 26s linear infinite}
+.tape span{font:800 clamp(24px,5vw,46px)/1 'Archivo',sans-serif;font-stretch:125%;text-transform:uppercase;white-space:nowrap;padding-right:28px}
+.tape span i{font:italic 400 1em 'Playfair Display',serif;text-transform:none;padding:0 22px}
+@keyframes run{to{transform:translateX(-50%)}}
+
+/* Manifiesto que se enciende al bajar */
+.say{padding:clamp(110px,18vw,220px) 0 clamp(60px,10vw,120px)}
+.say p{font:800 clamp(34px,7.4vw,92px)/1.06 'Archivo',sans-serif;font-stretch:125%;text-transform:uppercase;letter-spacing:-.02em;color:#fff;margin-top:22px}
+.js .say p span{opacity:.13;transition:opacity .35s}
+.js .say p span.on{opacity:1}
+.say p span.g{color:var(--oro);font-family:'Playfair Display',serif;font-style:italic;font-weight:400;text-transform:none;font-stretch:normal;letter-spacing:0}
+
+/* Capítulos a pantalla completa, uno sobre otro */
+.chap{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:flex-end;overflow:hidden;background:var(--negro);border-top:1px solid rgba(200,178,115,.45)}
+.chap .im{position:absolute;inset:0;background-position:50% 40%;background-size:cover}
+.chap::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,.35),rgba(10,10,10,.1) 35%,rgba(10,10,10,.9) 88%)}
+.chap .w{position:relative;z-index:1;padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
+.chap .num{font:italic 400 clamp(22px,3vw,30px) 'Playfair Display',serif;color:var(--oro)}
+.chap h3{font:800 clamp(54px,15vw,190px)/.9 'Archivo',sans-serif;font-stretch:125%;text-transform:uppercase;letter-spacing:-.03em;color:#fff;margin:8px 0 14px}
+.chap p{font-size:clamp(18px,2.6vw,24px);max-width:560px;color:#ddd8cc}
+.chap.last h3{color:var(--oro);font-size:clamp(34px,10.2vw,160px)}
+.secret{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 20px}
+.secret b{display:block;width:min(560px,86vw);height:clamp(44px,8vw,84px);border-radius:8px;background:linear-gradient(100deg,#2a2415 20%,var(--oro) 40%,#fff3cf 50%,var(--oro) 60%,#2a2415 80%);background-size:260% 100%;animation:shine 3.4s linear infinite}
+@keyframes shine{from{background-position:120% 0}to{background-position:-60% 0}}
+.secret small{font:500 12px/1 'Jost',sans-serif;letter-spacing:.3em;text-transform:uppercase;color:var(--soft)}
+
+/* Tiras de fotos */
+.film{overflow:hidden;margin-top:44px}
+.film div{display:flex;gap:10px;width:max-content;animation:run 60s linear infinite}
+.film + .film{margin-top:10px}
+.film + .film div{animation-direction:reverse;animation-duration:70s}
+.film:hover div{animation-play-state:paused}
+.film img{height:clamp(210px,34vw,400px);width:auto;border-radius:14px}
+
+/* Colores */
+.colors{display:flex;height:clamp(340px,52vw,540px);margin-top:40px}
+.colors button{flex:1;border:0;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding:22px 0;color:#12110f;font:800 clamp(18px,3.4vw,40px)/1 'Archivo',sans-serif;font-stretch:125%;text-transform:uppercase;writing-mode:vertical-rl;transition:flex .5s cubic-bezier(.2,.8,.2,1)}
+.colors button[aria-pressed=true]{flex:3.4}
+@media (hover:hover){.colors button:hover{flex:3.4}}
+
+/* Pasos */
+.steps li{background:none;border:0;border-top:2px solid var(--oro);border-radius:0;padding:22px 0}
+.steps li::before{font-size:clamp(90px,13vw,160px);color:transparent;-webkit-text-stroke:2px var(--oro)}
+
+/* Fecha gigante */
+.when{text-align:center}
+.when .big{font:800 clamp(100px,27vw,360px)/.86 'Archivo',sans-serif;font-stretch:125%;letter-spacing:-.05em;color:var(--oro);white-space:nowrap}
+.when h3{font:italic 400 clamp(28px,5vw,52px)/1.2 'Playfair Display',serif;color:#fff;margin-top:18px}
+.when p{color:var(--tx);margin-top:8px}
+.when .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:28px}
+
+/* Botón fijo en el celular */
+.dock{position:fixed;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:19;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.6);transform:translateY(160%);transition:transform .35s}
+.dock.show{transform:none}.dock.show:hover{transform:translateY(-2px)}
+@media(min-width:820px){.dock{display:none}}
+@media (prefers-reduced-motion:reduce){.tape div,.film div,.secret b{animation:none}.film{overflow-x:auto}.chap{position:relative}.js .say p span{opacity:1}}
 
 .js .r{opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s ease}
 .js .r.in{opacity:1;transform:none}
@@ -170,63 +195,41 @@ footer a{color:var(--crema)}
   </div>
 </div>
 
+<div class="tape" aria-hidden="true"><div><span>Celebramos lo vivido<i>·</i>Descubrimos lo que viene<i>·</i></span><span>Celebramos lo vivido<i>·</i>Descubrimos lo que viene<i>·</i></span><span>Celebramos lo vivido<i>·</i>Descubrimos lo que viene<i>·</i></span><span>Celebramos lo vivido<i>·</i>Descubrimos lo que viene<i>·</i></span></div></div>
+
 <main>
-  <section class="intro">
-    <div class="w r">
+  <section class="say" aria-label="Un año se cierra y otro se abre. Vamos a vivirlo juntos.">
+    <div class="w">
       <div class="eyebrow">La experiencia de fin de año de LHSCOL</div>
-      <p>Un año se cierra y otro se abre. Queremos vivir ese momento <strong>juntos</strong>: mirar atrás con gratitud y mirar adelante con ganas.</p>
+      <p id="say" aria-hidden="true"><span>Un</span> <span>año</span> <span>se</span> <span>cierra</span> <span>y</span> <span>otro</span> <span>se</span> <span>abre.</span> <span>Vamos</span> <span>a</span> <span>vivirlo</span> <span class="g">juntos.</span></p>
     </div>
   </section>
 
-  <section id="noche">
-    <div class="w">
-      <div class="r">
-        <div class="eyebrow">Una noche especial</div>
-        <h2>Lo que vas a <em>vivir</em></h2>
-        <p class="lead">Tres horas para celebrar, escuchar y descubrir.</p>
-      </div>
-      <div class="acts">
-        <article class="act r"><img src="/assets/vision/sitio/a-banda.jpg" alt="Banda de LHSCOL en el escenario" loading="lazy"><div><small>@lhscolmusic</small><h3>Music</h3><p>La banda de la casa en vivo, para celebrar a todo pulmón.</p></div></article>
-        <article class="act r"><img src="/assets/vision/sitio/a-mensaje.jpg" alt="Mensaje durante el aniversario" loading="lazy"><div><small>Para ti</small><h3>Mensaje</h3><p>Palabras directas y prácticas para cerrar el año y empezar el siguiente.</p></div></article>
-        <article class="act r"><img src="/assets/vision/hero-vision.jpg" alt="La comunidad celebrando en el escenario" loading="lazy" style="object-position:62% 50%"><div><small>El momento central</small><h3>Temporada 2027</h3><p>El nombre de la nueva temporada se revela esa noche. Solo ahí.</p></div></article>
-      </div>
-    </div>
-  </section>
+  <div id="noche">
+    <article class="chap"><div class="im" style="background-image:url(/assets/vision/sitio/a-banda.jpg)" role="img" aria-label="La banda de LHSCOL en vivo"></div><div class="w"><div class="num">Primero · @lhscolmusic</div><h3>Music</h3><p>La banda de la casa en vivo. Para cantar, saltar y celebrar lo que vivimos.</p></div></article>
+    <article class="chap"><div class="im" style="background-image:url(/assets/vision/sitio/c-mensaje.jpg)" role="img" aria-label="Un mensaje en la experiencia campestre"></div><div class="w"><div class="num">Después · para ti</div><h3>Mensaje</h3><p>Palabras directas y prácticas para cerrar este año y empezar el siguiente con dirección.</p></div></article>
+    <article class="chap last"><div class="im" style="background-image:url(/assets/vision/sitio/a-luces.jpg)" role="img" aria-label="Celebración con luces en el escenario"></div><div class="w"><div class="num">El momento central</div><h3>Temporada 2027</h3><div class="secret"><b aria-hidden="true"></b><small>Su nombre se revela esa noche</small></div><p>No lo vamos a contar antes. Hay que estar ahí.</p></div></article>
+  </div>
 
-  <section>
-    <div class="w">
-      <div class="r">
-        <div class="eyebrow">Así se vive en casa</div>
-        <h2>Ven como <em>estás</em></h2>
-        <p class="lead">Si vienes solo, con tu familia o con amigos, aquí hay un lugar para ti.</p>
-      </div>
-      <div class="gal r">
-        <img class="wide tall" src="/assets/vision/sitio/c-grupo.jpg" alt="Grupo en la experiencia campestre" loading="lazy">
-        <img class="tall" src="/assets/vision/sitio/c-familia.jpg" alt="Una familia con sus dos hijos" loading="lazy">
-        <img class="tall" src="/assets/vision/sitio/a-mano.jpg" alt="Una mano en alto durante el aniversario" loading="lazy">
-        <img class="wide" src="/assets/vision/sitio/c-amigas.jpg" alt="Amigas compartiendo en una mesa" loading="lazy">
-        <img src="/assets/vision/sitio/c-nina.jpg" alt="Una niña disfrutando una bebida" loading="lazy">
-        <img src="/assets/vision/sitio/c-selfie.jpg" alt="Una pareja tomándose una foto" loading="lazy">
-        <img class="wide tall" src="/assets/vision/sitio/a-publico-2.jpg" alt="El auditorio celebrando" loading="lazy">
-        <img class="tall" src="/assets/vision/sitio/c-risa.jpg" alt="Una pareja sonriendo en el césped" loading="lazy">
-        <img class="tall" src="/assets/vision/sitio/c-amigas-2.jpg" alt="Amigos en la experiencia campestre" loading="lazy">
-        <img class="wide" src="/assets/vision/sitio/a-duo.jpg" alt="Voces de la banda" loading="lazy">
-        <img class="wide" src="/assets/vision/sitio/c-mesa.jpg" alt="Grupo alrededor de una mesa" loading="lazy">
-      </div>
-      <p class="cap">Fotos del Aniversario #4 y de la experiencia campestre 2025.</p>
+  <section aria-label="Fotos">
+    <div class="w r">
+      <div class="eyebrow">Así se vive en casa</div>
+      <h2>Ven como <em>estás</em></h2>
+      <p class="lead">Si vienes solo, con tu familia o con amigos, aquí hay un lugar para ti.</p>
     </div>
+    <div class="film" aria-hidden="true"><div><img src="/assets/vision/sitio/a-banda-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-grupo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-mano.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-familia.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-publico-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-selfie.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-abrazo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-guitarra.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-banda-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-grupo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-mano.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-familia.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-publico-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-selfie.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-abrazo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-guitarra.jpg" alt="" loading="lazy"></div></div>
+    <div class="film" aria-hidden="true"><div><img src="/assets/vision/sitio/c-grupo-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-adora.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-nina.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-grupo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-pareja.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-cafe.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-mirando.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-grupo-2.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-adora.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-nina.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/a-grupo.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-pareja.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-cafe.jpg" alt="" loading="lazy"><img src="/assets/vision/sitio/c-mirando.jpg" alt="" loading="lazy"></div></div>
+    <div class="w"><p class="cap">Fotos del Aniversario #4 y de la experiencia campestre 2025.</p></div>
   </section>
 
   <section id="color">
-    <div class="w">
-      <div class="r">
-        <div class="eyebrow">Código de vestuario</div>
-        <h2>Ponle tu color a la <em>noche</em></h2>
-        <p class="lead">En tu boleta viene un color sugerido. Úsalo en una prenda o accesorio, en ese tono o parecido. Es opcional.</p>
-      </div>
-      <div class="colors r" aria-label="Colores sugeridos">
-        <div style="background:#ff7f57">Coral</div><div style="background:#e6b24c">Mostaza</div><div style="background:#a3cc72">Verde</div><div style="background:#6cc0c4">Turquesa</div><div style="background:#97a4e6">Lila</div>
-      </div>
+    <div class="w r">
+      <div class="eyebrow">Código de vestuario</div>
+      <h2>Ponle tu color a la <em>noche</em></h2>
+      <p class="lead">En tu boleta viene un color sugerido. Úsalo en una prenda o accesorio, en ese tono o parecido. Es opcional.</p>
+    </div>
+    <div class="colors r" aria-label="Colores sugeridos">
+      <button type="button" aria-pressed="true" style="background:#ff7f57">Coral</button><button type="button" aria-pressed="false" style="background:#e6b24c">Mostaza</button><button type="button" aria-pressed="false" style="background:#a3cc72">Verde</button><button type="button" aria-pressed="false" style="background:#6cc0c4">Turquesa</button><button type="button" aria-pressed="false" style="background:#97a4e6">Lila</button>
     </div>
   </section>
 
@@ -246,19 +249,15 @@ footer a{color:var(--crema)}
     </div>
   </section>
 
-  <section id="lugar">
-    <div class="w">
-      <div class="place r">
-        <div class="day"><b id="dnum">19</b><span id="dmon">Diciembre 2026</span></div>
-        <div>
-          <div class="eyebrow">Fecha y lugar</div>
-          <h3 id="venue">Auditorio Fundación Batuta</h3>
-          <p id="when">Sábado · 6:00 a 9:00 p. m. · Manizales, Caldas</p>
-          <div class="cta">
-            <a class="btn sec" id="map" href="https://www.google.com/maps/search/?api=1&query=Auditorio+Fundaci%C3%B3n+Batuta+Manizales" target="_blank" rel="noopener">Cómo llegar</a>
-            <a class="btn sec" id="cal" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Visi%C3%B3n+2027&dates=20261219T230000Z/20261220T020000Z&location=Auditorio+Fundaci%C3%B3n+Batuta%2C+Manizales" target="_blank" rel="noopener">Agregar a mi calendario</a>
-          </div>
-        </div>
+  <section id="lugar" class="when">
+    <div class="w r">
+      <div class="eyebrow">Fecha y lugar</div>
+      <div class="big"><span id="dnum">19</span>.<span id="dmon">12</span></div>
+      <h3 id="venue">Auditorio Fundación Batuta</h3>
+      <p id="when">Sábado · 6:00 a 9:00 p. m. · Manizales, Caldas</p>
+      <div class="cta">
+        <a class="btn sec" id="map" href="https://www.google.com/maps/search/?api=1&query=Auditorio+Fundaci%C3%B3n+Batuta+Manizales" target="_blank" rel="noopener">Cómo llegar</a>
+        <a class="btn sec" id="cal" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Visi%C3%B3n+2027&dates=20261219T230000Z/20261220T020000Z&location=Auditorio+Fundaci%C3%B3n+Batuta%2C+Manizales" target="_blank" rel="noopener">Agregar a mi calendario</a>
       </div>
     </div>
   </section>
@@ -301,6 +300,7 @@ footer a{color:var(--crema)}
     </nav>
   </div>
 </footer>
+<a class="btn pri dock js-reg" id="dock" href="/vision/inscripcion/">Quiero ir · Inscribirme</a>
 
 <script>
 (function(){
@@ -313,6 +313,22 @@ footer a{color:var(--crema)}
     var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, {threshold:.08});
     items.forEach(function(el){ io.observe(el); });
   } else items.forEach(function(el){ el.classList.add('in'); });
+
+  // El manifiesto se enciende palabra por palabra y la portada se mueve más despacio que la página
+  var say = [].slice.call(document.querySelectorAll('#say span')), hero = document.querySelector('.hero .ph'), dock = $('dock'), waiting = false;
+  var calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function paint(){
+    waiting = false;
+    var box = $('say').getBoundingClientRect(), done = (innerHeight * .88 - box.top) / (box.height + innerHeight * .25);
+    say.forEach(function(w, i){ w.classList.toggle('on', i < Math.ceil(done * say.length)); });
+    if (!calm && scrollY < innerHeight * 1.2) hero.style.translate = '0 ' + Math.round(scrollY * .25) + 'px';
+    dock.classList.toggle('show', scrollY > innerHeight * .8);
+  }
+  addEventListener('scroll', function(){ if (!waiting) { waiting = true; requestAnimationFrame(paint); } }, {passive:true}); paint();
+  document.querySelector('.colors').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    this.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-pressed', x === b); });
+  });
 
   var start = new Date('2026-12-19T18:00:00-05:00');
   function tick(){
@@ -334,7 +350,7 @@ footer a{color:var(--crema)}
     var long = cap(f(d, {weekday:'long', day:'numeric', month:'long'}).replace(',', '')), short = f(d, {day:'numeric', month:'long'});
     start = d; tick();
     $('meta').textContent = long + ' · ' + f(d, hm) + ' · ' + E.venue + (city ? ', ' + city : '');
-    $('dnum').textContent = f(d, {day:'numeric'}); $('dmon').textContent = cap(f(d, {month:'long'})) + ' ' + f(d, {year:'numeric'});
+    $('dnum').textContent = f(d, {day:'numeric'}); $('dmon').textContent = f(d, {month:'2-digit'});
     $('venue').textContent = E.venue;
     $('when').textContent = cap(f(d, {weekday:'long'})) + ' · ' + f(d, hm) + ' a ' + f(end, hm) + (E.city ? ' · ' + E.city : '');
     $('fday').textContent = short;
