@@ -341,6 +341,24 @@ test('la Mesa se pide siempre, usa la lista base de Todos a la Mesa y el panel p
   data.set('m:config/mesas', saved);
 });
 
+test('caja: privada, valida valores, edita, quita sin destruir y guarda arqueos', async () => {
+  const send = (body, headers = K) => call('/admin/caja', { method: 'POST', headers, body: { by: 'Ana', ...body } });
+  assert.equal((await send({ op: 'save', type: 'gasto', concept: 'Bowls', budget: 100 }, {})).code, 401);
+  assert.equal((await send({ op: 'save', type: 'otro', concept: 'Bowls', budget: 100 })).error, 'type');
+  assert.equal((await send({ op: 'save', type: 'gasto', concept: 'Bowls', budget: '1.5' })).error, 'amount');
+  assert.equal((await send({ op: 'save', type: 'gasto', concept: 'Bowls' })).error, 'amount');
+  const a = await send({ op: 'save', type: 'gasto', concept: 'Bowls', budget: '3000000', amount: '' });
+  const id = a.caja.items[0].id;
+  const b = await send({ op: 'save', id, type: 'gasto', concept: 'Bowls', budget: 3000000, amount: 1000000 });
+  assert.equal(b.caja.items.length, 1);
+  assert.equal(b.caja.items[0].amount, 1000000);
+  assert.ok((await send({ op: 'delete', id })).caja.items[0].deletedAt);
+  const q = await send({ op: 'arqueo', real: 500000, expected: 525000 });
+  assert.equal(q.caja.arqueos[0].expected, 525000);
+  assert.equal((await call('/admin/overview', { headers: K })).edition.caja.arqueos.length, 1);
+  for (const path of ['/event', '/equipo']) assert.ok(!/caja|arqueo|Bowls/.test(JSON.stringify(await call(path))), path);
+});
+
 test('el nombre de la temporada no aparece en la API ni en las páginas', async () => {
   const { readFileSync, readdirSync } = await import('node:fs');
   const files = ['netlify/functions/vision.mjs', ...readdirSync('vision', { recursive: true }).filter((f) => f.endsWith('.html')).map((f) => 'vision/' + f)];

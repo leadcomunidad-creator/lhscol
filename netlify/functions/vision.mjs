@@ -31,6 +31,7 @@
 //   POST /api/vision/admin/waitlist            Marcar avisado o quitar de la lista de espera
 //   POST /api/vision/admin/equipo              Guardar plan y equipos, o la hora real de inicio
 //   POST /api/vision/admin/staffkey            Crear, cambiar o quitar la clave de voluntarios
+//   POST /api/vision/admin/caja                Gastos, diferencias, entradas y arqueos (privado)
 
 import { getStore } from '@netlify/blobs';
 import { createHash, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
@@ -73,7 +74,7 @@ const DEFAULT_EDITION = {
   correctionHours: 24,
   paymentUrl: 'https://checkout.wompi.co/l/VPOS_nEkNT7',
 };
-const PRIVATE_FIELDS = ['capacity', 'holdMinutes', 'correctionHours', 'paymentUrl', 'groups', 'hasQr', 'waitlist', 'equipo', 'rev', 'staffKeyHash'];
+const PRIVATE_FIELDS = ['capacity', 'holdMinutes', 'correctionHours', 'paymentUrl', 'groups', 'hasQr', 'waitlist', 'equipo', 'rev', 'staffKeyHash', 'caja'];
 
 // Borrador del plan de la noche y de los equipos (se edita en Panel → Equipo).
 const DEFAULT_EQUIPO = {
@@ -803,6 +804,50 @@ async function adminEquipo(req) {
   return json({ ok: true, equipo: out });
 }
 
+// ───────── caja: presupuesto, gastos y arqueos ─────────
+const CAJA_TYPES = ['gasto', 'diferencia', 'entrada'];
+async function adminCaja(req) {
+  const b = await req.json().catch(() => ({}));
+  const by = clean(b.by, 40) || 'equipo';
+  const amount = (v) => {
+    const n = v === '' || v === undefined || v === null ? 0 : Number(v);
+    if (!Number.isInteger(n) || n < 0 || n > 1000000000) throw new HttpError(400, 'amount', 'Escribe valores en pesos, sin puntos ni decimales.');
+    return n;
+  };
+  const idx = await ensureIndex();
+  const caja = await mutate(editionKey(idx.currentId), (e) => {
+    const c = e.caja || { items: [], arqueos: [] };
+    if (b.op === 'save') {
+      if (!CAJA_TYPES.includes(b.type)) throw new HttpError(400, 'type', 'Escoge el tipo.');
+      const concept = clean(b.concept, 80);
+      if (concept.length < 2) throw new HttpError(400, 'concept', 'Escribe el concepto.');
+      const item = { type: b.type, concept, budget: b.type === 'gasto' ? amount(b.budget) : 0, amount: amount(b.amount) };
+      if (!item.budget && !item.amount) throw new HttpError(400, 'amount', 'Escribe al menos un valor.');
+      if (b.id) {
+        const old = c.items.find((x) => x.id === b.id && !x.deletedAt);
+        if (!old) throw new HttpError(404, 'not_found', 'Ese movimiento ya no existe.');
+        Object.assign(old, item, { by, updatedAt: nowIso() });
+      } else {
+        if (c.items.length >= 300) throw new HttpError(409, 'full', 'La lista está completa.');
+        c.items.push({ id: token(6), ...item, by, createdAt: nowIso() });
+      }
+    } else if (b.op === 'delete') {
+      const old = c.items.find((x) => x.id === b.id);
+      if (!old) throw new HttpError(404, 'not_found', 'Ese movimiento ya no existe.');
+      old.deletedAt = nowIso(); old.deletedBy = by;
+    } else if (b.op === 'arqueo') {
+      if (b.real === '' || b.real === undefined) throw new HttpError(400, 'amount', 'Escribe el saldo que ves en el bolsillo.');
+      const real = amount(b.real), expected = Math.round(Number(b.expected) || 0);
+      c.arqueos = [...c.arqueos, { at: nowIso(), by, real, expected }].slice(-100);
+    } else {
+      throw new HttpError(400, 'op', 'Acción no válida.');
+    }
+    e.caja = c;
+    return { value: e, result: c };
+  });
+  return json({ ok: true, caja });
+}
+
 // ───────── voluntarios: ingreso y entregas ─────────
 const hashKey = (k) => createHash('sha256').update(String(k)).digest('hex');
 const sameHash = (a, b) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
@@ -944,6 +989,7 @@ export default async (req, context) => {
       if (parts[1] === 'waitlist' && m === 'POST') return await adminWaitlist(req);
       if (parts[1] === 'equipo' && m === 'POST') return await adminEquipo(req);
       if (parts[1] === 'staffkey' && m === 'POST') return await adminStaffKey(req);
+      if (parts[1] === 'caja' && m === 'POST') return await adminCaja(req);
     }
     return fail(404, 'not_found', 'Ruta no encontrada.');
   } catch (e) {

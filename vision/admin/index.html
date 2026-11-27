@@ -178,6 +178,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
       <button class="tab" role="tab" data-tab="ins" aria-selected="false">Inscritos</button>
       <button class="tab" role="tab" data-tab="door" aria-selected="false">Puerta</button>
       <button class="tab" role="tab" data-tab="inf" aria-selected="false">Informe</button>
+      <button class="tab" role="tab" data-tab="cj" aria-selected="false">Caja</button>
       <button class="tab" role="tab" data-tab="eq" aria-selected="false">Equipo</button>
       <button class="tab" role="tab" data-tab="ev" aria-selected="false">Evento</button>
     </nav>
@@ -261,6 +262,36 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
       <h2>Para los líderes</h2>
       <p class="note">Quiénes de cada Mesa van a Visión (pago aprobado). Solo nombres, sin teléfonos ni valores.</p>
       <div class="lgrid" id="infLeaders"></div>
+    </div>
+  </section>
+
+  <!-- CAJA -->
+  <section class="panel hidden" id="t-cj">
+    <div class="card">
+      <h2>Debe haber en el bolsillo</h2>
+      <div class="big" id="cjHave">$0</div>
+      <table class="tbl" id="cjSum" style="margin-top:12px"></table>
+    </div>
+    <div class="card">
+      <h2>Arqueo</h2>
+      <p class="note">Escribe el saldo que ves hoy en el bolsillo y compáralo.</p>
+      <form id="cjArq" style="display:flex;gap:8px;flex-wrap:wrap"><input class="search" id="cjReal" type="number" min="0" step="1" inputmode="numeric" placeholder="Saldo real, sin puntos" required style="flex:1 1 220px"><button class="b pri" type="submit">Guardar arqueo</button></form>
+      <div class="msg" id="cjArqMsg"></div>
+      <table class="tbl" id="cjHist" style="margin-top:12px"></table>
+    </div>
+    <div class="card">
+      <h2>Presupuesto y gastos</h2>
+      <p class="note"><b>Gasto:</b> escribe lo presupuestado y, cuando se pague desde el bolsillo, lo gastado. <b>Diferencia:</b> lo que no entró completo (comisiones). <b>Entrada:</b> plata que se consigna aparte, como el efectivo de la puerta.</p>
+      <form id="cjForm" class="grid">
+        <label class="f">Tipo<select id="cjType"><option value="gasto">Gasto</option><option value="diferencia">Diferencia</option><option value="entrada">Entrada</option></select></label>
+        <label class="f">Concepto<input id="cjConcept" maxlength="80" required placeholder="Bowls"></label>
+        <label class="f" id="cjBudgetWrap">Presupuestado<input id="cjBudget" type="number" min="0" step="1" inputmode="numeric"></label>
+        <label class="f"><span id="cjAmountLab">Gastado</span><input id="cjAmount" type="number" min="0" step="1" inputmode="numeric"></label>
+        <div class="row-btns" style="align-self:end;margin:0"><button class="b pri" type="submit" id="cjSave">Agregar</button><button class="b hidden" type="button" id="cjCancel">Cancelar</button></div>
+      </form>
+      <div class="msg" id="cjMsg"></div>
+      <div class="list" id="cjList" style="margin-top:14px"></div>
+      <div class="row-btns"><button class="b" type="button" id="cjCsv">Descargar Excel (CSV)</button></div>
     </div>
   </section>
 
@@ -453,12 +484,12 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
 
   function set(r){ data = r; E = r.edition; render(); }
   function reload(){ return api('/admin/overview').then(function(r){ if (!r.ok) return toast(r.message); set(r); }); }
-  setInterval(function(){ if (!document.hidden && data && !chainOn && !$('t-ev').contains(document.activeElement) && !$('t-eq').contains(document.activeElement) && !document.querySelector('.pay input:focus, select:focus') && !$('t-door').contains(document.activeElement)) reload(); }, 30000);
+  setInterval(function(){ if (!document.hidden && data && !chainOn && !$('t-ev').contains(document.activeElement) && !$('t-eq').contains(document.activeElement) && !$('t-cj').contains(document.activeElement) && !cjEditing && !document.querySelector('.pay input:focus, select:focus') && !$('t-door').contains(document.activeElement)) reload(); }, 30000);
 
   document.querySelectorAll('.tab').forEach(function(t){
     t.addEventListener('click', function(){
       document.querySelectorAll('.tab').forEach(function(x){ x.setAttribute('aria-selected', x === t); });
-      ['pay','ins','door','inf','eq','ev'].forEach(function(n){ $('t-' + n).classList.toggle('hidden', n !== t.dataset.tab); });
+      ['pay','ins','door','inf','cj','eq','ev'].forEach(function(n){ $('t-' + n).classList.toggle('hidden', n !== t.dataset.tab); });
       if (t.dataset.tab !== 'door') stopCam();
       render();
     });
@@ -496,6 +527,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
     if (tab === 'ins') renderList();
     if (tab === 'door') renderDoor();
     if (tab === 'inf') renderInf();
+    if (tab === 'cj') renderCaja();
     if (tab === 'ev') renderEv();
     if (tab === 'eq') renderEq();
     renderChainBtns();
@@ -837,6 +869,74 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
     }).join('') : '<div class="empty">Aún no hay pagos aprobados.</div>';
   }
   $('infLeaders').addEventListener('click', function(e){ var b = e.target.closest('[data-copy]'); if (!b) return; navigator.clipboard.writeText(b.dataset.copy).then(function(){ toast('Lista copiada.'); }); });
+
+  // ── Caja
+  var cjEditing = null;
+  var CJ = {gasto:'Gasto', diferencia:'Diferencia', entrada:'Entrada'};
+  function cajaTotals(){
+    var items = ((E.caja && E.caja.items) || []).filter(function(x){ return !x.deletedAt; });
+    var t = {items: items, banco: 0, efectivo: 0, entradas: 0, diferencias: 0, gastos: 0, presupuesto: 0, pendiente: 0};
+    // Efectivo de la puerta y cortesías no entran al bolsillo
+    E.groups.forEach(function(g){ if (g.eff !== 'aprobado' || g.payMethod === 'cortesia') return; if (g.payMethod === 'efectivo') t.efectivo += g.approvedAmount || 0; else t.banco += g.approvedAmount || 0; });
+    items.forEach(function(x){
+      if (x.type === 'entrada') t.entradas += x.amount;
+      else if (x.type === 'diferencia') t.diferencias += x.amount;
+      else { t.gastos += x.amount; t.presupuesto += x.budget; t.pendiente += Math.max(0, x.budget - x.amount); }
+    });
+    t.debe = t.banco + t.entradas - t.diferencias - t.gastos;
+    return t;
+  }
+  function signed(n){ return (n < 0 ? '−' : '') + money(Math.abs(n)); }
+  function stamp(iso){ return new Date(iso).toLocaleString('es-CO',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit',timeZone:'America/Bogota'}); }
+  function gap(a){ var d = a.real - a.expected; return d === 0 ? 'Cuadra' : (d > 0 ? 'Sobran ' : 'Faltan ') + money(Math.abs(d)); }
+  function renderCaja(){
+    var t = cajaTotals();
+    var row = function(k, v){ return '<tr><td>' + k + '</td><td>' + v + '</td></tr>'; };
+    $('cjHave').textContent = signed(t.debe);
+    $('cjSum').innerHTML = row('Pagos aprobados por transferencia o Wompi', money(t.banco)) + row('Entradas', money(t.entradas)) +
+      row('Menos diferencias', '−' + money(t.diferencias)) + row('Menos gastos pagados', '−' + money(t.gastos)) +
+      row('<b>Presupuesto total de gastos</b>', money(t.presupuesto)) + row('Falta por pagar del presupuesto', money(t.pendiente)) +
+      row('<b>Quedaría después de pagar todo</b>', '<b>' + signed(t.debe - t.pendiente) + '</b>') + row('Efectivo de la puerta (aparte)', money(t.efectivo));
+    var h = ((E.caja && E.caja.arqueos) || []).slice(-8).reverse();
+    $('cjHist').innerHTML = h.length ? '<tr><th>Fecha</th><th>Debía haber</th><th>Había</th><th>Resultado</th></tr>' + h.map(function(a){ return '<tr><td>' + stamp(a.at) + ' · ' + esc(a.by) + '</td><td>' + signed(a.expected) + '</td><td>' + money(a.real) + '</td><td>' + gap(a) + '</td></tr>'; }).join('') : '';
+    $('cjList').innerHTML = t.items.length ? t.items.map(function(x){
+      var over = x.type === 'gasto' && x.budget && x.amount > x.budget;
+      return '<div class="item" data-c="' + x.id + '"><div class="who"><b>' + esc(x.concept) + '</b><span class="tags"><span class="tag' + (over ? ' bad' : '') + '">' + CJ[x.type] + (over ? ' · se pasó' : '') + '</span></span><div class="meta">' +
+        (x.type === 'gasto' ? 'Presupuestado ' + money(x.budget) + ' · gastado ' + money(x.amount) : money(x.amount)) + ' · ' + esc(x.by) + '</div></div>' +
+        '<div class="acts"><button class="b" type="button" data-cj="edit">Editar</button><button class="b red" type="button" data-cj="delete">Quitar</button></div></div>';
+    }).join('') : '<div class="empty">Todavía no hay gastos anotados.</div>';
+  }
+  function cjTypeUi(){ var g = $('cjType').value === 'gasto'; $('cjBudgetWrap').classList.toggle('hidden', !g); $('cjAmountLab').textContent = g ? 'Gastado' : 'Valor'; }
+  function cjReset(){ cjEditing = null; $('cjForm').reset(); cjTypeUi(); $('cjSave').textContent = 'Agregar'; $('cjCancel').classList.add('hidden'); }
+  function cjSend(body, msg, done){
+    body.by = who;
+    return api('/admin/caja', {method:'POST', body: body}).then(function(r){
+      var m = $(msg); m.className = 'msg show ' + (r.ok ? 'good' : 'bad'); m.textContent = r.ok ? 'Guardado.' : r.message;
+      if (r.ok) { if (document.activeElement) document.activeElement.blur(); done(); reload(); }
+    });
+  }
+  $('cjType').addEventListener('change', cjTypeUi);
+  $('cjCancel').addEventListener('click', cjReset);
+  $('cjForm').addEventListener('submit', function(e){ e.preventDefault(); cjSend({op:'save', id: cjEditing, type: $('cjType').value, concept: $('cjConcept').value, budget: $('cjBudget').value, amount: $('cjAmount').value}, 'cjMsg', cjReset); });
+  $('cjArq').addEventListener('submit', function(e){
+    e.preventDefault();
+    // Se actualizan los datos antes de comparar, para no usar un saldo viejo
+    var real = $('cjReal').value;
+    reload().then(function(){ var a = {real: +real, expected: cajaTotals().debe}; return cjSend({op:'arqueo', real: real, expected: a.expected}, 'cjArqMsg', function(){ $('cjReal').value = ''; }).then(function(){ var m = $('cjArqMsg'); if (m.classList.contains('good')) m.textContent = 'Arqueo guardado: ' + gap(a) + '.'; }); });
+  });
+  $('cjList').addEventListener('click', function(e){
+    var b = e.target.closest('[data-cj]'); if (!b) return;
+    var id = b.closest('[data-c]').dataset.c, x = E.caja.items.find(function(i){ return i.id === id; });
+    if (b.dataset.cj === 'delete') { if (confirm('¿Quitar “' + x.concept + '”?')) cjSend({op:'delete', id: id}, 'cjMsg', cjReset); return; }
+    cjEditing = id; $('cjType').value = x.type; cjTypeUi(); $('cjConcept').value = x.concept; $('cjBudget').value = x.budget || ''; $('cjAmount').value = x.amount || '';
+    $('cjSave').textContent = 'Guardar cambio'; $('cjCancel').classList.remove('hidden'); $('cjForm').scrollIntoView({behavior:'smooth', block:'center'});
+  });
+  $('cjCsv').addEventListener('click', function(){
+    var t = cajaTotals(), safe = function(v){ v = String(v==null?'':v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; };
+    var rows = [['Tipo','Concepto','Presupuestado','Valor','Anotó']].concat([['Ingreso','Pagos aprobados por transferencia o Wompi','',t.banco,'']])
+      .concat(t.items.map(function(x){ return [CJ[x.type], x.concept, x.type === 'gasto' ? x.budget : '', x.amount, x.by]; })).concat([['Total','Debe haber en el bolsillo','',t.debe,'']]);
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + rows.map(function(r){ return r.map(safe).join(','); }).join('\r\n')], {type:'text/csv;charset=utf-8'})); a.download = 'vision-' + E.id + '-caja.csv'; a.click();
+  });
 
   // ── Envío en cadena
   var chainOn = false, chainQ = [], chainI = 0, chainKind = null, chainOpened = false;
