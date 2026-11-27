@@ -31,9 +31,11 @@
 //   POST /api/vision/admin/waitlist            Marcar avisado o quitar de la lista de espera
 //   POST /api/vision/admin/equipo              Guardar plan y equipos, o la hora real de inicio
 //   POST /api/vision/admin/staffkey            Crear, cambiar o quitar la clave de voluntarios
+//   POST /api/vision/admin/caja                Gastos, diferencias, entradas y arqueos (privado)
 
 import { getStore } from '@netlify/blobs';
 import { createHash, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
+import { DEFAULT_MESAS } from './mesa.mjs';
 
 export const config = { path: '/api/vision/*' };
 
@@ -72,7 +74,7 @@ const DEFAULT_EDITION = {
   correctionHours: 24,
   paymentUrl: 'https://checkout.wompi.co/l/VPOS_nEkNT7',
 };
-const PRIVATE_FIELDS = ['capacity', 'holdMinutes', 'correctionHours', 'paymentUrl', 'groups', 'hasQr', 'waitlist', 'equipo', 'rev', 'staffKeyHash'];
+const PRIVATE_FIELDS = ['capacity', 'holdMinutes', 'correctionHours', 'paymentUrl', 'groups', 'hasQr', 'waitlist', 'equipo', 'rev', 'staffKeyHash', 'caja'];
 
 // Borrador del plan de la noche y de los equipos (se edita en Panel → Equipo).
 const DEFAULT_EQUIPO = {
@@ -298,10 +300,11 @@ async function currentEdition() {
 // Lista de Mesas: la misma del formulario de Todos a la Mesa (se edita en su panel).
 const NO_MESA = 'Aún no asiste a una Mesa';
 async function getMesas() {
+  // Igual que Todos a la Mesa: mientras no se guarde una lista en su panel, vale la lista base.
   try {
     const r = await mesaStore().getWithMetadata('config/mesas', { type: 'json' });
-    return Array.isArray(r?.data?.mesas) ? r.data.mesas : [];
-  } catch { return []; }
+    return Array.isArray(r?.data?.mesas) && r.data.mesas.length ? r.data.mesas : DEFAULT_MESAS;
+  } catch { return DEFAULT_MESAS; }
 }
 
 // ───────── manejadores públicos ─────────
@@ -340,6 +343,7 @@ async function register(req, context) {
   const mesas = await getMesas();
   const mesaIn = clean(body.mesa, 80);
   const mesa = [NO_MESA, ...mesas].find((m) => plain(m) === plain(mesaIn)) || '';
+  if (!mesa) throw new HttpError(400, 'mesa', 'Escoge tu Mesa. Si no asistes a ninguna, marca esa opción.');
 
   const result = await mutate(editionKey(eid), (e) => {
     if (!e) throw new HttpError(409, 'none', 'No hay inscripciones abiertas en este momento.');
@@ -571,6 +575,7 @@ async function adminGroup(req) {
   const gid = clean(b.groupId, 20);
   const action = clean(b.action, 20);
   const by = clean(b.by, 40) || 'equipo';
+  const mesas = action === 'edit' ? await getMesas() : [];
   const res = await mutate(editionKey(idx.currentId), (e) => {
     const g = e?.groups.find((x) => x.id === gid);
     if (!g) throw new HttpError(404, 'not_found', 'Inscripción no encontrada.');
@@ -607,19 +612,34 @@ async function adminGroup(req) {
       // Sale de todas las listas pero no se destruye. Nunca si hubo comprobante o pago aprobado.
       if ((st !== 'vencido' && st !== 'cancelado') || g.proofs.length || g.approvedAmount != null) throw new HttpError(409, 'state', 'Solo se eliminan inscripciones vencidas o anuladas que nunca tuvieron comprobante ni pago.');
       g.status = 'cancelado'; g.holdUntil = null; g.deletedAt = nowIso(); g.deletedBy = by;
-    } else if (action === 'rename') {
-      const names = new Map((Array.isArray(b.names) ? b.names : []).slice(0, 30).map((n) => [clean(n?.id, 20), n]));
-      let changed = 0;
-      g.attendees.forEach((a, i) => {
-        const n = names.get(a.id);
-        if (!n) return;
+    } else if (action === 'edit') {
+      // Ficha completa: WhatsApp, Mesa y personas. No agrega ni quita personas y conserva sus boletas.
+      const phone = normalizePhone(b.phone);
+      if (!phone) throw new HttpError(400, 'phone', 'Escribe un número de WhatsApp válido.');
+      const mesa = [NO_MESA, ...mesas].find((x) => plain(x) === plain(b.mesa));
+      if (b.mesa && !mesa && b.mesa !== g.mesa) throw new HttpError(400, 'mesa', 'Esa Mesa no está en la lista.');
+      const input = new Map((Array.isArray(b.attendees) ? b.attendees : []).slice(0, 30).map((n) => [clean(n?.id, 20), n]));
+      const next = g.attendees.map((a) => {
+        const n = input.get(a.id);
+        if (!n) return a;
         const firstName = properName(n.firstName), lastName = properName(n.lastName);
         if (firstName.length < 2 || lastName.length < 2) throw new HttpError(400, 'name', 'Escribe nombre y apellido de cada persona.');
-        const wasResponsible = i === 0 && g.responsible === a.firstName + ' ' + a.lastName;
-        a.firstName = firstName; a.lastName = lastName; changed++;
-        if (wasResponsible) g.responsible = firstName + ' ' + lastName;
+        const out = { ...a, firstName, lastName, type: n.type === 'child' ? 'child' : 'adult' };
+        if (out.type === 'child') {
+          const age = parseInt(n.age, 10);
+          if (!(age >= e.childAgeMin && age <= e.childAgeMax)) throw new HttpError(400, 'age', `La edad de cada niño debe estar entre ${e.childAgeMin} y ${e.childAgeMax} años.`);
+          out.age = age;
+        } else delete out.age;
+        return out;
       });
-      if (!changed) throw new HttpError(400, 'name', 'No hay nombres para cambiar.');
+      if (!next.some((a) => a.type === 'adult')) throw new HttpError(400, 'adult', 'Debe haber al menos un adulto.');
+      const typesChanged = next.some((a, i) => a.type !== g.attendees[i].type);
+      g.attendees = next;
+      g.responsible = next[0].firstName + ' ' + next[0].lastName;
+      g.phone = phone;
+      g.mesa = mesa || (b.mesa ? g.mesa : '');
+      // Lo ya pagado no se recalcula.
+      if (typesChanged && g.approvedAmount == null) g.expected = expectedOf(e, next);
     } else if (action === 'note') {
       g.note = clean(b.note, 300);
     } else {
@@ -795,6 +815,50 @@ async function adminEquipo(req) {
   return json({ ok: true, equipo: out });
 }
 
+// ───────── caja: presupuesto, gastos y arqueos ─────────
+const CAJA_TYPES = ['gasto', 'diferencia', 'entrada'];
+async function adminCaja(req) {
+  const b = await req.json().catch(() => ({}));
+  const by = clean(b.by, 40) || 'equipo';
+  const amount = (v) => {
+    const n = v === '' || v === undefined || v === null ? 0 : Number(v);
+    if (!Number.isInteger(n) || n < 0 || n > 1000000000) throw new HttpError(400, 'amount', 'Escribe valores en pesos, sin puntos ni decimales.');
+    return n;
+  };
+  const idx = await ensureIndex();
+  const caja = await mutate(editionKey(idx.currentId), (e) => {
+    const c = e.caja || { items: [], arqueos: [] };
+    if (b.op === 'save') {
+      if (!CAJA_TYPES.includes(b.type)) throw new HttpError(400, 'type', 'Escoge el tipo.');
+      const concept = clean(b.concept, 80);
+      if (concept.length < 2) throw new HttpError(400, 'concept', 'Escribe el concepto.');
+      const item = { type: b.type, concept, budget: b.type === 'gasto' ? amount(b.budget) : 0, amount: amount(b.amount) };
+      if (!item.budget && !item.amount) throw new HttpError(400, 'amount', 'Escribe al menos un valor.');
+      if (b.id) {
+        const old = c.items.find((x) => x.id === b.id && !x.deletedAt);
+        if (!old) throw new HttpError(404, 'not_found', 'Ese movimiento ya no existe.');
+        Object.assign(old, item, { by, updatedAt: nowIso() });
+      } else {
+        if (c.items.length >= 300) throw new HttpError(409, 'full', 'La lista está completa.');
+        c.items.push({ id: token(6), ...item, by, createdAt: nowIso() });
+      }
+    } else if (b.op === 'delete') {
+      const old = c.items.find((x) => x.id === b.id);
+      if (!old) throw new HttpError(404, 'not_found', 'Ese movimiento ya no existe.');
+      old.deletedAt = nowIso(); old.deletedBy = by;
+    } else if (b.op === 'arqueo') {
+      if (b.real === '' || b.real === undefined) throw new HttpError(400, 'amount', 'Escribe el saldo que ves en el bolsillo.');
+      const real = amount(b.real), expected = Math.round(Number(b.expected) || 0);
+      c.arqueos = [...c.arqueos, { at: nowIso(), by, real, expected }].slice(-100);
+    } else {
+      throw new HttpError(400, 'op', 'Acción no válida.');
+    }
+    e.caja = c;
+    return { value: e, result: c };
+  });
+  return json({ ok: true, caja });
+}
+
 // ───────── voluntarios: ingreso y entregas ─────────
 const hashKey = (k) => createHash('sha256').update(String(k)).digest('hex');
 const sameHash = (a, b) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
@@ -936,6 +1000,7 @@ export default async (req, context) => {
       if (parts[1] === 'waitlist' && m === 'POST') return await adminWaitlist(req);
       if (parts[1] === 'equipo' && m === 'POST') return await adminEquipo(req);
       if (parts[1] === 'staffkey' && m === 'POST') return await adminStaffKey(req);
+      if (parts[1] === 'caja' && m === 'POST') return await adminCaja(req);
     }
     return fail(404, 'not_found', 'Ruta no encontrada.');
   } catch (e) {
