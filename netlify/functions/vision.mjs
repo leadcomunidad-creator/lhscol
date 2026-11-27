@@ -575,7 +575,7 @@ async function adminGroup(req) {
   const gid = clean(b.groupId, 20);
   const action = clean(b.action, 20);
   const by = clean(b.by, 40) || 'equipo';
-  const mesas = action === 'mesa' ? await getMesas() : [];
+  const mesas = action === 'edit' ? await getMesas() : [];
   const res = await mutate(editionKey(idx.currentId), (e) => {
     const g = e?.groups.find((x) => x.id === gid);
     if (!g) throw new HttpError(404, 'not_found', 'Inscripción no encontrada.');
@@ -612,23 +612,34 @@ async function adminGroup(req) {
       // Sale de todas las listas pero no se destruye. Nunca si hubo comprobante o pago aprobado.
       if ((st !== 'vencido' && st !== 'cancelado') || g.proofs.length || g.approvedAmount != null) throw new HttpError(409, 'state', 'Solo se eliminan inscripciones vencidas o anuladas que nunca tuvieron comprobante ni pago.');
       g.status = 'cancelado'; g.holdUntil = null; g.deletedAt = nowIso(); g.deletedBy = by;
-    } else if (action === 'rename') {
-      const names = new Map((Array.isArray(b.names) ? b.names : []).slice(0, 30).map((n) => [clean(n?.id, 20), n]));
-      let changed = 0;
-      g.attendees.forEach((a, i) => {
-        const n = names.get(a.id);
-        if (!n) return;
+    } else if (action === 'edit') {
+      // Ficha completa: WhatsApp, Mesa y personas. No agrega ni quita personas y conserva sus boletas.
+      const phone = normalizePhone(b.phone);
+      if (!phone) throw new HttpError(400, 'phone', 'Escribe un número de WhatsApp válido.');
+      const mesa = [NO_MESA, ...mesas].find((x) => plain(x) === plain(b.mesa));
+      if (b.mesa && !mesa && b.mesa !== g.mesa) throw new HttpError(400, 'mesa', 'Esa Mesa no está en la lista.');
+      const input = new Map((Array.isArray(b.attendees) ? b.attendees : []).slice(0, 30).map((n) => [clean(n?.id, 20), n]));
+      const next = g.attendees.map((a) => {
+        const n = input.get(a.id);
+        if (!n) return a;
         const firstName = properName(n.firstName), lastName = properName(n.lastName);
         if (firstName.length < 2 || lastName.length < 2) throw new HttpError(400, 'name', 'Escribe nombre y apellido de cada persona.');
-        const wasResponsible = i === 0 && g.responsible === a.firstName + ' ' + a.lastName;
-        a.firstName = firstName; a.lastName = lastName; changed++;
-        if (wasResponsible) g.responsible = firstName + ' ' + lastName;
+        const out = { ...a, firstName, lastName, type: n.type === 'child' ? 'child' : 'adult' };
+        if (out.type === 'child') {
+          const age = parseInt(n.age, 10);
+          if (!(age >= e.childAgeMin && age <= e.childAgeMax)) throw new HttpError(400, 'age', `La edad de cada niño debe estar entre ${e.childAgeMin} y ${e.childAgeMax} años.`);
+          out.age = age;
+        } else delete out.age;
+        return out;
       });
-      if (!changed) throw new HttpError(400, 'name', 'No hay nombres para cambiar.');
-    } else if (action === 'mesa') {
-      const m = [NO_MESA, ...mesas].find((x) => plain(x) === plain(b.mesa));
-      if (b.mesa && !m) throw new HttpError(400, 'mesa', 'Esa Mesa no está en la lista.');
-      g.mesa = m || '';
+      if (!next.some((a) => a.type === 'adult')) throw new HttpError(400, 'adult', 'Debe haber al menos un adulto.');
+      const typesChanged = next.some((a, i) => a.type !== g.attendees[i].type);
+      g.attendees = next;
+      g.responsible = next[0].firstName + ' ' + next[0].lastName;
+      g.phone = phone;
+      g.mesa = mesa || (b.mesa ? g.mesa : '');
+      // Lo ya pagado no se recalcula.
+      if (typesChanged && g.approvedAmount == null) g.expected = expectedOf(e, next);
     } else if (action === 'note') {
       g.note = clean(b.note, 300);
     } else {
