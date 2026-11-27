@@ -189,6 +189,34 @@ test('inscripción en la puerta: queda aprobada, con boletas y llegada', async (
   assert.ok(r.group.attendees[0].ticket.code.startsWith('VIS27-'));
 });
 
+test('color de vestuario: uno por persona, repartido por igual, fijo y también en boletas antiguas', async () => {
+  const key = 'v:edition/2027';
+  const colors = async () => (await call('/admin/overview', { headers: K })).edition.groups.flatMap((g) => g.attendees.filter((a) => a.ticket).map((a) => ({ token: a.ticket.token, color: a.ticket.color, live: g.status !== 'cancelado' })));
+  // Boletas emitidas antes del cambio: sin color guardado.
+  const raw = JSON.parse(data.get(key).s);
+  for (const g of raw.groups) for (const a of g.attendees) if (a.ticket) delete a.ticket.color;
+  data.set(key, { s: JSON.stringify(raw) });
+  const first = await colors();
+  assert.ok(first.length >= 5);
+  const n = new Map();
+  for (const t of first) if (t.live) n.set(t.color, (n.get(t.color) || 0) + 1);
+  assert.equal(n.size, 5);
+  assert.ok(Math.max(...n.values()) - Math.min(...n.values()) <= 1);
+  assert.deepEqual(await colors(), first);
+  const v = await call('/t/' + first[0].token);
+  assert.equal(v.color.name.toLowerCase(), first[0].color);
+  assert.match(v.color.hex, /^#[0-9a-f]{6}$/);
+  // Una inscripción nueva guarda su color y no cambia los anteriores.
+  const add = await call('/admin/add', { method: 'POST', headers: K, body: { phone: '3105554433', adults: [{ firstName: 'Eva', lastName: 'Ríos' }], children: [] } });
+  assert.ok(add.group.attendees[0].ticket.color);
+  const after = await colors();
+  for (const t of first) assert.equal(after.find((x) => x.token === t.token).color, t.color);
+  assert.ok(JSON.parse(data.get(key).s).groups.every((g) => g.attendees.every((a) => !a.ticket || a.ticket.color)));
+  // Al marcar las boletas como enviadas ya no hace falta avisar el color aparte.
+  const sent = await call('/admin/flags', { method: 'POST', headers: K, body: { groupId: add.group.id, sentAt: true } });
+  assert.ok(sent.group.colorAt);
+});
+
 test('el nombre de la temporada no aparece en la API ni en las páginas', async () => {
   const { readFileSync, readdirSync } = await import('node:fs');
   const files = ['netlify/functions/vision.mjs', ...readdirSync('vision', { recursive: true }).filter((f) => f.endsWith('.html')).map((f) => 'vision/' + f)];

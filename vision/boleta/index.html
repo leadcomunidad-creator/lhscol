@@ -48,6 +48,7 @@ body{background:var(--azul);color:var(--azul);font:400 16px/1.5 'DM Sans',system
 .msg h1{font:italic 400 28px 'Playfair Display',serif;margin-bottom:8px}
 .msg a{color:#fff}
 body.negro{background:#0A0A0A}body.negro .t{background:#141414;color:#EDE9DE;box-shadow:0 0 0 1px rgba(200,178,115,.35)}body.negro .name,body.negro .code,body.negro .lema{color:#C8B273}body.negro .k,body.negro .small{color:#bdbab0}body.negro .top{border-bottom-color:rgba(200,178,115,.4)}body.negro .top::before,body.negro .top::after{background:#0A0A0A}body.negro .st{background:#1d1d1d;color:#E0D3A9}body.negro .acts a,body.negro .acts button{background:transparent;color:#C8B273;border-color:rgba(200,178,115,.4)}body.negro .qr svg{background:#fff;border-radius:8px}
+.color{padding:16px 22px;text-align:center;color:#12110f;-webkit-print-color-adjust:exact;print-color-adjust:exact}.color[hidden]{display:none}.color span{display:block;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}.color b{display:block;font:600 30px/1.2 'DM Sans',sans-serif;margin:2px 0 4px}.color p{font-size:13.5px;line-height:1.45}
 @media print{body{background:#fff}.t{box-shadow:none;border:1px solid var(--g2)}.acts{display:none}.top::before,.top::after{display:none}}
 </style>
 </head>
@@ -67,6 +68,7 @@ body.negro{background:#0A0A0A}body.negro .t{background:#141414;color:#EDE9DE;box
     <p class="code" id="code"></p>
     <p class="small">Una boleta por persona. Preséntala en la entrada.</p>
   </div>
+  <div class="color" id="color" hidden><span>Tu color para esa noche</span><b id="colorName"></b><p>Úsalo en una prenda o accesorio, en este tono o parecido. Es opcional, ¡nos encantará verte!</p></div>
   <span class="st" id="st"></span>
   <div class="acts" style="padding-top:16px"><button type="button" id="share">Compartir</button><button type="button" onclick="window.print()">Imprimir</button></div>
 </article>
@@ -87,6 +89,7 @@ body.negro{background:#0A0A0A}body.negro .t{background:#141414;color:#EDE9DE;box
     $('venue').textContent = E.venue + (E.city ? ', ' + E.city : '');
     if (E.tagline) $('lema').textContent = E.tagline;
     $('code').textContent = b.code;
+    if (b.valid && b.color) { $('color').style.background = b.color.hex; $('colorName').textContent = b.color.name; $('color').hidden = false; }
     var q = qrcode(0, 'M'); q.addData(location.origin + '/vision/boleta/?t=' + t); q.make();
     $('qr').innerHTML = q.createSvgTag({cellSize: 6, margin: 2, scalable: true});
     var st = $('st');

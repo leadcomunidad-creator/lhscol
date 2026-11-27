@@ -379,10 +379,22 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
   // ── Mensajes de WhatsApp (sin emojis: WhatsApp para Windows los daña por enlace wa.me)
   function wa(phone, text){ return 'https://wa.me/' + phone + '?text=' + encodeURIComponent(text); }
   function gLink(g){ return SITE + '/vision/?g=' + g.token; }
+  // Color de vestuario sugerido (lo asigna el servidor a cada boleta)
+  var COLORS = {coral:'Coral', mostaza:'Mostaza', verde:'Verde', turquesa:'Turquesa', lila:'Lila'};
+  var COLOR_NOTE = 'Esa noche queremos que tú también seas parte de la decoración. Cada boleta tiene un color sugerido: úsalo en una prenda o accesorio, en ese tono o parecido. Es opcional.';
+  function colorName(a){ return a.ticket && COLORS[a.ticket.color] || ''; }
+  function ticketLines(g){
+    return g.attendees.map(function(a){ var c = colorName(a); return '*' + a.firstName + ' ' + a.lastName + (c ? ' (color ' + c + ')' : '') + ':* ' + SITE + '/vision/boleta/?t=' + a.ticket.token + '\n'; }).join('');
+  }
+  function msgColor(g){
+    return 'Hola ' + first(g.responsible) + ', tus boletas de *Visión 2027* ahora traen un color sugerido para el vestuario:\n\n' + ticketLines(g) + '\n' + COLOR_NOTE + ' ¡Te esperamos!';
+  }
+  // Grupos que recibieron sus boletas antes de que existiera el color
+  function needsColor(g){ return g.eff === 'aprobado' && !!g.sentAt && !g.colorAt; }
   function msgTickets(g){
     var t = 'Hola ' + first(g.responsible) + ', tu pago para *Visión 2027* fue aprobado. Ya tienes tus boletas:\n\n';
-    g.attendees.forEach(function(a){ t += '*' + a.firstName + ' ' + a.lastName + ':* ' + SITE + '/vision/boleta/?t=' + a.ticket.token + '\n'; });
-    return t + '\nTodas juntas: ' + gLink(g) + '\n\nNos vemos el ' + fDate().toLowerCase() + ' a las ' + fTime() + ' en ' + E.venue + '. Cada persona presenta su boleta en la entrada.';
+    t += ticketLines(g);
+    return t + '\nTodas juntas: ' + gLink(g) + '\n\n' + COLOR_NOTE + '\n\nNos vemos el ' + fDate().toLowerCase() + ' a las ' + fTime() + ' en ' + E.venue + '. Cada persona presenta su boleta en la entrada.';
   }
   function msgPay(g){
     return 'Hola ' + first(g.responsible) + ', vimos tu inscripción para *Visión 2027* (' + people(g) + ', ' + money(g.expected) + '), pero aún no recibimos el comprobante de pago.\n\nPuedes pagar y adjuntarlo aquí:\n' + gLink(g) + '\n\nSi tienes alguna duda, respóndenos por aquí.';
@@ -532,8 +544,8 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
         if (confirm('Listo. ¿Abrir WhatsApp para avisarle a ' + first(ng.responsible) + ' qué debe corregir?')) window.open(wa(ng.phone, msgFix(ng)), '_blank');
       });
     }
-    if (act === 'opensend' || act === 'remind' || act === 'hoy' || act === 'payask') {
-      var flag = act === 'opensend' ? null : act === 'remind' ? 'remindedAt' : act === 'payask' ? 'payAskedAt' : 'hoyAt';
+    if (act === 'opensend' || act === 'remind' || act === 'hoy' || act === 'payask' || act === 'color') {
+      var flag = act === 'opensend' ? null : act === 'remind' ? 'remindedAt' : act === 'payask' ? 'payAskedAt' : act === 'color' ? 'colorAt' : 'hoyAt';
       if (flag) setTimeout(function(){ var b = {groupId: g.id}; b[flag] = true; api('/admin/flags', {method:'POST', body: b}).then(reload); }, 300);
     }
     if (act === 'wnotify' || act === 'wremove') {
@@ -603,6 +615,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
       if (s === 'aprobado') {
         a += '<a class="b wa' + (g.sentAt ? ' done' : '') + '" data-act="opensend" href="' + esc(wa(g.phone, msgTickets(g))) + '" target="_blank" rel="noopener">' + (g.sentAt ? 'Boletas ✓' : 'Enviar boletas') + '</a>';
         if (!g.sentAt) a += '<button class="b" type="button" data-act="sent">Ya lo envié</button>';
+        if (needsColor(g)) a += '<a class="b wa" data-act="color" href="' + esc(wa(g.phone, msgColor(g))) + '" target="_blank" rel="noopener">Avisar color</a>';
         a += today ? '<a class="b wa' + (g.hoyAt ? ' done' : '') + '" data-act="hoy" href="' + esc(wa(g.phone, msgHoy(g))) + '" target="_blank" rel="noopener">' + (g.hoyAt ? 'Es hoy ✓' : 'Es hoy') + '</a>'
                    : '<a class="b wa' + (g.remindedAt ? ' done' : '') + '" data-act="remind" href="' + esc(wa(g.phone, msgRemind(g))) + '" target="_blank" rel="noopener">' + (g.remindedAt ? 'Recordado ✓' : 'Recordar') + '</a>';
       } else if (s === 'reservado' || s === 'vencido') {
@@ -614,7 +627,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
       if (s === 'cancelado' || s === 'vencido') a += '<button class="b" type="button" data-act="reopen">Reabrir</button>';
       else a += '<button class="b red" type="button" data-act="cancel">Anular</button>';
       var det = '<div class="detail hidden meta" style="margin-top:8px;line-height:1.7">' +
-        g.attendees.map(function(x){ return esc(x.firstName + ' ' + x.lastName) + (x.type === 'child' ? ' (niño, ' + x.age + ')' : '') + (x.ticket ? ' · ' + x.ticket.code : '') + (x.attended ? ' · llegó' : ''); }).join('<br>') +
+        g.attendees.map(function(x){ return esc(x.firstName + ' ' + x.lastName) + (x.type === 'child' ? ' (niño, ' + x.age + ')' : '') + (x.ticket ? ' · ' + x.ticket.code : '') + (colorName(x) ? ' · ' + colorName(x) : '') + (x.attended ? ' · llegó' : ''); }).join('<br>') +
         '<br>Valor esperado ' + money(g.expected) + (g.approvedAmount != null ? ' · recibido ' + money(g.approvedAmount) : '') + (g.payMethod ? ' · ' + esc(g.payMethod) : '') +
         (g.mesa ? '<br>Mesa: ' + esc(g.mesa) : '') +
         (g.review ? '<br>Última revisión: ' + esc(g.review.by || '') + ' · ' + new Date(g.review.at).toLocaleString('es-CO',{timeZone:'America/Bogota'}) + (g.review.reason ? ' · ' + esc(g.review.reason) : '') : '') +
@@ -627,9 +640,9 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
   }
   $('csv').addEventListener('click', function(){
     var safe = function(v){ v = String(v==null?'':v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; };
-    var rows = [['Responsable','WhatsApp','Estado','Persona','Tipo','Edad','Código de boleta','Llegó','Valor esperado','Valor recibido','Mesa','Inscripción']];
+    var rows = [['Responsable','WhatsApp','Estado','Persona','Tipo','Edad','Código de boleta','Llegó','Valor esperado','Valor recibido','Mesa','Inscripción','Color']];
     E.groups.forEach(function(g){ g.attendees.forEach(function(a){
-      rows.push([g.responsible, '+' + g.phone, LABEL[g.eff], a.firstName + ' ' + a.lastName, a.type === 'child' ? 'Niño' : 'Adulto', a.age || '', a.ticket ? a.ticket.code : '', a.attended ? 'Sí' : '', g.expected, g.approvedAmount == null ? '' : g.approvedAmount, g.mesa || '', new Date(g.createdAt).toLocaleString('es-CO',{timeZone:'America/Bogota'})]);
+      rows.push([g.responsible, '+' + g.phone, LABEL[g.eff], a.firstName + ' ' + a.lastName, a.type === 'child' ? 'Niño' : 'Adulto', a.age || '', a.ticket ? a.ticket.code : '', a.attended ? 'Sí' : '', g.expected, g.approvedAmount == null ? '' : g.approvedAmount, g.mesa || '', new Date(g.createdAt).toLocaleString('es-CO',{timeZone:'America/Bogota'}), colorName(a)]);
     }); });
     var csv = '﻿' + rows.map(function(r){ return r.map(safe).join(','); }).join('\r\n');
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'})); a.download = 'vision-' + E.id + '-inscritos.csv'; a.click();
@@ -751,6 +764,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
   var chainOn = false, chainQ = [], chainI = 0, chainKind = null, chainOpened = false;
   var KINDS = {
     boletas: {label:'Enviar boletas', pick:function(g){ return g.eff === 'aprobado' && !g.sentAt; }, msg:msgTickets, flag:'sentAt'},
+    color: {label:'Avisar color', pick:needsColor, msg:msgColor, flag:'colorAt'},
     recordar: {label:'Recordar', pick:function(g){ return g.eff === 'aprobado' && !g.remindedAt; }, msg:msgRemind, flag:'remindedAt'},
     hoy: {label:'Es hoy', pick:function(g){ return g.eff === 'aprobado' && !g.hoyAt; }, msg:msgHoy, flag:'hoyAt', today:true},
     comprobante: {label:'Pedir comprobante', pick:function(g){ return (g.eff === 'reservado' || g.eff === 'vencido') && !g.payAskedAt; }, msg:msgPay, flag:'payAskedAt'},
