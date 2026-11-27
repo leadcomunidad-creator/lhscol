@@ -381,7 +381,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
   function gLink(g){ return SITE + '/vision/?g=' + g.token; }
   // Color de vestuario sugerido (lo asigna el servidor a cada boleta)
   var COLORS = {coral:'Coral', mostaza:'Mostaza', verde:'Verde', turquesa:'Turquesa', lila:'Lila'};
-  var COLOR_NOTE = '¿Nos ayudas a darle color a la noche? En cada boleta hay un color sugerido: úsalo en una prenda o accesorio, en ese tono o parecido. Es opcional.';
+  var COLOR_NOTE = 'Ponle tu color a la noche. En cada boleta hay un color sugerido: úsalo en una prenda o accesorio, en ese tono o parecido. Es opcional.';
   function colorName(a){ return a.ticket && COLORS[a.ticket.color] || ''; }
   function ticketLines(g){
     return g.attendees.map(function(a){ var c = colorName(a); return '*' + a.firstName + ' ' + a.lastName + (c ? ' (color ' + c + ')' : '') + ':* ' + SITE + '/vision/boleta/?t=' + a.ticket.token + '\n'; }).join('');
