@@ -175,7 +175,7 @@ footer p{color:var(--g5);font-size:13px;margin-top:14px}
       <li>Puedes marcar de una vez a las personas del grupo que estén contigo.</li>
       <li>Llega con el celular cargado y la clave de voluntarios. La entrega coordinación.</li>
     </ul>
-    <a class="go" href="/vision/entregas/">Abrir la pantalla de escaneo</a>
+    <a class="go" data-team href="/vision/entregas/">Abrir la pantalla de escaneo</a>
   </section>
 
   <section class="reveal">
@@ -313,5 +313,6 @@ footer p{color:var(--g5);font-size:13px;margin-top:14px}
   document.querySelectorAll('.reveal').forEach(function(el){ io ? io.observe(el) : el.classList.add('in'); });
 })();
 </script>
+<script src="/assets/vision/nav.js?v=1"></script>
 </body>
 </html>

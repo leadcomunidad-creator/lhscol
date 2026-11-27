@@ -882,6 +882,8 @@ async function checkStaff(req) {
   let given = '';
   try { given = decodeURIComponent(req.headers.get('x-staff-key') || '').trim(); } catch { /* clave mal formada */ }
   const e = await currentEdition();
+  const admin = process.env.VISION_ADMIN_KEY || process.env.MESA_ADMIN_KEY || '';
+  if (e && admin.length >= 8 && given && sameHash(hashKey(given), hashKey(admin))) return e;
   if (!e?.staffKeyHash) throw new HttpError(503, 'not_configured', 'Todavía no hay clave de voluntarios. Pídela a quien coordina.');
   if (!given || !sameHash(hashKey(given), e.staffKeyHash)) {
     await new Promise((r) => setTimeout(r, 400)); // frena los intentos al azar

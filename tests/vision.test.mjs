@@ -227,6 +227,8 @@ test('voluntarios: clave propia, sin datos privados, y cada entrega una sola vez
   assert.equal((await call('/admin/staffkey', { method: 'POST', headers: K, body: { key: KEY } })).ok, true);
   assert.equal((await call('/staff/check', { headers: S('otra-clave') })).code, 401);
   assert.equal((await call('/staff/check', { headers: S(KEY) })).ok, true);
+  // Quien tiene la clave del panel también puede escanear.
+  assert.equal((await call('/staff/check', { headers: S('clave-de-prueba') })).ok, true);
   // La clave de voluntarios no abre el panel, y su huella no sale por ninguna parte.
   assert.equal((await call('/admin/overview', { headers: { 'x-admin-key': KEY } })).code, 401);
   const o = await call('/admin/overview', { headers: K });
