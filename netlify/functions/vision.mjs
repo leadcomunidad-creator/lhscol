@@ -34,6 +34,7 @@
 
 import { getStore } from '@netlify/blobs';
 import { createHash, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
+import { DEFAULT_MESAS } from './mesa.mjs';
 
 export const config = { path: '/api/vision/*' };
 
@@ -298,10 +299,11 @@ async function currentEdition() {
 // Lista de Mesas: la misma del formulario de Todos a la Mesa (se edita en su panel).
 const NO_MESA = 'Aún no asiste a una Mesa';
 async function getMesas() {
+  // Igual que Todos a la Mesa: mientras no se guarde una lista en su panel, vale la lista base.
   try {
     const r = await mesaStore().getWithMetadata('config/mesas', { type: 'json' });
-    return Array.isArray(r?.data?.mesas) ? r.data.mesas : [];
-  } catch { return []; }
+    return Array.isArray(r?.data?.mesas) && r.data.mesas.length ? r.data.mesas : DEFAULT_MESAS;
+  } catch { return DEFAULT_MESAS; }
 }
 
 // ───────── manejadores públicos ─────────
@@ -340,6 +342,7 @@ async function register(req, context) {
   const mesas = await getMesas();
   const mesaIn = clean(body.mesa, 80);
   const mesa = [NO_MESA, ...mesas].find((m) => plain(m) === plain(mesaIn)) || '';
+  if (!mesa) throw new HttpError(400, 'mesa', 'Escoge tu Mesa. Si no asistes a ninguna, marca esa opción.');
 
   const result = await mutate(editionKey(eid), (e) => {
     if (!e) throw new HttpError(409, 'none', 'No hay inscripciones abiertas en este momento.');
@@ -571,6 +574,7 @@ async function adminGroup(req) {
   const gid = clean(b.groupId, 20);
   const action = clean(b.action, 20);
   const by = clean(b.by, 40) || 'equipo';
+  const mesas = action === 'mesa' ? await getMesas() : [];
   const res = await mutate(editionKey(idx.currentId), (e) => {
     const g = e?.groups.find((x) => x.id === gid);
     if (!g) throw new HttpError(404, 'not_found', 'Inscripción no encontrada.');
@@ -620,6 +624,10 @@ async function adminGroup(req) {
         if (wasResponsible) g.responsible = firstName + ' ' + lastName;
       });
       if (!changed) throw new HttpError(400, 'name', 'No hay nombres para cambiar.');
+    } else if (action === 'mesa') {
+      const m = [NO_MESA, ...mesas].find((x) => plain(x) === plain(b.mesa));
+      if (b.mesa && !m) throw new HttpError(400, 'mesa', 'Esa Mesa no está en la lista.');
+      g.mesa = m || '';
     } else if (action === 'note') {
       g.note = clean(b.note, 300);
     } else {

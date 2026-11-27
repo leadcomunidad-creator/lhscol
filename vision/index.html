@@ -191,8 +191,8 @@ body.negro .badge{background:#1d1d1d}
   <p class="lead">Solo pedimos lo necesario. Los niños no necesitan WhatsApp propio.</p>
   <form id="frm" novalidate>
     <div id="people"></div>
-    <label id="mesaWrap" class="hidden" style="margin:-.6rem 0 1.4rem">¿A qué Mesa asistes? <span class="hint">(opcional)</span>
-      <select id="mesa"><option value="">Escoge tu Mesa</option></select></label>
+    <label id="mesaWrap" class="hidden" style="margin:-.6rem 0 1.4rem">¿A qué Mesa asistes?
+      <select id="mesa" name="mesa" required><option value="">Escoge una opción</option></select></label>
     <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Sitio web<input type="text" id="website" tabindex="-1" autocomplete="off"></label></div>
     <label class="chk"><input type="checkbox" id="c1"><span>Autorizo a LHSCOL a usar mis datos y los de las personas que inscribo solo para gestionar su asistencia a Visión 2027.</span></label>
     <label class="chk" id="kidsConsent" hidden><input type="checkbox" id="c2"><span>Soy padre, madre o acudiente de los niños inscritos y autorizo el uso de sus datos para este fin.</span></label>
@@ -519,8 +519,8 @@ body.negro .badge{background:#1d1d1d}
     });
   }
   function fillMesas(){
-    if (!mesas.length) return;
     var sel = $('#mesa');
+    if (!mesas.length) { sel.required = false; return; }
     mesas.forEach(function(m){ sel.add(new Option(m, m)); });
     sel.add(new Option('Aún no asisto a una Mesa', noMesa));
     $('#mesaWrap').classList.remove('hidden');

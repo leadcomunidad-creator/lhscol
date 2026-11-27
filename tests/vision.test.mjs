@@ -278,7 +278,7 @@ test('voluntarios: clave propia, sin datos privados, y cada entrega una sola vez
 
 test('seguimiento de quien no ha subido comprobante: privado y sin cambiar el estado', async () => {
   await call('/admin/edition', { method: 'POST', headers: K, body: { date: '2026-12-19', time: '18:00', capacity: 1000, closeAt: '2026-12-15T23:59', priceAdult: 75000, priceChild: 40000 } });
-  const r = await call('/register', { method: 'POST', body: { phone: '3123334455', consent: true, startedAt: old, adults: [{ firstName: 'Sara', lastName: 'Ruiz' }], children: [] } });
+  const r = await call('/register', { method: 'POST', body: { mesa: 'Juan y Lili', phone: '3123334455', consent: true, startedAt: old, adults: [{ firstName: 'Sara', lastName: 'Ruiz' }], children: [] } });
   assert.equal(r.ok, true, r.message);
   const find = async () => (await call('/admin/overview', { headers: K })).edition.groups.find((g) => g.token === r.token);
   const g = await find();
@@ -312,7 +312,7 @@ test('corregir nombres conserva la boleta; eliminar solo sirve para lo que nunca
   await act(add.group.id, 'cancel');
   assert.equal((await act(add.group.id, 'delete')).error, 'state');
 
-  const reg = await call('/register', { method: 'POST', body: { phone: '3145556677', consent: true, startedAt: old, adults: [{ firstName: 'Prueba', lastName: 'Vieja' }], children: [] } });
+  const reg = await call('/register', { method: 'POST', body: { mesa: 'Juan y Lili', phone: '3145556677', consent: true, startedAt: old, adults: [{ firstName: 'Prueba', lastName: 'Vieja' }], children: [] } });
   const g = (await groups()).find((x) => x.token === reg.token);
   assert.equal((await act(g.id, 'delete')).error, 'state');
   await act(g.id, 'cancel');
@@ -320,6 +320,25 @@ test('corregir nombres conserva la boleta; eliminar solo sirve para lo que nunca
   assert.ok(!(await groups()).some((x) => x.id === g.id));
   assert.equal((await call('/g/' + reg.token)).status, 'cancelado');
   assert.ok(JSON.parse(data.get('v:edition/2027').s).groups.some((x) => x.id === g.id && x.deletedAt));
+});
+
+test('la Mesa se pide siempre, usa la lista base de Todos a la Mesa y el panel puede completarla', async () => {
+  const saved = data.get('m:config/mesas');
+  data.delete('m:config/mesas');
+  const ev = await call('/event');
+  assert.ok(ev.mesas.includes('Camilo y Camila'));
+  const body = { phone: '3156667788', consent: true, startedAt: old, adults: [{ firstName: 'Mesa', lastName: 'Prueba' }], children: [] };
+  assert.equal((await call('/register', { method: 'POST', body })).error, 'mesa');
+  assert.equal((await call('/register', { method: 'POST', body: { ...body, mesa: 'Inventada' } })).error, 'mesa');
+  const r = await call('/register', { method: 'POST', body: { ...body, mesa: ev.noMesa } });
+  assert.equal(r.ok, true, r.message);
+  const g = (await call('/admin/overview', { headers: K })).edition.groups.find((x) => x.token === r.token);
+  const set = (mesa) => call('/admin/group', { method: 'POST', headers: K, body: { groupId: g.id, action: 'mesa', mesa } });
+  assert.equal((await set('Inventada')).error, 'mesa');
+  const done = await set('Camilo y Camila');
+  assert.equal(done.group.mesa, 'Camilo y Camila');
+  assert.equal(done.group.status, 'reservado');
+  data.set('m:config/mesas', saved);
 });
 
 test('el nombre de la temporada no aparece en la API ni en las páginas', async () => {

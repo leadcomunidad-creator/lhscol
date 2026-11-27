@@ -665,6 +665,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
   $('list').addEventListener('change', function(e){
     if (!e.target.classList.contains('follow')) return;
     var sel = e.target, g = findG(sel); sel.blur();
+    if (sel.classList.contains('mesaSel')) { groupAction(g, 'mesa', {mesa: sel.value}).then(function(x){ if (x) toast('Mesa guardada.'); }); return; }
     api('/admin/followup', {method:'POST', body:{groupId: g.id, status: sel.value, by: who}}).then(function(r){ toast(r.ok ? 'Anotado.' : r.message); reload(); });
   });
   function renderList(){
@@ -704,7 +705,8 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
       var det = '<div class="detail hidden meta" style="margin-top:8px;line-height:1.7">' +
         g.attendees.map(function(x){ return esc(x.firstName + ' ' + x.lastName) + (x.type === 'child' ? ' (niño, ' + x.age + ')' : '') + (x.ticket ? ' · ' + x.ticket.code : '') + (colorName(x) ? ' · ' + colorName(x) : '') + (x.attended ? ' · llegó' : ''); }).join('<br>') +
         '<br>Valor esperado ' + money(g.expected) + (g.approvedAmount != null ? ' · recibido ' + money(g.approvedAmount) : '') + (g.payMethod ? ' · ' + esc(g.payMethod) : '') +
-        (g.mesa ? '<br>Mesa: ' + esc(g.mesa) : '') +
+        '<br><label>Mesa: <select class="follow mesaSel" aria-label="Mesa de ' + esc(g.responsible) + '"><option value="">Sin registrar</option>' +
+          (data.mesas || []).concat([data.noMesa]).map(function(m){ return '<option value="' + esc(m) + '"' + (g.mesa === m ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') + '</select></label>' +
         (g.review ? '<br>Última revisión: ' + esc(g.review.by || '') + ' · ' + new Date(g.review.at).toLocaleString('es-CO',{timeZone:'America/Bogota'}) + (g.review.reason ? ' · ' + esc(g.review.reason) : '') : '') +
         (g.proofs.length ? '<br>Comprobantes: ' + g.proofs.map(function(p){ return '<button class="b" type="button" data-act="proof" data-n="' + p.n + '">Ver ' + p.n + '</button>'; }).join(' ') : '') +
         '<br>Enlace: <a href="' + esc(gLink(g)) + '" target="_blank" rel="noopener">' + esc(gLink(g)) + '</a>' +

@@ -50,7 +50,7 @@ const DEFAULT_SESSION = {
 // Mesas (grupos) que aparecen en el formulario. Se editan desde el panel (Sesiones → Mesas);
 // esta lista solo se usa mientras no se haya guardado ninguna desde el panel.
 const NO_MESA = 'Aún no asiste a una Mesa';
-const DEFAULT_MESAS = [
+export const DEFAULT_MESAS = [
   'Alejandra y Alexander',
   'Beatriz Tejada',
   'Camilo y Camila',
