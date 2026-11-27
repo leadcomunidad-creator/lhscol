@@ -49,6 +49,8 @@ body{background:var(--azul);color:var(--azul);font:400 16px/1.5 'DM Sans',system
 .msg a{color:#fff}
 body.negro{background:#0A0A0A}body.negro .t{background:#141414;color:#EDE9DE;box-shadow:0 0 0 1px rgba(200,178,115,.35)}body.negro .name,body.negro .code,body.negro .lema{color:#C8B273}body.negro .k,body.negro .small{color:#bdbab0}body.negro .top{border-bottom-color:rgba(200,178,115,.4)}body.negro .top::before,body.negro .top::after{background:#0A0A0A}body.negro .st{background:#1d1d1d;color:#E0D3A9}body.negro .acts a,body.negro .acts button{background:transparent;color:#C8B273;border-color:rgba(200,178,115,.4)}body.negro .qr svg{background:#fff;border-radius:8px}
 .color{padding:16px 22px;text-align:center;color:#12110f;-webkit-print-color-adjust:exact;print-color-adjust:exact}.color[hidden]{display:none}.color span{display:block;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}.color b{display:block;font:600 30px/1.2 'DM Sans',sans-serif;margin:2px 0 4px}.color p{font-size:13.5px;line-height:1.45}
+.served{display:flex;gap:6px;padding:14px 22px}.served[hidden]{display:none}.served span{flex:1;text-align:center;font-size:12px;font-weight:600;line-height:1.3;border:1px solid rgba(128,128,128,.4);border-radius:8px;padding:8px 4px;display:flex;align-items:center;justify-content:center}.served span.done{background:#6FCF97;border-color:#6FCF97;color:#06210f}
+@media print{.served{display:none}}
 @media print{body{background:#fff}.t{box-shadow:none;border:1px solid var(--g2)}.acts{display:none}.top::before,.top::after{display:none}}
 </style>
 </head>
@@ -69,6 +71,7 @@ body.negro{background:#0A0A0A}body.negro .t{background:#141414;color:#EDE9DE;box
     <p class="small">Una boleta por persona. Preséntala en la entrada.</p>
   </div>
   <div class="color" id="color" hidden><span>Tu color para esa noche</span><b id="colorName"></b><p>Úsalo en una prenda o accesorio, en este tono o parecido. Es opcional, ¡nos encantará verte!</p></div>
+  <div class="served" id="served" hidden><span data-s="ingreso">Ingreso</span><span data-s="comida">Comida y bebida</span><span data-s="granizado">Granizado</span></div>
   <span class="st" id="st"></span>
   <div class="acts" style="padding-top:16px"><button type="button" id="share">Compartir</button><button type="button" onclick="window.print()">Imprimir</button></div>
 </article>
@@ -92,9 +95,18 @@ body.negro{background:#0A0A0A}body.negro .t{background:#141414;color:#EDE9DE;box
     if (b.valid && b.color) { $('color').style.background = b.color.hex; $('colorName').textContent = b.color.name; $('color').hidden = false; }
     var q = qrcode(0, 'M'); q.addData(location.origin + '/vision/boleta/?t=' + t); q.make();
     $('qr').innerHTML = q.createSvgTag({cellSize: 6, margin: 2, scalable: true});
-    var st = $('st');
-    st.className = 'st ' + (!b.valid ? 'bad' : b.attended ? 'ok' : '');
-    st.textContent = !b.valid ? 'Boleta no válida · escríbenos' : b.attended ? '✓ Ya ingresó' : 'Boleta válida';
+    function paint(x){
+      var st = $('st'), s = x.served || {};
+      st.className = 'st ' + (!x.valid ? 'bad' : x.attended ? 'ok' : '');
+      st.textContent = !x.valid ? 'Boleta no válida · escríbenos' : x.attended ? '✓ Ya ingresó' : 'Boleta válida';
+      // Las casillas aparecen cuando empieza a registrarse la noche.
+      $('served').hidden = !(x.valid && (s.ingreso || s.comida || s.granizado));
+      document.querySelectorAll('#served span').forEach(function(el){ var on = !!s[el.dataset.s]; el.classList.toggle('done', on); el.textContent = (on ? '✓ ' : '') + el.textContent.replace('✓ ', ''); });
+    }
+    paint(b);
+    if (new Date().toLocaleDateString('en-CA', o) === E.date) setInterval(function(){
+      if (!document.hidden) fetch('/api/vision/t/' + encodeURIComponent(t)).then(function(r){ return r.json(); }).then(function(x){ if (x.ok) paint(x); }).catch(function(){});
+    }, 20000);
     $('msg').hidden = true; $('t').hidden = false; requestAnimationFrame(function(){ $('t').classList.add('in'); });
     $('share').addEventListener('click', function(){
       var data = {title: 'Boleta Visión 2027 · ' + b.name, text: 'Boleta de ' + b.name + ' para Visión 2027', url: location.href};

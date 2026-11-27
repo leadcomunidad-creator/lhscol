@@ -12,6 +12,12 @@
 //   POST /api/vision/waitlist              Lista de espera (solo cuando no hay cupo)
 //   GET  /api/vision/equipo                Plan de la noche para la página del equipo (sin cifras)
 //
+// Voluntarios (cabecera x-staff-key; solo nombres y entregas, nunca pagos ni teléfonos):
+//   GET  /api/vision/staff/check
+//   POST /api/vision/staff/scan            Escanear una boleta en un punto (ingreso, comida o granizado)
+//   POST /api/vision/staff/search          Buscar por nombre o código
+//   POST /api/vision/staff/mark            Marcar o desmarcar a personas de un grupo
+//
 // Administración (cabecera x-admin-key = VISION_ADMIN_KEY; si no existe, MESA_ADMIN_KEY):
 //   GET  /api/vision/admin/overview
 //   GET  /api/vision/admin/proof/:groupId/:n   Ver un comprobante
@@ -23,6 +29,7 @@
 //   POST /api/vision/admin/add                 Inscribir en la puerta o a mano (queda aprobado)
 //   POST /api/vision/admin/waitlist            Marcar avisado o quitar de la lista de espera
 //   POST /api/vision/admin/equipo              Guardar plan y equipos, o la hora real de inicio
+//   POST /api/vision/admin/staffkey            Crear, cambiar o quitar la clave de voluntarios
 
 import { getStore } from '@netlify/blobs';
 import { createHash, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
@@ -64,7 +71,7 @@ const DEFAULT_EDITION = {
   correctionHours: 24,
   paymentUrl: 'https://checkout.wompi.co/l/VPOS_nEkNT7',
 };
-const PRIVATE_FIELDS = ['capacity', 'holdMinutes', 'correctionHours', 'paymentUrl', 'groups', 'hasQr', 'waitlist', 'equipo', 'rev'];
+const PRIVATE_FIELDS = ['capacity', 'holdMinutes', 'correctionHours', 'paymentUrl', 'groups', 'hasQr', 'waitlist', 'equipo', 'rev', 'staffKeyHash'];
 
 // Borrador del plan de la noche y de los equipos (se edita en Panel → Equipo).
 const DEFAULT_EQUIPO = {
@@ -205,7 +212,7 @@ const seats = (g) => g.attendees.length;
 
 function counts(e, now = Date.now()) {
   const c = { grupos: 0, personas: 0, adultos: 0, ninos: 0, reservado: 0, revision: 0, aprobado: 0, rechazado: 0, incompleto: 0, vencido: 0, cancelado: 0,
-    ocupados: 0, confirmados: 0, llegaron: 0, recaudo: 0, esperado: 0, boletasSinEnviar: 0 };
+    ocupados: 0, confirmados: 0, llegaron: 0, comida: 0, comidaNinos: 0, granizado: 0, recaudo: 0, esperado: 0, boletasSinEnviar: 0 };
   for (const g of e.groups) {
     const st = effStatus(g, now);
     c[st] = (c[st] || 0) + seats(g);
@@ -214,7 +221,12 @@ function counts(e, now = Date.now()) {
       c.grupos++;
       c.confirmados += seats(g);
       c.recaudo += g.approvedAmount || 0;
-      for (const a of g.attendees) { if (a.type === 'child') c.ninos++; else c.adultos++; if (a.attended) c.llegaron++; }
+      for (const a of g.attendees) {
+        if (a.type === 'child') c.ninos++; else c.adultos++;
+        if (a.attended) c.llegaron++;
+        if (a.served?.comida) { c.comida++; if (a.type === 'child') c.comidaNinos++; }
+        if (a.served?.granizado) c.granizado++;
+      }
       if (!g.sentAt) c.boletasSinEnviar++;
     }
     if (st === 'revision') c.esperado += g.expected;
@@ -446,8 +458,11 @@ async function ticketView(t) {
   const a = g?.attendees.find((x) => x.id === ref.attendeeId);
   if (!a || !a.ticket || a.ticket.token !== clean(t, 40)) throw new HttpError(404, 'not_found', 'Esta boleta no existe o fue anulada.');
   const valid = effStatus(g) === 'aprobado';
-  return json({ ok: true, valid, name: a.firstName + ' ' + a.lastName, type: a.type, age: a.age, code: a.ticket.code, color: colorOf(a), attended: !!a.attended, group: g.responsible, edition: publicEdition(e) });
+  return json({ ok: true, valid, name: a.firstName + ' ' + a.lastName, type: a.type, age: a.age, code: a.ticket.code, color: colorOf(a), attended: !!a.attended, served: servedOf(a), group: g.responsible, edition: publicEdition(e) });
 }
+
+const STATIONS = ['ingreso', 'comida', 'granizado'];
+const servedOf = (a) => ({ ingreso: !!a.attended, comida: !!a.served?.comida, granizado: !!a.served?.granizado });
 
 async function getQr() {
   const idx = await ensureIndex();
@@ -466,10 +481,11 @@ function checkAdmin(req) {
   if (!timingSafeEqual(a, b)) throw new HttpError(401, 'unauthorized', 'Contraseña incorrecta.');
 }
 
-function adminEdition(e) {
+function adminEdition(full) {
   const now = Date.now();
+  const { staffKeyHash, ...e } = full;
   const groups = e.groups.map((g) => ({ ...g, eff: effStatus(g, now) }));
-  return { ...e, groups, state: publicState(e, now), counts: counts(e, now), startsAt: startDate(e).toISOString() };
+  return { ...e, hasStaffKey: !!staffKeyHash, groups, state: publicState(e, now), counts: counts(e, now), startsAt: startDate(e).toISOString() };
 }
 
 async function adminOverview() {
@@ -745,6 +761,110 @@ async function adminEquipo(req) {
   return json({ ok: true, equipo: out });
 }
 
+// ───────── voluntarios: ingreso y entregas ─────────
+const hashKey = (k) => createHash('sha256').update(String(k)).digest('hex');
+const sameHash = (a, b) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
+
+async function adminStaffKey(req) {
+  const b = await req.json().catch(() => ({}));
+  const key = String(b.key ?? '').trim();
+  if (key && (key.length < 6 || key.length > 60)) throw new HttpError(400, 'key', 'La clave de voluntarios debe tener entre 6 y 60 caracteres.');
+  const admin = process.env.VISION_ADMIN_KEY || process.env.MESA_ADMIN_KEY || '';
+  if (key && key === admin) throw new HttpError(400, 'key', 'Usa una clave distinta a la del panel.');
+  const idx = await ensureIndex();
+  await mutate(editionKey(idx.currentId), (e) => {
+    if (key) e.staffKeyHash = hashKey(key); else delete e.staffKeyHash;
+    return { value: e };
+  });
+  return json({ ok: true, hasStaffKey: !!key });
+}
+
+// La clave llega codificada para admitir tildes y eñes en la cabecera.
+async function checkStaff(req) {
+  let given = '';
+  try { given = decodeURIComponent(req.headers.get('x-staff-key') || '').trim(); } catch { /* clave mal formada */ }
+  const e = await currentEdition();
+  if (!e?.staffKeyHash) throw new HttpError(503, 'not_configured', 'Todavía no hay clave de voluntarios. Pídela a quien coordina.');
+  if (!given || !sameHash(hashKey(given), e.staffKeyHash)) {
+    await new Promise((r) => setTimeout(r, 400)); // frena los intentos al azar
+    throw new HttpError(401, 'unauthorized', 'Clave incorrecta.');
+  }
+  return e;
+}
+
+// Lo único que ve un voluntario.
+function staffGroup(g) {
+  const st = effStatus(g);
+  return {
+    id: g.id, responsible: g.responsible, valid: st === 'aprobado',
+    attendees: g.attendees.map((a) => ({
+      id: a.id, name: a.firstName + ' ' + a.lastName, type: a.type, age: a.age, served: servedOf(a),
+      at: { ingreso: a.attendedAt || null, comida: a.served?.comida?.at || null, granizado: a.served?.granizado?.at || null },
+    })),
+  };
+}
+
+function setServed(a, station, value, by) {
+  if (station === 'ingreso') { a.attended = value; a.attendedAt = value ? nowIso() : null; a.attendedBy = value ? by : null; return; }
+  a.served ||= {};
+  if (value) a.served[station] = { at: nowIso(), by }; else delete a.served[station];
+}
+
+function stationOf(b) {
+  if (!STATIONS.includes(b.station)) throw new HttpError(400, 'station', 'Escoge un punto.');
+  return b.station;
+}
+
+async function staffScan(req) {
+  const b = await req.json().catch(() => ({}));
+  const station = stationOf(b);
+  const by = clean(b.by, 40) || 'voluntario';
+  const raw = String(b.code || '').slice(0, 300);
+  const tm = raw.match(/[?&]t=([A-Za-z0-9_-]{10,40})/);
+  const code = clean(raw, 40).toUpperCase();
+  const idx = await ensureIndex();
+  const res = await mutate(editionKey(idx.currentId), (e) => {
+    let g, a;
+    for (const x of e.groups) {
+      const y = x.attendees.find((p) => p.ticket && (tm ? p.ticket.token === tm[1] : p.ticket.code === code));
+      if (y) { g = x; a = y; break; }
+    }
+    if (!a) throw new HttpError(404, 'not_found', 'Esta boleta no existe.');
+    const result = effStatus(g) !== 'aprobado' ? 'blocked' : servedOf(a)[station] ? 'already' : 'ok';
+    if (result !== 'ok') return { skipWrite: true, result: { g, a, result } };
+    setServed(a, station, true, by);
+    return { value: e, result: { g, a, result } };
+  });
+  return json({ ok: true, result: res.result, personId: res.a.id, group: staffGroup(res.g) });
+}
+
+async function staffMark(req) {
+  const b = await req.json().catch(() => ({}));
+  const station = stationOf(b);
+  const by = clean(b.by, 40) || 'voluntario';
+  const ids = new Set((Array.isArray(b.ids) ? b.ids : []).slice(0, 30).map((x) => clean(x, 20)));
+  const value = b.value !== false;
+  const idx = await ensureIndex();
+  const res = await mutate(editionKey(idx.currentId), (e) => {
+    const g = e?.groups.find((x) => x.id === clean(b.groupId, 20));
+    if (!g) throw new HttpError(404, 'not_found', 'Inscripción no encontrada.');
+    if (value && effStatus(g) !== 'aprobado') throw new HttpError(409, 'not_approved', 'Este grupo no tiene el pago aprobado.');
+    const change = g.attendees.filter((a) => ids.has(a.id) && servedOf(a)[station] !== value);
+    for (const a of change) setServed(a, station, value, by);
+    const result = { g, changed: change.map((a) => a.id) };
+    return change.length ? { value: e, result } : { skipWrite: true, result };
+  });
+  return json({ ok: true, changed: res.changed, group: staffGroup(res.g) });
+}
+
+async function staffSearch(req, e) {
+  const b = await req.json().catch(() => ({}));
+  const q = plain(clean(b.q, 60));
+  if (q.length < 3) return json({ ok: true, groups: [] });
+  const groups = e.groups.filter((g) => effStatus(g) !== 'cancelado' && g.attendees.some((a) => plain(a.firstName + ' ' + a.lastName + ' ' + (a.ticket?.code || '')).includes(q)));
+  return json({ ok: true, groups: groups.slice(0, 12).map(staffGroup), more: groups.length > 12 });
+}
+
 // ───────── enrutador ─────────
 export default async (req, context) => {
   const url = new URL(req.url);
@@ -761,6 +881,13 @@ export default async (req, context) => {
     if (parts[0] === 't' && parts[1] && m === 'GET') return await ticketView(parts[1]);
     if (parts[0] === 'waitlist' && m === 'POST') return await joinWaitlist(req);
     if (parts[0] === 'equipo' && m === 'GET') return await equipoView();
+    if (parts[0] === 'staff') {
+      const e = await checkStaff(req);
+      if (parts[1] === 'check' && m === 'GET') return json({ ok: true });
+      if (parts[1] === 'scan' && m === 'POST') return await staffScan(req);
+      if (parts[1] === 'search' && m === 'POST') return await staffSearch(req, e);
+      if (parts[1] === 'mark' && m === 'POST') return await staffMark(req);
+    }
     if (parts[0] === 'admin') {
       checkAdmin(req);
       if (parts[1] === 'overview' && m === 'GET') return await adminOverview();
@@ -773,6 +900,7 @@ export default async (req, context) => {
       if (parts[1] === 'add' && m === 'POST') return await adminAdd(req);
       if (parts[1] === 'waitlist' && m === 'POST') return await adminWaitlist(req);
       if (parts[1] === 'equipo' && m === 'POST') return await adminEquipo(req);
+      if (parts[1] === 'staffkey' && m === 'POST') return await adminStaffKey(req);
     }
     return fail(404, 'not_found', 'Ruta no encontrada.');
   } catch (e) {

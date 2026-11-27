@@ -217,6 +217,65 @@ test('color de vestuario: uno por persona, repartido por igual, fijo y también 
   assert.ok(sent.group.colorAt);
 });
 
+test('voluntarios: clave propia, sin datos privados, y cada entrega una sola vez', async () => {
+  const S = (key) => ({ 'x-staff-key': encodeURIComponent(key) });
+  const KEY = 'montaña-2027';
+  assert.equal((await call('/staff/check', { headers: S(KEY) })).error, 'not_configured');
+  assert.equal((await call('/admin/staffkey', { method: 'POST', headers: K, body: { key: 'abc' } })).error, 'key');
+  assert.equal((await call('/admin/staffkey', { method: 'POST', headers: K, body: { key: 'clave-de-prueba' } })).error, 'key');
+  assert.equal((await call('/admin/staffkey', { method: 'POST', headers: S(KEY), body: { key: KEY } })).code, 401);
+  assert.equal((await call('/admin/staffkey', { method: 'POST', headers: K, body: { key: KEY } })).ok, true);
+  assert.equal((await call('/staff/check', { headers: S('otra-clave') })).code, 401);
+  assert.equal((await call('/staff/check', { headers: S(KEY) })).ok, true);
+  // La clave de voluntarios no abre el panel, y su huella no sale por ninguna parte.
+  assert.equal((await call('/admin/overview', { headers: { 'x-admin-key': KEY } })).code, 401);
+  const o = await call('/admin/overview', { headers: K });
+  assert.equal(o.edition.hasStaffKey, true);
+  assert.ok(!('staffKeyHash' in o.edition));
+  assert.ok(!JSON.stringify(await call('/event')).includes('staffKey'));
+
+  const add = await call('/admin/add', { method: 'POST', headers: K, body: { phone: '3112223344', adults: [{ firstName: 'Marta', lastName: 'Gil' }, { firstName: 'Pedro', lastName: 'Gil' }], children: [{ firstName: 'Tomás', lastName: 'Gil', age: 6 }] } });
+  const [marta, pedro, tomas] = add.group.attendees;
+  const scan = (code, station) => call('/staff/scan', { method: 'POST', headers: S(KEY), body: { code, station, by: 'Ana' } });
+  assert.equal((await scan(marta.ticket.code, 'postre')).error, 'station');
+  assert.equal((await scan('VIS27-NADA-NADA', 'comida')).code, 404);
+  const first = await scan('https://x/vision/boleta/?t=' + marta.ticket.token, 'comida');
+  assert.equal(first.result, 'ok');
+  assert.equal(first.personId, marta.id);
+  assert.ok(!/3112223344|phone|expected|approvedAmount|proofs|token|75000/.test(JSON.stringify(first)));
+  assert.equal((await scan(marta.ticket.code.toLowerCase(), 'comida')).result, 'already');
+  assert.equal((await scan(marta.ticket.code, 'granizado')).result, 'ok');
+  // Diez escaneos simultáneos de la misma boleta: solo uno entrega.
+  const many = await Promise.all(Array.from({ length: 10 }, () => scan(tomas.ticket.code, 'comida')));
+  assert.equal(many.filter((r) => r.result === 'ok').length, 1);
+  assert.equal(many.filter((r) => r.result === 'already').length, 9);
+  assert.equal(many[0].group.attendees.find((a) => a.id === tomas.id).type, 'child');
+
+  const mark = (ids, value = true) => call('/staff/mark', { method: 'POST', headers: S(KEY), body: { groupId: add.group.id, ids, station: 'comida', value, by: 'Ana' } });
+  const rest = await mark([marta.id, pedro.id, tomas.id]);
+  assert.deepEqual(rest.changed, [pedro.id]);
+  const c = (await call('/admin/overview', { headers: K })).edition.counts;
+  assert.equal(c.comida, 3);
+  assert.equal(c.comidaNinos, 1);
+  assert.equal(c.granizado, 1);
+  assert.deepEqual((await mark([pedro.id], false)).changed, [pedro.id]);
+  assert.equal((await scan(pedro.ticket.code, 'ingreso')).result, 'ok');
+  const t = await call('/t/' + pedro.ticket.token);
+  assert.deepEqual(t.served, { ingreso: true, comida: false, granizado: false });
+
+  const found = await call('/staff/search', { method: 'POST', headers: S(KEY), body: { q: 'tomas gil' } });
+  assert.equal(found.groups.length, 1);
+  assert.ok(!/3112223344|phone/.test(JSON.stringify(found)));
+
+  // Grupo anulado: no entrega nada.
+  await call('/admin/group', { method: 'POST', headers: K, body: { groupId: add.group.id, action: 'cancel' } });
+  assert.equal((await scan(pedro.ticket.code, 'granizado')).result, 'blocked');
+  assert.equal((await mark([pedro.id])).error, 'not_approved');
+
+  await call('/admin/staffkey', { method: 'POST', headers: K, body: { key: '' } });
+  assert.equal((await call('/staff/check', { headers: S(KEY) })).error, 'not_configured');
+});
+
 test('el nombre de la temporada no aparece en la API ni en las páginas', async () => {
   const { readFileSync, readdirSync } = await import('node:fs');
   const files = ['netlify/functions/vision.mjs', ...readdirSync('vision', { recursive: true }).filter((f) => f.endsWith('.html')).map((f) => 'vision/' + f)];

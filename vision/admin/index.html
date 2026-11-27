@@ -321,6 +321,14 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
       </form>
     </div>
     <div class="card">
+      <h2>Voluntarios · ingreso y entregas</h2>
+      <p class="note">Con esta clave los voluntarios escanean boletas y marcan <b>ingreso, comida con bebida y granizado</b> en <b>lhscolweb.netlify.app/vision/entregas</b>. No ven pagos, teléfonos ni valores. Compártela solo con ellos.</p>
+      <p class="note" id="skState"></p>
+      <form id="skForm" style="display:flex;gap:8px;flex-wrap:wrap"><input class="search" id="skKey" type="text" minlength="6" maxlength="60" autocomplete="off" placeholder="Clave nueva (mínimo 6 caracteres)" required style="flex:1 1 240px"><button class="b pri" type="submit">Guardar clave</button><button class="b red" type="button" id="skOff">Quitar clave</button></form>
+      <div class="row-btns"><a class="b" href="/vision/entregas/" target="_blank" rel="noopener">Abrir pantalla de voluntarios</a></div>
+      <div class="msg" id="skMsg"></div>
+    </div>
+    <div class="card">
       <h2>QR de pago</h2>
       <p class="note">Imagen del QR bancario que se muestra en el paso de pago. Se guarda aparte, no en el código de la web.</p>
       <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><img id="qrPrev" alt="" style="width:140px;height:auto;border:1px solid var(--g2);border-radius:8px" class="hidden">
@@ -381,10 +389,10 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
   function gLink(g){ return SITE + '/vision/?g=' + g.token; }
   // Color de vestuario sugerido (lo asigna el servidor a cada boleta)
   var COLORS = {coral:'Coral', mostaza:'Mostaza', verde:'Verde', turquesa:'Turquesa', lila:'Lila'};
-  var COLOR_NOTE = 'Ponle tu color a la noche. En cada boleta hay un color sugerido: úsalo en una prenda o accesorio, en ese tono o parecido. Es opcional.';
+  var COLOR_NOTE = '_Será una gran noche y queremos que tú le pongas tu color._ En cada boleta hay un color sugerido para código de vestuario: úsalo en una prenda o accesorio, en ese tono o parecido. *Es opcional*.';
   function colorName(a){ return a.ticket && COLORS[a.ticket.color] || ''; }
   function ticketLines(g){
-    return g.attendees.map(function(a){ var c = colorName(a); return '*' + a.firstName + ' ' + a.lastName + (c ? ' (color ' + c + ')' : '') + ':* ' + SITE + '/vision/boleta/?t=' + a.ticket.token + '\n'; }).join('');
+    return g.attendees.map(function(a){ var c = colorName(a); return '* ' + a.firstName + ' ' + a.lastName + (c ? ' (Dress Code: color ' + c + ')' : '') + ': ' + SITE + '/vision/boleta/?t=' + a.ticket.token + '\n'; }).join('\n');
   }
   function msgColor(g){
     return 'Hola ' + first(g.responsible) + ', tus boletas de *Visión 2027* ahora traen un color sugerido para el vestuario:\n\n' + ticketLines(g) + '\n' + COLOR_NOTE + ' ¡Te esperamos!';
@@ -392,9 +400,9 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
   // Grupos que recibieron sus boletas antes de que existiera el color
   function needsColor(g){ return g.eff === 'aprobado' && !!g.sentAt && !g.colorAt; }
   function msgTickets(g){
-    var t = 'Hola ' + first(g.responsible) + ', tu pago para *Visión 2027* fue aprobado. Ya tienes tus boletas:\n\n';
+    var t = 'Hola ' + first(g.responsible) + ', tu pago para *Visión 2027* fue aprobado. Ya tienes tus boletas para:\n\n';
     t += ticketLines(g);
-    return t + '\nTodas juntas: ' + gLink(g) + '\n\n' + COLOR_NOTE + '\n\nNos vemos el ' + fDate().toLowerCase() + ' a las ' + fTime() + ' en ' + E.venue + '. Cada persona presenta su boleta en la entrada.';
+    return t + '\nAquí encuentras todas las boletas juntas: ' + gLink(g) + '\n\n' + COLOR_NOTE + '\n\nNos vemos el ' + fDate().toLowerCase() + ' a las ' + fTime() + ' en ' + E.venue + '. Cada persona presenta su boleta en la entrada.';
   }
   function msgPay(g){
     return 'Hola ' + first(g.responsible) + ', vimos tu inscripción para *Visión 2027* (' + people(g) + ', ' + money(g.expected) + '), pero aún no recibimos el comprobante de pago.\n\nPuedes pagar y adjuntarlo aquí:\n' + gLink(g) + '\n\nSi tienes alguna duda, respóndenos por aquí.';
@@ -462,7 +470,9 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
     $('doorStats').innerHTML =
       '<div class="stat"><b>' + c.llegaron + '</b><span>Llegaron</span></div>' +
       '<div class="stat"><b>' + c.confirmados + '</b><span>Boletas válidas</span></div>' +
-      '<div class="stat"><b>' + c.adultos + ' · ' + c.ninos + '</b><span>Adultos · niños</span></div>';
+      '<div class="stat"><b>' + c.adultos + ' · ' + c.ninos + '</b><span>Adultos · niños</span></div>' +
+      '<div class="stat"><b>' + c.comida + ' / ' + c.confirmados + '</b><span>Comida con bebida entregada · niños ' + c.comidaNinos + ' de ' + c.ninos + '</span></div>' +
+      '<div class="stat"><b>' + c.granizado + ' / ' + c.confirmados + '</b><span>Granizados entregados</span></div>';
     var tab = document.querySelector('.tab[aria-selected=true]').dataset.tab;
     if (tab === 'pay') renderPay();
     if (tab === 'ins') renderList();
@@ -640,9 +650,9 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
   }
   $('csv').addEventListener('click', function(){
     var safe = function(v){ v = String(v==null?'':v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; };
-    var rows = [['Responsable','WhatsApp','Estado','Persona','Tipo','Edad','Código de boleta','Llegó','Valor esperado','Valor recibido','Mesa','Inscripción','Color']];
+    var rows = [['Responsable','WhatsApp','Estado','Persona','Tipo','Edad','Código de boleta','Llegó','Valor esperado','Valor recibido','Mesa','Inscripción','Color','Comida','Granizado']];
     E.groups.forEach(function(g){ g.attendees.forEach(function(a){
-      rows.push([g.responsible, '+' + g.phone, LABEL[g.eff], a.firstName + ' ' + a.lastName, a.type === 'child' ? 'Niño' : 'Adulto', a.age || '', a.ticket ? a.ticket.code : '', a.attended ? 'Sí' : '', g.expected, g.approvedAmount == null ? '' : g.approvedAmount, g.mesa || '', new Date(g.createdAt).toLocaleString('es-CO',{timeZone:'America/Bogota'}), colorName(a)]);
+      rows.push([g.responsible, '+' + g.phone, LABEL[g.eff], a.firstName + ' ' + a.lastName, a.type === 'child' ? 'Niño' : 'Adulto', a.age || '', a.ticket ? a.ticket.code : '', a.attended ? 'Sí' : '', g.expected, g.approvedAmount == null ? '' : g.approvedAmount, g.mesa || '', new Date(g.createdAt).toLocaleString('es-CO',{timeZone:'America/Bogota'}), colorName(a), a.served && a.served.comida ? 'Sí' : '', a.served && a.served.granizado ? 'Sí' : '']);
     }); });
     var csv = '﻿' + rows.map(function(r){ return r.map(safe).join(','); }).join('\r\n');
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'})); a.download = 'vision-' + E.id + '-inscritos.csv'; a.click();
@@ -842,6 +852,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
     var map = {eDate:E.date, eTime:E.time, eEnd:E.endTime, eVenue:E.venue, eCity:E.city, eAddr:E.address, eMaps:E.mapsUrl, eTag:E.tagline, eIncl:E.includes, eRefund:E.refundText, eHigh:E.highlights, eTheme:E.theme, eAdult:E.prices.adult, eChild:E.prices.child,
       eClose:close, eMax:E.maxGroup, eCap:E.capacity, eHold:E.holdMinutes, eCorr:E.correctionHours, eStatus:E.status, ePay:E.paymentUrl};
     Object.keys(map).forEach(function(k){ $(k).value = map[k] == null ? '' : map[k]; });
+    $('skState').textContent = E.hasStaffKey ? 'Hay una clave activa. Por seguridad no se muestra: si la olvidan, guarda una nueva.' : 'Todavía no hay clave: la pantalla de voluntarios está cerrada.';
     if (E.hasQr) { $('qrPrev').src = API + '/qr?v=' + Date.now(); $('qrPrev').classList.remove('hidden'); }
   }
   $('evForm').addEventListener('submit', function(e){
@@ -854,6 +865,15 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
       if (r.ok) { document.activeElement.blur(); reload(); }
     });
   });
+  function saveStaffKey(k){
+    api('/admin/staffkey', {method:'POST', body:{key: k}}).then(function(r){
+      var m = $('skMsg'); m.className = 'msg show ' + (r.ok ? 'good' : 'bad');
+      m.textContent = r.ok ? (k ? 'Clave guardada. Ya puedes compartirla con los voluntarios.' : 'Clave quitada. La pantalla de voluntarios quedó cerrada.') : r.message;
+      if (r.ok) { $('skKey').value = ''; document.activeElement.blur(); reload(); }
+    });
+  }
+  $('skForm').addEventListener('submit', function(e){ e.preventDefault(); saveStaffKey($('skKey').value.trim()); });
+  $('skOff').addEventListener('click', function(){ if (confirm('¿Quitar la clave? Los voluntarios dejarán de poder entrar.')) saveStaffKey(''); });
   $('qrFile').addEventListener('change', function(){
     var f = this.files[0], m = $('qrMsg'); if (!f) return;
     api('/admin/qr', {method:'POST', raw: f}).then(function(r){
