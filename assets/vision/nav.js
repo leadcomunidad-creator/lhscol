@@ -12,11 +12,11 @@
     '.vnav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;gap:2px;padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(10,10,10,.96);border-top:1px solid #2c2c2c}' +
     '.vnav a,.vnav button{flex:1 1 auto;max-width:170px;text-align:center;white-space:nowrap;font:700 12.5px "DM Sans",system-ui,sans-serif;color:#A9A69C;background:none;border:0;border-radius:12px;padding:13px 6px;text-decoration:none;cursor:pointer}' +
     '.vnav a[aria-current=page]{background:#C8B273;color:#0A0A0A}.vnav .in{color:#C8B273;border:1px solid rgba(200,178,115,.5)}' +
-    '.vlog{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;padding:18px}' +
-    '.vlog form{width:100%;max-width:380px;background:#141414;border:1px solid #3a3a3a;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px;color:#EDE9DE;font:400 15px/1.45 "DM Sans",system-ui,sans-serif}' +
+    '.vlog{position:fixed;inset:0;z-index:50;background:#0A0A0A;display:flex;align-items:center;justify-content:center;padding:18px}' +
+    '.vlog form{position:relative;width:100%;max-width:380px;background:#141414;border:1px solid #3a3a3a;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px;color:#EDE9DE;font:400 15px/1.45 "DM Sans",system-ui,sans-serif}' +
     '.vlog h2{font:italic 400 28px/1.15 "Playfair Display",serif;color:#C8B273;margin:0}.vlog p{margin:0;color:#A9A69C}' +
     '.vlog label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#A9A69C}.vlog input{background:#0A0A0A;color:#fff;border:1px solid #3a3a3a;border-radius:10px;padding:13px;font-size:17px}' +
-    '.vlog button{font:700 15px "DM Sans",system-ui,sans-serif;border-radius:10px;padding:14px;cursor:pointer;border:1px solid #3a3a3a;background:none;color:#C8B273}.vlog button[type=submit]{background:#C8B273;border-color:#C8B273;color:#0A0A0A}.vlog .err{color:#ff9d93;min-height:1.2em;text-align:center}';
+    '.vlog button{font:700 15px "DM Sans",system-ui,sans-serif;border-radius:10px;padding:14px;cursor:pointer;border:1px solid #3a3a3a;background:none;color:#C8B273}.vlog button[type=submit]{background:#C8B273;border-color:#C8B273;color:#0A0A0A}.vlog .err{color:#ff9d93;min-height:1.2em;text-align:center}.vlog .x{position:absolute;top:10px;right:10px;width:38px;height:38px;padding:0;border:0;color:#A9A69C;font-size:24px;font-weight:400}';
   document.head.appendChild(css);
 
   var nav = document.createElement('nav');
@@ -37,11 +37,11 @@
     box.innerHTML = '<form><h2>Equipo Visión</h2><p>Escribe tu clave. La aplicación muestra lo que te corresponde.</p>' +
       '<label>Clave<input type="password" name="key" required maxlength="100" autocomplete="current-password"></label>' +
       '<label>Tu nombre<input name="who" required maxlength="40" autocomplete="given-name"></label>' +
-      '<div class="err" role="alert"></div><button type="submit">Entrar</button><button type="button">Solo ver el minuto a minuto</button></form>';
+      '<div class="err" role="alert"></div><button type="submit">Entrar</button><button type="button" class="x" aria-label="Volver a Visión">×</button></form>';
     document.body.appendChild(box);
     var f = box.querySelector('form'), err = box.querySelector('.err');
     try { f.who.value = localStorage.getItem('vision.who') || ''; } catch(e){}
-    box.querySelector('button[type=button]').addEventListener('click', function(){ box.remove(); });
+    box.querySelector('.x').addEventListener('click', function(){ location.href = '/vision/'; });
     f.addEventListener('submit', function(e){
       e.preventDefault(); err.textContent = '';
       var key = f.key.value.trim(), who = f.who.value.trim();
@@ -71,10 +71,9 @@
     set('vision.admin', ''); set('vision.staff', ''); location.href = '/vision/';
   });
   draw();
-  // Desde el botón "Equipo" de la portada se pide la clave de una vez; con sesión abierta, entra directo.
-  if (location.hash === '#entrar') {
-    history.replaceState(null, '', path);
-    if (!role()) ask(); else location.href = role() === 'admin' ? '/vision/admin/' : '/vision/entregas/';
-  }
+  // Toda la zona del equipo tiene una sola entrada. Con la sesión abierta, "Equipo" lleva directo a su pantalla.
+  var wanted = location.hash === '#entrar';
+  if (wanted) history.replaceState(null, '', path);
+  if (!role()) ask(); else if (wanted) location.href = role() === 'admin' ? '/vision/admin/' : '/vision/entregas/';
   setInterval(draw, 1000); // las pantallas con su propio ingreso actualizan el menú
 })();
