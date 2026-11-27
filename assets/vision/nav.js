@@ -8,7 +8,7 @@
   var here = path.indexOf('/vision/admin') === 0 ? 'admin' : path.indexOf('/vision/entregas') === 0 ? 'scan' : path.indexOf('/vision/equipo') === 0 ? 'night' : 'signup';
 
   var css = document.createElement('style');
-  css.textContent = '#out,#logout{display:none !important}body.vteam{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px)) !important}body.vteam .bar{bottom:calc(70px + env(safe-area-inset-bottom,0px)) !important}.vnav[hidden]{display:none}.vteamlink{display:block;margin:26px auto calc(18px + env(safe-area-inset-bottom,0px));background:none;border:0;color:#A9A69C;font:500 13px "DM Sans",system-ui,sans-serif;text-decoration:underline;cursor:pointer;position:relative;z-index:2}.toast{bottom:calc(88px + env(safe-area-inset-bottom,0px)) !important}' +
+  css.textContent = '#out,#logout{display:none !important}body.vteam{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px)) !important}body.vteam .bar{bottom:calc(70px + env(safe-area-inset-bottom,0px)) !important}.vnav[hidden]{display:none}.vteamlink{display:block;width:100%;margin:10px 0 0;background:none;border:1px solid rgba(200,178,115,.55);border-radius:6px;padding:14px;color:#C8B273;font:700 15px "DM Sans",system-ui,sans-serif;cursor:pointer}.vteamlink[hidden]{display:none}.toast{bottom:calc(88px + env(safe-area-inset-bottom,0px)) !important}' +
     '.vnav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;gap:2px;padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(10,10,10,.96);border-top:1px solid #2c2c2c}' +
     '.vnav a,.vnav button{flex:1 1 auto;max-width:170px;text-align:center;white-space:nowrap;font:700 12.5px "DM Sans",system-ui,sans-serif;color:#A9A69C;background:none;border:0;border-radius:12px;padding:13px 6px;text-decoration:none;cursor:pointer}' +
     '.vnav a[aria-current=page]{background:#C8B273;color:#0A0A0A}.vnav .in{color:#C8B273;border:1px solid rgba(200,178,115,.5)}' +
@@ -25,9 +25,10 @@
   // En la inscripción, quien no es del equipo solo ve un enlace discreto al final.
   var entry = null;
   if (here === 'signup') {
-    entry = document.createElement('button'); entry.type = 'button'; entry.className = 'vteamlink'; entry.textContent = 'Soy del equipo';
-    (document.querySelector('main') || document.body).appendChild(entry);
-    entry.addEventListener('click', function(){ ask(); });
+    entry = document.createElement('button'); entry.type = 'button'; entry.className = 'vteamlink'; entry.textContent = 'Equipo';
+    var cta = document.querySelector('.hero .cta');
+    if (cta) cta.appendChild(entry); else (document.querySelector('main') || document.body).appendChild(entry);
+    entry.addEventListener('click', function(){ location.href = '/vision/equipo/'; });
   }
 
   function link(href, label, id){ return '<a href="' + href + '"' + (here === id ? ' aria-current="page"' : '') + '>' + label + '</a>'; }
@@ -37,7 +38,7 @@
     var quiet = here === 'signup' && !r;
     nav.hidden = quiet; if (entry) entry.hidden = !!r;
     document.body.classList.toggle('vteam', !quiet);
-    nav.innerHTML = (r ? link('/vision/', 'Inscripción', 'signup') : '') + link('/vision/equipo/', 'La noche', 'night') + (r ? link('/vision/entregas/', 'Escanear', 'scan') : '') +
+    nav.innerHTML = link('/vision/', 'Inscripción', 'signup') + link('/vision/equipo/', 'La noche', 'night') + (r ? link('/vision/entregas/', 'Escanear', 'scan') : '') +
       (r === 'admin' ? link('/vision/admin/', 'Panel', 'admin') : '') +
       '<button type="button" class="' + (r ? '' : 'in') + '">' + (r ? 'Salir' : 'Entrar') + '</button>';
     document.querySelectorAll('[data-team]').forEach(function(el){ el.style.display = r ? '' : 'none'; });
