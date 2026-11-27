@@ -276,6 +276,52 @@ test('voluntarios: clave propia, sin datos privados, y cada entrega una sola vez
   assert.equal((await call('/staff/check', { headers: S(KEY) })).error, 'not_configured');
 });
 
+test('seguimiento de quien no ha subido comprobante: privado y sin cambiar el estado', async () => {
+  await call('/admin/edition', { method: 'POST', headers: K, body: { date: '2026-12-19', time: '18:00', capacity: 1000, closeAt: '2026-12-15T23:59', priceAdult: 75000, priceChild: 40000 } });
+  const r = await call('/register', { method: 'POST', body: { phone: '3123334455', consent: true, startedAt: old, adults: [{ firstName: 'Sara', lastName: 'Ruiz' }], children: [] } });
+  assert.equal(r.ok, true, r.message);
+  const find = async () => (await call('/admin/overview', { headers: K })).edition.groups.find((g) => g.token === r.token);
+  const g = await find();
+  const mark = (status, headers = K) => call('/admin/followup', { method: 'POST', headers, body: { groupId: g.id, status, by: 'Ana' } });
+  assert.equal((await mark('interesado', {})).code, 401);
+  assert.equal((await mark('otra')).error, 'status');
+  assert.equal((await mark('pagado')).ok, true);
+  const after = await find();
+  assert.equal(after.followUp.status, 'pagado');
+  assert.equal(after.followUp.by, 'Ana');
+  assert.equal(after.eff, 'reservado');
+  assert.ok(!JSON.stringify(await call('/g/' + r.token)).includes('followUp'));
+  await mark('');
+  assert.ok(!('followUp' in (await find())));
+});
+
+test('corregir nombres conserva la boleta; eliminar solo sirve para lo que nunca pagó', async () => {
+  const act = (groupId, action, extra = {}) => call('/admin/group', { method: 'POST', headers: K, body: { groupId, action, by: 'Ana', ...extra } });
+  const groups = async () => (await call('/admin/overview', { headers: K })).edition.groups;
+  const add = await call('/admin/add', { method: 'POST', headers: K, body: { phone: '3134445566', adults: [{ firstName: 'Rita', lastName: 'Sol' }, { firstName: 'Rita', lastName: 'Sol' }], children: [] } });
+  const [a, b] = add.group.attendees;
+  assert.equal((await act(add.group.id, 'rename', { names: [{ id: b.id, firstName: 'x', lastName: '' }] })).error, 'name');
+  const r = await act(add.group.id, 'rename', { names: [{ id: b.id, firstName: 'juan', lastName: 'garcía' }] });
+  assert.equal(r.group.attendees[1].firstName, 'Juan');
+  assert.equal(r.group.responsible, 'Rita Sol');
+  assert.equal(r.group.attendees[1].ticket.token, b.ticket.token);
+  assert.equal((await call('/t/' + b.ticket.token)).name, 'Juan García');
+  assert.equal((await act(add.group.id, 'rename', { names: [{ id: a.id, firstName: 'Rosa', lastName: 'Sol' }] })).group.responsible, 'Rosa Sol');
+  // Pagada: no se elimina ni anulándola.
+  assert.equal((await act(add.group.id, 'delete')).error, 'state');
+  await act(add.group.id, 'cancel');
+  assert.equal((await act(add.group.id, 'delete')).error, 'state');
+
+  const reg = await call('/register', { method: 'POST', body: { phone: '3145556677', consent: true, startedAt: old, adults: [{ firstName: 'Prueba', lastName: 'Vieja' }], children: [] } });
+  const g = (await groups()).find((x) => x.token === reg.token);
+  assert.equal((await act(g.id, 'delete')).error, 'state');
+  await act(g.id, 'cancel');
+  assert.equal((await act(g.id, 'delete')).ok, true);
+  assert.ok(!(await groups()).some((x) => x.id === g.id));
+  assert.equal((await call('/g/' + reg.token)).status, 'cancelado');
+  assert.ok(JSON.parse(data.get('v:edition/2027').s).groups.some((x) => x.id === g.id && x.deletedAt));
+});
+
 test('el nombre de la temporada no aparece en la API ni en las páginas', async () => {
   const { readFileSync, readdirSync } = await import('node:fs');
   const files = ['netlify/functions/vision.mjs', ...readdirSync('vision', { recursive: true }).filter((f) => f.endsWith('.html')).map((f) => 'vision/' + f)];
@@ -309,7 +355,7 @@ test('una edición guardada con el cierre viejo (5 de diciembre) pasa al 15 de d
 test('migración del 21-11: niño a $40.000 y "Temporada 2027" sin tocar los totales ya inscritos', async () => {
   const key = [...data.keys()].find((k) => k.startsWith('v:edition/'));
   const e = JSON.parse(data.get(key).s);
-  const before = e.groups.map((g) => g.expected);
+  const before = e.groups.filter((g) => !g.deletedAt).map((g) => g.expected);
   e.rev = 2; e.prices.child = 35000; e.highlights = 'Music · Mensaje · Tema 2027';
   if (e.equipo && Array.isArray(e.equipo.plan)) e.equipo.plan.push({ t: '20:15', title: 'Revelación del tema 2027' });
   data.set(key, { s: JSON.stringify(e) });

@@ -25,6 +25,7 @@
 //   POST /api/vision/admin/qr                  Subir el QR de pago (imagen)
 //   POST /api/vision/admin/group               Aprobar, rechazar, marcar incompleto, anular o reabrir
 //   POST /api/vision/admin/flags               Marcar mensajes enviados (boletas, recordatorio, es hoy)
+//   POST /api/vision/admin/followup            Anotar qué respondió quien no ha subido el comprobante
 //   POST /api/vision/admin/checkin             Llegada por código de boleta o por persona
 //   POST /api/vision/admin/add                 Inscribir en la puerta o a mano (queda aprobado)
 //   POST /api/vision/admin/waitlist            Marcar avisado o quitar de la lista de espera
@@ -484,7 +485,7 @@ function checkAdmin(req) {
 function adminEdition(full) {
   const now = Date.now();
   const { staffKeyHash, ...e } = full;
-  const groups = e.groups.map((g) => ({ ...g, eff: effStatus(g, now) }));
+  const groups = e.groups.filter((g) => !g.deletedAt).map((g) => ({ ...g, eff: effStatus(g, now) }));
   return { ...e, hasStaffKey: !!staffKeyHash, groups, state: publicState(e, now), counts: counts(e, now), startsAt: startDate(e).toISOString() };
 }
 
@@ -602,6 +603,23 @@ async function adminGroup(req) {
       g.status = g.proofs.length ? 'revision' : 'reservado';
       g.holdUntil = g.proofs.length ? null : new Date(Date.now() + e.holdMinutes * 60000).toISOString();
       g.review = { by, at: nowIso(), action };
+    } else if (action === 'delete') {
+      // Sale de todas las listas pero no se destruye. Nunca si hubo comprobante o pago aprobado.
+      if ((st !== 'vencido' && st !== 'cancelado') || g.proofs.length || g.approvedAmount != null) throw new HttpError(409, 'state', 'Solo se eliminan inscripciones vencidas o anuladas que nunca tuvieron comprobante ni pago.');
+      g.status = 'cancelado'; g.holdUntil = null; g.deletedAt = nowIso(); g.deletedBy = by;
+    } else if (action === 'rename') {
+      const names = new Map((Array.isArray(b.names) ? b.names : []).slice(0, 30).map((n) => [clean(n?.id, 20), n]));
+      let changed = 0;
+      g.attendees.forEach((a, i) => {
+        const n = names.get(a.id);
+        if (!n) return;
+        const firstName = properName(n.firstName), lastName = properName(n.lastName);
+        if (firstName.length < 2 || lastName.length < 2) throw new HttpError(400, 'name', 'Escribe nombre y apellido de cada persona.');
+        const wasResponsible = i === 0 && g.responsible === a.firstName + ' ' + a.lastName;
+        a.firstName = firstName; a.lastName = lastName; changed++;
+        if (wasResponsible) g.responsible = firstName + ' ' + lastName;
+      });
+      if (!changed) throw new HttpError(400, 'name', 'No hay nombres para cambiar.');
     } else if (action === 'note') {
       g.note = clean(b.note, 300);
     } else {
@@ -624,6 +642,22 @@ async function adminFlags(req) {
     for (const k of ['sentAt', 'remindedAt', 'hoyAt', 'rejectSentAt', 'payAskedAt', 'colorAt']) if (k in b) g[k] = b[k] ? nowIso() : null;
     // El mensaje de las boletas ya dice el color: no hace falta avisarlo aparte.
     if (b.sentAt) g.colorAt = g.sentAt;
+    return { value: e, result: g };
+  });
+  return json({ ok: true, group: { ...g, eff: effStatus(g) } });
+}
+
+// Seguimiento de quienes no han subido comprobante. Es privado y no cambia el estado ni el cupo.
+const FOLLOW_UPS = ['esperando', 'pagado', 'interesado', 'no_va'];
+async function adminFollowUp(req) {
+  const b = await req.json().catch(() => ({}));
+  const status = clean(b.status, 20);
+  if (status && !FOLLOW_UPS.includes(status)) throw new HttpError(400, 'status', 'Marca no válida.');
+  const idx = await ensureIndex();
+  const g = await mutate(editionKey(idx.currentId), (e) => {
+    const g = e?.groups.find((x) => x.id === clean(b.groupId, 20));
+    if (!g) throw new HttpError(404, 'not_found', 'Inscripción no encontrada.');
+    if (status) g.followUp = { status, by: clean(b.by, 40) || 'equipo', at: nowIso() }; else delete g.followUp;
     return { value: e, result: g };
   });
   return json({ ok: true, group: { ...g, eff: effStatus(g) } });
@@ -896,6 +930,7 @@ export default async (req, context) => {
       if (parts[1] === 'qr' && m === 'POST') return await adminSaveQr(req);
       if (parts[1] === 'group' && m === 'POST') return await adminGroup(req);
       if (parts[1] === 'flags' && m === 'POST') return await adminFlags(req);
+      if (parts[1] === 'followup' && m === 'POST') return await adminFollowUp(req);
       if (parts[1] === 'checkin' && m === 'POST') return await adminCheckin(req);
       if (parts[1] === 'add' && m === 'POST') return await adminAdd(req);
       if (parts[1] === 'waitlist' && m === 'POST') return await adminWaitlist(req);
