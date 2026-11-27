@@ -543,9 +543,10 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
 @media(max-width:600px){.vision-hero h2{font-size:clamp(1.5rem,7.4vw,2.3rem)}}
 .vision-hero .ev-new{background:transparent;color:var(--ev);border:1px solid rgba(200,178,115,.6)}
 /* ── NOCHE BLANCA EN EL HERO (blanco y rojo) ── */
-.hero-slide-blanca{background:linear-gradient(180deg,rgba(120,8,22,.12),rgba(150,10,26,.5) 52%,rgba(165,12,28,.94) 88%),url('assets/blanca/hero.jpg') center 35%/cover no-repeat,#B4101F}
+.hero-slide-blanca{background:linear-gradient(180deg,rgba(120,8,22,0),rgba(140,10,24,.22) 52%,rgba(165,12,28,.88) 90%),url('assets/blanca/hero.jpg') center 35%/cover no-repeat,#B4101F}
 #hero[data-panel="blanca"] .hero-content{visibility:hidden}
 #hero[data-panel="blanca"] .blanca-hero{visibility:visible;opacity:1}
+#hero .hero-slide-blanca{filter:brightness(.8)}@media(max-width:600px){#hero .hero-slide-blanca{background:linear-gradient(180deg,rgba(60,4,10,.25),rgba(110,8,20,.45) 50%,rgba(165,12,28,.92) 90%),url('assets/blanca/hero-cel.jpg') center top/cover no-repeat,#8E0A17;filter:brightness(.72)}}
 #hero[data-panel="blanca"] .hero-overlay{background:linear-gradient(180deg,rgba(10,5,6,.5),rgba(10,5,6,0) 22%,rgba(120,8,22,.18) 60%,rgba(150,10,26,.55))}
 .blanca-hero{--ev:#F8F4EE;--ev-txt:#B4101F;text-shadow:0 2px 24px rgba(40,0,6,.55)}
 .blanca-hero .btn-primary{text-shadow:none}
