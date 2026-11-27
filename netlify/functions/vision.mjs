@@ -485,7 +485,7 @@ function checkAdmin(req) {
 function adminEdition(full) {
   const now = Date.now();
   const { staffKeyHash, ...e } = full;
-  const groups = e.groups.map((g) => ({ ...g, eff: effStatus(g, now) }));
+  const groups = e.groups.filter((g) => !g.deletedAt).map((g) => ({ ...g, eff: effStatus(g, now) }));
   return { ...e, hasStaffKey: !!staffKeyHash, groups, state: publicState(e, now), counts: counts(e, now), startsAt: startDate(e).toISOString() };
 }
 
@@ -603,6 +603,23 @@ async function adminGroup(req) {
       g.status = g.proofs.length ? 'revision' : 'reservado';
       g.holdUntil = g.proofs.length ? null : new Date(Date.now() + e.holdMinutes * 60000).toISOString();
       g.review = { by, at: nowIso(), action };
+    } else if (action === 'delete') {
+      // Sale de todas las listas pero no se destruye. Nunca si hubo comprobante o pago aprobado.
+      if ((st !== 'vencido' && st !== 'cancelado') || g.proofs.length || g.approvedAmount != null) throw new HttpError(409, 'state', 'Solo se eliminan inscripciones vencidas o anuladas que nunca tuvieron comprobante ni pago.');
+      g.status = 'cancelado'; g.holdUntil = null; g.deletedAt = nowIso(); g.deletedBy = by;
+    } else if (action === 'rename') {
+      const names = new Map((Array.isArray(b.names) ? b.names : []).slice(0, 30).map((n) => [clean(n?.id, 20), n]));
+      let changed = 0;
+      g.attendees.forEach((a, i) => {
+        const n = names.get(a.id);
+        if (!n) return;
+        const firstName = properName(n.firstName), lastName = properName(n.lastName);
+        if (firstName.length < 2 || lastName.length < 2) throw new HttpError(400, 'name', 'Escribe nombre y apellido de cada persona.');
+        const wasResponsible = i === 0 && g.responsible === a.firstName + ' ' + a.lastName;
+        a.firstName = firstName; a.lastName = lastName; changed++;
+        if (wasResponsible) g.responsible = firstName + ' ' + lastName;
+      });
+      if (!changed) throw new HttpError(400, 'name', 'No hay nombres para cambiar.');
     } else if (action === 'note') {
       g.note = clean(b.note, 300);
     } else {
