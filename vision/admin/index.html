@@ -63,6 +63,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.96);backdrop
 label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--tx)}
 label.f input,label.f select,label.f textarea{background:var(--g0);border:1px solid var(--g3);border-radius:9px;padding:11px;font-size:16px;color:var(--azul);outline:none}
 label.f input:focus,label.f select:focus{border-color:var(--azul)}
+select.follow{background:#0A0A0A;color:#fff;border:1px solid var(--g3);border-radius:9px;padding:8px;font:600 13px 'DM Sans',sans-serif}
 .row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .empty{color:var(--tx);text-align:center;padding:30px 0}
 .login{max-width:380px;margin:12vh auto 0;padding:0 16px}
@@ -207,7 +208,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
     <div class="toolbar" id="filters">
       <button class="chip" data-f="aprobado" aria-pressed="true">Aprobados</button>
       <button class="chip" data-f="revision" aria-pressed="false">En revisión</button>
-      <button class="chip" data-f="reservado" aria-pressed="false">Sin comprobante</button>
+      <button class="chip" data-f="sincomp" aria-pressed="false">Sin comprobante</button>
       <button class="chip" data-f="corregir" aria-pressed="false">Por corregir</button>
       <button class="chip" data-f="vencido" aria-pressed="false">Vencidos</button>
       <button class="chip" data-f="cancelado" aria-pressed="false">Anulados</button>
@@ -217,6 +218,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
       <span style="flex:1"></span>
       <button class="b" id="csv" type="button">Descargar Excel (CSV)</button>
     </div>
+    <div class="toolbar hidden" id="followFilters" aria-label="Seguimiento"></div>
     <div class="list" id="list"></div>
   </section>
 
@@ -357,7 +359,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
   var API = '/api/vision', SITE = 'https://lhscolweb.netlify.app';
   var $ = function(id){ return document.getElementById(id); };
   var key = null; try { key = sessionStorage.getItem('vision.admin'); } catch(e){}
-  var data = null, E = null, filter = 'aprobado', proofUrls = {};
+  var data = null, E = null, filter = 'aprobado', follow = 'todos', proofUrls = {};
   var who = ''; try { who = localStorage.getItem('vision.who') || ''; } catch(e){}
 
   function api(path, opts){
@@ -405,8 +407,20 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
     return t + '\nAquí encuentras todas las boletas juntas: ' + gLink(g) + '\n\n' + COLOR_NOTE + '\n\nNos vemos el ' + fDate().toLowerCase() + ' a las ' + fTime() + ' en ' + E.venue + '. Cada persona presenta su boleta en la entrada.';
   }
   function msgPay(g){
-    return 'Hola ' + first(g.responsible) + ', vimos tu inscripción para *Visión 2027* (' + people(g) + ', ' + money(g.expected) + '), pero aún no recibimos el comprobante de pago.\n\nPuedes pagar y adjuntarlo aquí:\n' + gLink(g) + '\n\nSi tienes alguna duda, respóndenos por aquí.';
+    var until = E.closeAt && Date.parse(E.closeAt) > Date.now() ? ' antes del ' + new Date(E.closeAt).toLocaleDateString('es-CO',{day:'numeric',month:'long',timeZone:'America/Bogota'}) : '';
+    return 'Hola ' + first(g.responsible) + ', vimos que empezaste tu inscripción para *Visión 2027*. Si ya pagaste, solo falta adjuntar el comprobante aquí:\n' + gLink(g) + '\n\nSi aún no, nos encantaría verte: puedes terminar en ese mismo enlace' + until + '. ¿Te ayudamos con algo?';
   }
+  // ── Sin comprobante: con el cupo apartado o con la reserva ya vencida
+  var FOLLOW = {sin:'Sin contactar', esperando:'Esperando respuesta', pagado:'Dice que ya pagó', interesado:'Interesado', no_va:'No va'};
+  function noProof(g){ return g.eff === 'reservado' || (g.eff === 'vencido' && !g.proofs.length); }
+  function followOf(g){ return g.followUp && g.followUp.status || (g.payAskedAt ? 'esperando' : 'sin'); }
+  // Otra inscripción de la misma persona que ya pagó o está en revisión
+  function otherPaid(g){
+    var names = g.attendees.map(function(a){ return norm(a.firstName + ' ' + a.lastName); });
+    return E.groups.find(function(o){ return o.id !== g.id && (o.eff === 'aprobado' || o.eff === 'revision') &&
+      (o.phone === g.phone || o.attendees.some(function(a){ return names.indexOf(norm(a.firstName + ' ' + a.lastName)) >= 0; })); });
+  }
+  function toAsk(g){ return noProof(g) && followOf(g) === 'sin' && !otherPaid(g); }
   function msgFix(g){
     return 'Hola ' + first(g.responsible) + ', revisamos tu pago para *Visión 2027* y necesitamos que lo corrijas: ' + (g.review && g.review.reason || '') + '.\n\nAdjunta el comprobante correcto aquí:\n' + gLink(g);
   }
@@ -438,7 +452,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
 
   function set(r){ data = r; E = r.edition; render(); }
   function reload(){ return api('/admin/overview').then(function(r){ if (!r.ok) return toast(r.message); set(r); }); }
-  setInterval(function(){ if (!document.hidden && data && !chainOn && !$('t-ev').contains(document.activeElement) && !$('t-eq').contains(document.activeElement) && !document.querySelector('.pay input:focus') && !$('t-door').contains(document.activeElement)) reload(); }, 30000);
+  setInterval(function(){ if (!document.hidden && data && !chainOn && !$('t-ev').contains(document.activeElement) && !$('t-eq').contains(document.activeElement) && !document.querySelector('.pay input:focus, select:focus') && !$('t-door').contains(document.activeElement)) reload(); }, 30000);
 
   document.querySelectorAll('.tab').forEach(function(t){
     t.addEventListener('click', function(){
@@ -461,10 +475,13 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
     var rev = E.groups.filter(function(g){ return g.eff === 'revision'; }).length;
     $('nPay').textContent = rev; $('nPay').classList.toggle('hidden', !rev);
     var pct = Math.min(100, Math.round(c.ocupados / E.capacity * 100));
+    var open = E.groups.filter(function(g){ return noProof(g) && followOf(g) !== 'no_va'; });
+    var openPeople = open.reduce(function(s,g){ return s + g.attendees.length; }, 0);
+    document.querySelector('#filters [data-f=sincomp]').textContent = 'Sin comprobante · ' + open.length;
     $('stats').innerHTML = $('payStats').innerHTML =
       '<div class="stat"><b>' + c.confirmados + '</b><span>Personas con pago aprobado</span></div>' +
       '<div class="stat"><b>' + (c.revision||0) + '</b><span>Personas en revisión · ' + money(c.esperado) + '</span></div>' +
-      '<div class="stat"><b>' + (c.reservado||0) + '</b><span>Reservadas sin comprobante</span></div>' +
+      '<div class="stat"><b>' + openPeople + '</b><span>Personas sin comprobante · ' + (c.reservado||0) + ' con cupo apartado</span></div>' +
       '<div class="stat"><b>' + money(c.recaudo) + '</b><span>Recaudo aprobado</span></div>' +
       '<div class="stat"><b>' + c.ocupados + ' / ' + E.capacity + '</b><span>Aforo ocupado (privado)</span><div class="bar"><i style="width:' + pct + '%"></i></div></div>';
     $('doorStats').innerHTML =
@@ -605,7 +622,41 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
         '<div class="acts"><a class="b wa' + (w.notifiedAt ? ' done' : '') + '" data-act="wnotify" href="' + esc(wa(w.phone, msgWait(w))) + '" target="_blank" rel="noopener">' + (w.notifiedAt ? 'Avisado ✓' : 'Avisar que hay cupo') + '</a><button class="b red" type="button" data-act="wremove">Quitar</button></div></div>';
     }).join('') : '<div class="empty">Nadie en lista de espera.</div>');
   }
+  function renderNoProof(){
+    var q = $('q').value;
+    var all = E.groups.filter(noProof);
+    var count = function(k){ return all.filter(function(g){ var f = followOf(g); return k === 'todos' ? f !== 'no_va' : f === k; }).length; };
+    $('followFilters').innerHTML = ['todos'].concat(Object.keys(FOLLOW)).map(function(k){
+      return '<button class="chip" type="button" data-follow="' + k + '" aria-pressed="' + (follow === k) + '">' + (k === 'todos' ? 'Por seguir' : FOLLOW[k]) + ' · ' + count(k) + '</button>';
+    }).join('');
+    var rows = all.filter(function(g){ var f = followOf(g); return matchG(g, q) && (follow === 'todos' ? f !== 'no_va' : f === follow); })
+      .sort(function(a,b){ return b.createdAt.localeCompare(a.createdAt); });
+    if (!rows.length) { $('list').innerHTML = '<div class="empty">No hay inscripciones en esta lista.</div>'; return; }
+    var day = function(iso){ return new Date(iso).toLocaleDateString('es-CO',{day:'numeric',month:'short',timeZone:'America/Bogota'}); };
+    $('list').innerHTML = rows.map(function(g){
+      var f = followOf(g), paid = otherPaid(g);
+      var tags = g.eff === 'reservado' ? '<span class="tag ok">Cupo apartado</span>' : '<span class="tag bad">Reserva vencida</span>';
+      if (paid) tags += '<span class="tag warn">Ya tiene otra inscripción ' + (paid.eff === 'aprobado' ? 'aprobada' : 'en revisión') + ': ' + esc(paid.responsible) + '</span>';
+      var opts = Object.keys(FOLLOW).filter(function(k){ return k !== 'sin' || !g.payAskedAt; }).map(function(k){ return '<option value="' + (k === 'sin' ? '' : k) + '"' + (f === k ? ' selected' : '') + '>' + FOLLOW[k] + '</option>'; }).join('');
+      return '<div class="item" data-g="' + g.id + '" style="flex-wrap:wrap"><div class="who"><b>' + esc(g.responsible) + '</b><span class="tags">' + tags + '</span>' +
+        '<div class="meta">' + people(g) + ' · ' + money(g.expected) + ' · ' + phoneFmt(g.phone) + ' · empezó el ' + day(g.createdAt) + (g.payAskedAt ? ' · le escribimos ' + ago(g.payAskedAt) : '') + '</div>' +
+        '<div class="detail hidden meta" style="margin-top:8px;line-height:1.7">' + g.attendees.map(function(x){ return esc(x.firstName + ' ' + x.lastName) + (x.type === 'child' ? ' (niño, ' + x.age + ')' : ''); }).join('<br>') +
+        (g.mesa ? '<br>Mesa: ' + esc(g.mesa) : '') + '<br>Enlace: <a href="' + esc(gLink(g)) + '" target="_blank" rel="noopener">' + esc(gLink(g)) + '</a></div></div>' +
+        '<div class="acts"><a class="b wa' + (g.payAskedAt ? ' done' : '') + '" data-act="payask" href="' + esc(wa(g.phone, msgPay(g))) + '" target="_blank" rel="noopener">' + (g.payAskedAt ? 'Escribir otra vez' : 'Escribirle') + '</a>' +
+        '<select class="follow" aria-label="Qué respondió ' + esc(g.responsible) + '">' + opts + '</select>' +
+        '<button class="b" type="button" data-act="detail">Detalle</button>' +
+        (g.eff === 'vencido' ? '<button class="b" type="button" data-act="reopen">Reabrir</button>' : '<button class="b red" type="button" data-act="cancel">Anular</button>') + '</div></div>';
+    }).join('');
+  }
+  $('followFilters').addEventListener('click', function(e){ var b = e.target.closest('[data-follow]'); if (!b) return; follow = b.dataset.follow; renderList(); });
+  $('list').addEventListener('change', function(e){
+    if (!e.target.classList.contains('follow')) return;
+    var sel = e.target, g = findG(sel); sel.blur();
+    api('/admin/followup', {method:'POST', body:{groupId: g.id, status: sel.value, by: who}}).then(function(r){ toast(r.ok ? 'Anotado.' : r.message); reload(); });
+  });
   function renderList(){
+    $('followFilters').classList.toggle('hidden', filter !== 'sincomp');
+    if (filter === 'sincomp') return renderNoProof();
     if (filter === 'espera') return renderWait();
     var q = $('q').value;
     var rows = E.groups.filter(function(g){
@@ -777,7 +828,7 @@ label.f input,label.f select,label.f textarea,.search,.login input,.pay .ctrl in
     color: {label:'Avisar color', pick:needsColor, msg:msgColor, flag:'colorAt'},
     recordar: {label:'Recordar', pick:function(g){ return g.eff === 'aprobado' && !g.remindedAt; }, msg:msgRemind, flag:'remindedAt'},
     hoy: {label:'Es hoy', pick:function(g){ return g.eff === 'aprobado' && !g.hoyAt; }, msg:msgHoy, flag:'hoyAt', today:true},
-    comprobante: {label:'Pedir comprobante', pick:function(g){ return (g.eff === 'reservado' || g.eff === 'vencido') && !g.payAskedAt; }, msg:msgPay, flag:'payAskedAt'},
+    comprobante: {label:'Pedir comprobante', pick:toAsk, msg:msgPay, flag:'payAskedAt'},
     espera: {label:'Avisar a la lista de espera', wait:true}
   };
   function chainList(k){

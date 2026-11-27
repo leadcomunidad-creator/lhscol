@@ -276,6 +276,25 @@ test('voluntarios: clave propia, sin datos privados, y cada entrega una sola vez
   assert.equal((await call('/staff/check', { headers: S(KEY) })).error, 'not_configured');
 });
 
+test('seguimiento de quien no ha subido comprobante: privado y sin cambiar el estado', async () => {
+  await call('/admin/edition', { method: 'POST', headers: K, body: { date: '2026-12-19', time: '18:00', capacity: 1000, closeAt: '2026-12-15T23:59', priceAdult: 75000, priceChild: 40000 } });
+  const r = await call('/register', { method: 'POST', body: { phone: '3123334455', consent: true, startedAt: old, adults: [{ firstName: 'Sara', lastName: 'Ruiz' }], children: [] } });
+  assert.equal(r.ok, true, r.message);
+  const find = async () => (await call('/admin/overview', { headers: K })).edition.groups.find((g) => g.token === r.token);
+  const g = await find();
+  const mark = (status, headers = K) => call('/admin/followup', { method: 'POST', headers, body: { groupId: g.id, status, by: 'Ana' } });
+  assert.equal((await mark('interesado', {})).code, 401);
+  assert.equal((await mark('otra')).error, 'status');
+  assert.equal((await mark('pagado')).ok, true);
+  const after = await find();
+  assert.equal(after.followUp.status, 'pagado');
+  assert.equal(after.followUp.by, 'Ana');
+  assert.equal(after.eff, 'reservado');
+  assert.ok(!JSON.stringify(await call('/g/' + r.token)).includes('followUp'));
+  await mark('');
+  assert.ok(!('followUp' in (await find())));
+});
+
 test('el nombre de la temporada no aparece en la API ni en las páginas', async () => {
   const { readFileSync, readdirSync } = await import('node:fs');
   const files = ['netlify/functions/vision.mjs', ...readdirSync('vision', { recursive: true }).filter((f) => f.endsWith('.html')).map((f) => 'vision/' + f)];

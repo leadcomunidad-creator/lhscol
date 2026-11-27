@@ -25,6 +25,7 @@
 //   POST /api/vision/admin/qr                  Subir el QR de pago (imagen)
 //   POST /api/vision/admin/group               Aprobar, rechazar, marcar incompleto, anular o reabrir
 //   POST /api/vision/admin/flags               Marcar mensajes enviados (boletas, recordatorio, es hoy)
+//   POST /api/vision/admin/followup            Anotar qué respondió quien no ha subido el comprobante
 //   POST /api/vision/admin/checkin             Llegada por código de boleta o por persona
 //   POST /api/vision/admin/add                 Inscribir en la puerta o a mano (queda aprobado)
 //   POST /api/vision/admin/waitlist            Marcar avisado o quitar de la lista de espera
@@ -629,6 +630,22 @@ async function adminFlags(req) {
   return json({ ok: true, group: { ...g, eff: effStatus(g) } });
 }
 
+// Seguimiento de quienes no han subido comprobante. Es privado y no cambia el estado ni el cupo.
+const FOLLOW_UPS = ['esperando', 'pagado', 'interesado', 'no_va'];
+async function adminFollowUp(req) {
+  const b = await req.json().catch(() => ({}));
+  const status = clean(b.status, 20);
+  if (status && !FOLLOW_UPS.includes(status)) throw new HttpError(400, 'status', 'Marca no válida.');
+  const idx = await ensureIndex();
+  const g = await mutate(editionKey(idx.currentId), (e) => {
+    const g = e?.groups.find((x) => x.id === clean(b.groupId, 20));
+    if (!g) throw new HttpError(404, 'not_found', 'Inscripción no encontrada.');
+    if (status) g.followUp = { status, by: clean(b.by, 40) || 'equipo', at: nowIso() }; else delete g.followUp;
+    return { value: e, result: g };
+  });
+  return json({ ok: true, group: { ...g, eff: effStatus(g) } });
+}
+
 async function adminCheckin(req) {
   const b = await req.json().catch(() => ({}));
   const idx = await ensureIndex();
@@ -896,6 +913,7 @@ export default async (req, context) => {
       if (parts[1] === 'qr' && m === 'POST') return await adminSaveQr(req);
       if (parts[1] === 'group' && m === 'POST') return await adminGroup(req);
       if (parts[1] === 'flags' && m === 'POST') return await adminFlags(req);
+      if (parts[1] === 'followup' && m === 'POST') return await adminFollowUp(req);
       if (parts[1] === 'checkin' && m === 'POST') return await adminCheckin(req);
       if (parts[1] === 'add' && m === 'POST') return await adminAdd(req);
       if (parts[1] === 'waitlist' && m === 'POST') return await adminWaitlist(req);
