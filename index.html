@@ -555,6 +555,12 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
 .blanca-hero h2 .nb2{display:block;font-family:'DM Sans',sans-serif;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1}
 .blanca-hero .ev-eyebrow{color:#F8F4EE}
 .blanca-hero .ev-new{background:#F8F4EE;color:#B4101F;text-shadow:none}.blanca-hero .ev-new b{color:#B4101F}
+@font-face{font-family:'Archivo Blanca';src:url('assets/blanca/archivo.woff2') format('woff2');font-weight:100 900;font-stretch:62% 125%;font-display:swap}
+.nv{font-family:'Archivo Blanca','DM Sans',sans-serif;font-stretch:125%;text-transform:uppercase;white-space:nowrap}
+.nv i{font-style:normal;font-weight:250;opacity:.65}.nv b{font-weight:900}
+.blanca-hero .blanca-nv{font-size:clamp(2rem,5vw,3.6rem);line-height:1;color:#F8F4EE;margin:0 0 1.3rem}
+#blancaCard .nv b{color:#E5303F}
+@media(max-width:600px){.blanca-hero .blanca-nv{font-size:clamp(1.9rem,10vw,2.8rem);margin-bottom:1rem}.blanca-hero .ev-new{max-width:264px;flex-wrap:wrap;justify-content:center;row-gap:0}}
 /* ── LA SALA EN EL HERO ── */
 .sala-hero{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;max-width:900px;padding:0 2rem;text-align:center;visibility:hidden;opacity:0;transition:opacity 1s ease}
 .sala-hero-logo{display:block;width:110px;height:auto;margin:0 auto 1.3rem}
@@ -693,8 +699,9 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
     </div>
   </div>
   <div class="ev-hero blanca-hero" data-expira="2026-12-13T00:00:00-05:00">
-    <div class="ev-eyebrow">Nuestra noche de Navidad · Invita LHS</div>
+    <div class="ev-eyebrow">Invita LHS</div>
     <h2><span class="nb1">Noche</span><span class="nb2">Blanca</span></h2>
+    <div class="blanca-nv"><span class="nv" role="img" aria-label="Navidad"><i>Na</i><b>vida</b><i>d</i></span></div>
     <div class="ev-new">Sábado 12 de diciembre en <b>Fundación Batuta</b></div>
     <p class="ev-meta">7:00 PM · Musical · Mensaje · Oblea<br>Ven de blanco con un toque rojo</p>
     <div class="hero-actions">
@@ -973,7 +980,7 @@ footer{background:var(--negro);border-top:1px solid rgba(200,178,115,.09);paddin
       </div>
       <div class="evento-card reveal d1" id="blancaCard" data-expira="2026-12-13T00:00:00-05:00">
         <div class="evento-icon-wrap" style="color:#E5303F">✦</div>
-        <h3>Noche Blanca — Nuestra noche de Navidad</h3>
+        <h3>Noche Blanca — Nuestra <span class="nv" role="img" aria-label="Navidad"><i>Na</i><b>vida</b><i>d</i></span></h3>
         <div>
           <span class="evento-nuevo">Invita LHS</span>
           <span class="evento-meta">Sábado 12 de diciembre · 7:00 PM</span>
